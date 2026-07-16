@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { searchAppStore } from "./catalog.js";
 import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
@@ -50,7 +51,7 @@ async function sendPublicFile(response, path, method) {
   return true;
 }
 
-export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore } = {}) {
+export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, appStoreSearch = searchAppStore } = {}) {
   return createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
@@ -59,6 +60,13 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       }
       if (request.method === "GET" && url.pathname === "/v1/sources") {
         return send(response, 200, await getSources());
+      }
+      if (request.method === "GET" && url.pathname === "/v1/catalog/app-store") {
+        const term = url.searchParams.get("term")?.trim() ?? "";
+        if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 App Store");
+        const country = (url.searchParams.get("country") ?? "us").trim().toLowerCase();
+        if (!/^[a-z]{2}$/.test(country)) throw new SourceValidationError("App Store 国家/地区代码应为两个字母");
+        return send(response, 200, await appStoreSearch({ term, country, limit: url.searchParams.get("limit") }));
       }
       if (request.method === "POST" && url.pathname === "/v1/sources") {
         return send(response, 201, await sourceRepository.create(await requestBody(request)));

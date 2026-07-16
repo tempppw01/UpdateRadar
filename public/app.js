@@ -22,6 +22,10 @@ const elements = {
   resetEditor: document.querySelector("#reset-editor"),
   cancelEdit: document.querySelector("#cancel-edit"),
   deleteSource: document.querySelector("#delete-source"),
+  appStoreSearchInput: document.querySelector("#app-store-search-input"),
+  appStoreSearchCountry: document.querySelector("#app-store-search-country"),
+  appStoreSearchButton: document.querySelector("#app-store-search-button"),
+  appStoreResults: document.querySelector("#app-store-results"),
   toast: document.querySelector("#toast"),
   template: document.querySelector("#event-template")
 };
@@ -140,6 +144,7 @@ function startNewEditor() {
   elements.editorMode.textContent = "新增数据源";
   elements.editorTitle.textContent = "开始监控新渠道";
   elements.deleteSource.hidden = true;
+  elements.appStoreResults.replaceChildren();
   showProviderFields();
 }
 
@@ -206,6 +211,86 @@ function sourcePayload() {
   };
 }
 
+function renderAppStoreResults(apps) {
+  elements.appStoreResults.replaceChildren();
+  if (!apps.length) {
+    const empty = document.createElement("p");
+    empty.className = "app-search-empty";
+    empty.textContent = "没有找到匹配的软件，请换一个名称或地区。";
+    elements.appStoreResults.append(empty);
+    return;
+  }
+  apps.forEach((app) => {
+    const result = document.createElement("article");
+    result.className = "app-result";
+    if (app.artworkUrl) {
+      const artwork = document.createElement("img");
+      artwork.src = app.artworkUrl;
+      artwork.alt = "";
+      artwork.referrerPolicy = "no-referrer";
+      result.append(artwork);
+    }
+    const detail = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = app.name;
+    const meta = document.createElement("span");
+    meta.textContent = `${app.developer} · v${app.version} · ${app.genre}`;
+    detail.append(name, meta);
+    const add = document.createElement("button");
+    add.type = "button";
+    add.textContent = "快捷加入";
+    add.addEventListener("click", () => addAppStoreSource(app, add));
+    result.append(detail, add);
+    elements.appStoreResults.append(result);
+  });
+}
+
+async function addAppStoreSource(app, button) {
+  const id = `app-store-${app.appId}`;
+  if (state.sources.some((source) => source.id === id)) {
+    showToast("该 App Store 软件已经在监控列表中", "error");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "加入中";
+  try {
+    await requestJson("/v1/sources", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, tags: ["app-store"] })
+    });
+    await load();
+    renderSettingsSources();
+    showToast(`已开始监控 ${app.name}`);
+    button.textContent = "已加入";
+  } catch (error) {
+    button.disabled = false;
+    button.textContent = "快捷加入";
+    showToast(`无法加入：${error.message}`, "error");
+  }
+}
+
+async function searchForAppStoreApps() {
+  const term = elements.appStoreSearchInput.value.trim();
+  if (term.length < 2) {
+    showToast("请至少输入两个字符来搜索 App Store", "error");
+    elements.appStoreSearchInput.focus();
+    return;
+  }
+  elements.appStoreSearchButton.disabled = true;
+  elements.appStoreSearchButton.textContent = "搜索中";
+  elements.appStoreResults.innerHTML = '<p class="app-search-empty">正在搜索 Apple 官方目录…</p>';
+  try {
+    const query = new URLSearchParams({ term, country: elements.appStoreSearchCountry.value });
+    renderAppStoreResults(await requestJson(`/v1/catalog/app-store?${query}`));
+  } catch (error) {
+    elements.appStoreResults.innerHTML = '<p class="app-search-empty">搜索暂时不可用，请稍后重试。</p>';
+    showToast(`搜索失败：${error.message}`, "error");
+  } finally {
+    elements.appStoreSearchButton.disabled = false;
+    elements.appStoreSearchButton.textContent = "搜索";
+  }
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const body = await response.json();
@@ -226,6 +311,10 @@ elements.closeSettings.addEventListener("click", () => elements.settingsDialog.c
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);
+elements.appStoreSearchButton.addEventListener("click", searchForAppStoreApps);
+elements.appStoreSearchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchForAppStoreApps(); }
+});
 elements.sourceForm.elements.name.addEventListener("input", () => {
   const id = elements.sourceForm.elements.id;
   if (!state.editingSourceId && !id.dataset.touched) id.value = elements.sourceForm.elements.name.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
