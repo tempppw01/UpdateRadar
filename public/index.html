@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10232e">
+    <title>UpdateRadar | 全网更新雷达</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="UpdateRadar 首页">
+          <span class="brand-mark"><i></i><i></i><i></i></span>
+          <span>UPDATE<br>RADAR</span>
+        </a>
+        <div class="topbar-actions">
+          <span class="live-state"><b></b> SYSTEM LIVE</span>
+          <button class="settings-button" id="settings-button" type="button">设置</button>
+          <button class="sync-button" id="sync-button" type="button">
+            <span aria-hidden="true">↻</span> 立即同步
+          </button>
+        </div>
+      </header>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">INTELLIGENCE / 01</p>
+          <h1 id="page-title">更新不该<br><em>后知后觉。</em></h1>
+          <p class="intro">聚合开源组件、应用商店和 SaaS 官方日志。让每一次发布，都在你的雷达范围内。</p>
+        </div>
+        <div class="radar" aria-hidden="true">
+          <div class="radar-sweep"></div><span class="ping ping-one"></span><span class="ping ping-two"></span><span class="ping ping-three"></span>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="监控概览">
+        <article><p>已发现更新</p><strong id="event-count">--</strong><small>EVENTS TRACKED</small></article>
+        <article><p>启用数据源</p><strong id="source-count">--</strong><small>ACTIVE CHANNELS</small></article>
+        <article><p>覆盖类别</p><strong id="tag-count">--</strong><small>TECH DOMAINS</small></article>
+        <article class="last-sync"><p>最后同步</p><strong id="last-sync">读取中</strong><small>LOCAL EVENT STORE</small></article>
+      </section>
+
+      <section class="radar-board" aria-label="更新雷达">
+        <div class="section-heading">
+          <div><p class="eyebrow">SIGNAL FEED / 02</p><h2>最新情报</h2></div>
+          <p class="results-count" id="results-count"></p>
+        </div>
+
+        <div class="filters" aria-label="筛选更新">
+          <div class="tag-filters" id="tag-filters"></div>
+          <label class="source-filter">来源
+            <select id="source-filter"><option value="">所有来源</option></select>
+          </label>
+        </div>
+
+        <div class="timeline" id="event-list" aria-live="polite">
+          <div class="loading">正在捕获雷达信号…</div>
+        </div>
+      </section>
+
+      <section class="sources-section" aria-labelledby="sources-heading">
+        <div class="section-heading">
+          <div><p class="eyebrow">WATCHLIST / 03</p><h2 id="sources-heading">监控矩阵</h2></div>
+          <button class="manage-button" id="manage-sources" type="button">管理数据源 <span>→</span></button>
+        </div>
+        <div class="source-grid" id="source-list"></div>
+      </section>
+    </main>
+    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-shell">
+        <header class="settings-header"><div><p class="eyebrow">CONFIGURATION / 04</p><h2 id="settings-title">数据源设置</h2></div><button class="icon-button" id="close-settings" type="button" aria-label="关闭设置">×</button></header>
+        <div class="settings-grid">
+          <section class="saved-sources" aria-label="已配置数据源"><div class="settings-label">已配置来源</div><div id="settings-source-list"></div></section>
+          <section class="editor-pane">
+            <div class="editor-heading"><div><p class="settings-label" id="editor-mode">新增数据源</p><h3 id="editor-title">开始监控新渠道</h3></div><button class="text-button" id="reset-editor" type="button">清空表单</button></div>
+            <form id="source-form">
+              <div class="form-grid">
+                <label>显示名称<input name="name" required placeholder="例如 Node.js"></label>
+                <label>唯一 ID<input name="id" required pattern="[a-z0-9][a-z0-9-]{0,62}" placeholder="例如 nodejs"></label>
+                <label>数据源类型<select name="kind" id="source-kind"><option value="github-releases">GitHub Releases</option><option value="rss">RSS / Atom</option><option value="app-store">App Store</option><option value="google-play">Google Play</option></select></label>
+                <label>标签<input name="tags" placeholder="runtime, opensource"></label>
+              </div>
+              <div class="provider-fields" data-kind="github-releases"><div class="form-grid"><label>GitHub Owner<input name="owner" placeholder="nodejs"></label><label>GitHub Repository<input name="repo" placeholder="node"></label></div><label class="check-field"><input name="includePrereleases" type="checkbox"> 包含预发布版本</label></div>
+              <div class="provider-fields" data-kind="rss" hidden><label>官方 RSS / Atom 地址<input name="feedUrl" type="url" placeholder="https://example.com/changelog/feed.xml"></label></div>
+              <div class="provider-fields" data-kind="app-store" hidden><div class="form-grid"><label>App Store 应用 ID<input name="appId" inputmode="numeric" placeholder="例如 535886823"></label><label>商店国家/地区<input name="country" maxlength="2" placeholder="us"></label></div></div>
+              <div class="provider-fields" data-kind="google-play" hidden><div class="form-grid"><label>Google Play 包名<input name="packageId" placeholder="com.example.app"></label><label>商店国家/地区<input name="country" maxlength="2" placeholder="US"></label><label>语言<input name="language" maxlength="5" placeholder="en"></label></div></div>
+              <label class="check-field enabled-field"><input name="enabled" type="checkbox" checked> 立即启用此数据源</label>
+              <div class="form-actions"><button class="delete-button" id="delete-source" type="button" hidden>删除来源</button><button class="text-button" id="cancel-edit" type="button">取消</button><button class="save-button" type="submit">保存数据源</button></div>
+            </form>
+          </section>
+        </div>
+      </div>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <template id="event-template">
+      <article class="event-card">
+        <div class="event-rail"><span></span></div>
+        <div class="event-main">
+          <div class="event-meta"><span class="event-source"></span><time></time></div>
+          <h3></h3><p class="event-summary"></p>
+          <div class="event-tags"></div>
+        </div>
+        <a class="event-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a>
+      </article>
+    </template>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
