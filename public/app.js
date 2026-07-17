@@ -125,6 +125,12 @@ function eventHeading(event) {
   return event.version ? `${event.sourceName} / ${event.version}` : event.title;
 }
 
+function storeRegion(value) {
+  const country = String(value || "").toUpperCase();
+  const labels = { CN: "中国大陆", US: "美国", JP: "日本", GB: "英国", HK: "中国香港", TW: "中国台湾", KR: "韩国", SG: "新加坡", CA: "加拿大", AU: "澳大利亚" };
+  return labels[country] || country;
+}
+
 function formatBytes(value) {
   if (!Number.isFinite(value) || value < 1) return "";
   const units = ["B", "KB", "MB", "GB"];
@@ -167,7 +173,8 @@ function openEventDetails(event) {
   state.activeEvent = event;
   state.activeTranslation = "";
   elements.eventDialogTitle.textContent = eventHeading(event);
-  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"} · ${dateFormat.format(new Date(event.publishedAt))}`;
+  const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
+  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
   elements.eventDialogLink.href = event.url;
   renderEventDialogText("original");
   elements.translationViewToggle.hidden = true;
@@ -267,6 +274,11 @@ function renderEvents() {
       const version = document.createElement("span");
       version.textContent = `版本 ${event.version}`;
       details.append(version);
+    }
+    if (event.sourceKind === "app-store" && event.metadata?.store) {
+      const region = document.createElement("span");
+      region.textContent = `App Store ${storeRegion(event.metadata.store)}`;
+      details.append(region);
     }
     if (event.metadata?.inAppPurchase?.price) {
       const purchase = document.createElement("span");
