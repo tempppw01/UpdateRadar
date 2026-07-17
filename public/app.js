@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null };
+const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -38,6 +38,7 @@ const elements = {
   resetEditor: document.querySelector("#reset-editor"),
   cancelEdit: document.querySelector("#cancel-edit"),
   deleteSource: document.querySelector("#delete-source"),
+  sourceSaveStatus: document.querySelector("#source-save-status"),
   appStoreSearchInput: document.querySelector("#app-store-search-input"),
   appStoreSearchCountry: document.querySelector("#app-store-search-country"),
   appStoreSearchButton: document.querySelector("#app-store-search-button"),
@@ -638,8 +639,64 @@ function showProviderFields() {
   document.querySelectorAll(".provider-fields").forEach((fields) => { fields.hidden = !fields.dataset.kind.split(" ").includes(kind); });
 }
 
+function setSourceSaveStatus(message, stateName = "") {
+  elements.sourceSaveStatus.textContent = message;
+  elements.sourceSaveStatus.dataset.state = stateName;
+}
+
+function cancelSourceAutoSave() {
+  window.clearTimeout(state.sourceAutoSaveTimer);
+  state.sourceAutoSaveTimer = null;
+  state.sourceEditorSession += 1;
+}
+
+function scheduleSourceAutoSave() {
+  if (!state.editingSourceId) return;
+  window.clearTimeout(state.sourceAutoSaveTimer);
+  const sourceId = state.editingSourceId;
+  const session = state.sourceEditorSession;
+  const version = ++state.sourceChangeVersion;
+  setSourceSaveStatus("将在停止输入后自动保存", "pending");
+  state.sourceAutoSaveTimer = window.setTimeout(() => autoSaveEditedSource(sourceId, session, version), 800);
+}
+
+async function autoSaveEditedSource(sourceId, session, version) {
+  if (state.sourceAutoSaveInFlight) return;
+  if (state.editingSourceId !== sourceId || state.sourceEditorSession !== session) return;
+  if (!elements.sourceForm.checkValidity()) {
+    setSourceSaveStatus("待补全必填项后自动保存", "pending");
+    return;
+  }
+  state.sourceAutoSaveInFlight = true;
+  const payload = sourcePayload();
+  setSourceSaveStatus("正在自动保存…", "saving");
+  try {
+    const save = requestJson(`/v1/sources/${sourceId}`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+    });
+    state.sourceAutoSavePromise = save;
+    await save;
+    if (state.editingSourceId !== sourceId || state.sourceEditorSession !== session) return;
+    await load();
+    if (state.editingSourceId !== sourceId || state.sourceEditorSession !== session) return;
+    elements.editorTitle.textContent = payload.name;
+    renderSettingsSources();
+    setSourceSaveStatus("已自动保存", "saved");
+  } catch {
+    if (state.editingSourceId === sourceId && state.sourceEditorSession === session) setSourceSaveStatus("自动保存未完成，请补全后重试", "error");
+  } finally {
+    state.sourceAutoSaveInFlight = false;
+    state.sourceAutoSavePromise = null;
+    if (state.editingSourceId === sourceId && state.sourceEditorSession === session && state.sourceChangeVersion > version) {
+      state.sourceAutoSaveTimer = window.setTimeout(() => autoSaveEditedSource(sourceId, session, state.sourceChangeVersion), 0);
+    }
+  }
+}
+
 function startNewEditor() {
+  cancelSourceAutoSave();
   state.editingSourceId = null;
+  state.sourceChangeVersion = 0;
   elements.sourceForm.reset();
   elements.sourceForm.elements.enabled.checked = true;
   elements.sourceForm.elements.id.readOnly = false;
@@ -647,6 +704,8 @@ function startNewEditor() {
   elements.editorMode.textContent = "新增数据源";
   elements.editorTitle.textContent = "开始监控新渠道";
   elements.deleteSource.hidden = true;
+  elements.sourceForm.querySelector('[type="submit"]').textContent = "保存数据源";
+  setSourceSaveStatus("新增数据源需填写完成后保存", "pending");
   elements.appStoreResults.replaceChildren();
   elements.githubRepositoryResults.replaceChildren();
   elements.dockerHubResults.replaceChildren();
@@ -657,7 +716,9 @@ function startNewEditor() {
 }
 
 function editSource(source) {
+  cancelSourceAutoSave();
   state.editingSourceId = source.id;
+  state.sourceChangeVersion = 0;
   elements.sourceForm.reset();
   for (const [key, value] of Object.entries(source)) {
     const field = elements.sourceForm.querySelector(`[name="${key}"]`);
@@ -677,6 +738,8 @@ function editSource(source) {
   elements.editorMode.textContent = `编辑 / ${source.id}`;
   elements.editorTitle.textContent = source.name;
   elements.deleteSource.hidden = false;
+  elements.sourceForm.querySelector('[type="submit"]').textContent = "立即保存";
+  setSourceSaveStatus("自动保存已开启", "saved");
 }
 
 function renderSettingsSources() {
@@ -850,6 +913,7 @@ function useGithubRepository(repository) {
   if (!state.editingSourceId) form.name.dispatchEvent(new Event("input"));
   elements.githubRepositoryResults.replaceChildren();
   elements.githubRepositoryInput.value = `https://github.com/${repository.owner}/${repository.repo}`;
+  scheduleSourceAutoSave();
   showToast(`已填入 ${repository.owner}/${repository.repo}`);
 }
 
@@ -1052,6 +1116,7 @@ function applyOfficialWebsiteTemplate() {
     if (field) field.value = value;
   });
   elements.sourceForm.elements.id.dataset.touched = "true";
+  scheduleSourceAutoSave();
   showToast("官网监控模板已填入，可按需调整后保存");
 }
 
@@ -1203,6 +1268,12 @@ elements.viewTranslated.addEventListener("click", () => renderEventDialogText("t
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);
+elements.sourceForm.addEventListener("input", (event) => {
+  if (event.target.name) scheduleSourceAutoSave();
+});
+elements.sourceForm.addEventListener("change", (event) => {
+  if (event.target.name) scheduleSourceAutoSave();
+});
 elements.appStoreSearchButton.addEventListener("click", searchForAppStoreApps);
 elements.githubRepositorySearch.addEventListener("click", searchGithubRepositories);
 elements.dockerHubSearchButton.addEventListener("click", searchDockerHub);
@@ -1236,14 +1307,32 @@ elements.sourceForm.elements.id.addEventListener("input", () => { elements.sourc
 elements.sourceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const isEditing = Boolean(state.editingSourceId);
+  const sourceId = state.editingSourceId;
+  cancelSourceAutoSave();
+  if (!elements.sourceForm.checkValidity()) {
+    elements.sourceForm.reportValidity();
+    return;
+  }
+  if (isEditing) setSourceSaveStatus("正在保存…", "saving");
   try {
-    await requestJson(isEditing ? `/v1/sources/${state.editingSourceId}` : "/v1/sources", {
-      method: isEditing ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(sourcePayload())
+    if (state.sourceAutoSavePromise) await state.sourceAutoSavePromise.catch(() => undefined);
+    const payload = sourcePayload();
+    await requestJson(isEditing ? `/v1/sources/${sourceId}` : "/v1/sources", {
+      method: isEditing ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
     });
     await load();
-    showToast(isEditing ? "数据源设置已保存" : "数据源已加入监控列表");
-    startNewEditor(); renderSettingsSources();
-  } catch (error) { showToast(`无法保存：${error.message}`, "error"); }
+    if (isEditing) {
+      elements.editorTitle.textContent = payload.name;
+      renderSettingsSources();
+      setSourceSaveStatus("已保存", "saved");
+    } else {
+      showToast("数据源已加入监控列表");
+      startNewEditor(); renderSettingsSources();
+    }
+  } catch (error) {
+    if (isEditing) setSourceSaveStatus("保存未完成，请检查设置", "error");
+    else showToast(`无法保存：${error.message}`, "error");
+  }
 });
 elements.deleteSource.addEventListener("click", async () => {
   const source = state.sources.find((item) => item.id === state.editingSourceId);
