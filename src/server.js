@@ -38,7 +38,8 @@ async function requestBody(request) {
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
-  ".html": "text/html; charset=utf-8"
+  ".html": "text/html; charset=utf-8",
+  ".svg": "image/svg+xml"
 };
 
 async function sendPublicFile(response, path, method) {
