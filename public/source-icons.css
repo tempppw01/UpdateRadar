@@ -53,6 +53,12 @@ html[data-theme="dark"] .editor-pane input,html[data-theme="dark"] .editor-pane 
 html[data-theme="dark"] .app-store-search,html[data-theme="dark"] .github-search { background: linear-gradient(135deg,rgba(198,241,53,.13),rgba(23,50,61,.7)); }
 html[data-theme="dark"] .saved-source-button:hover { background: #22424c; }
 html[data-theme="dark"] .event-translation { background: #27412f; }
+html[data-theme="dark"] .eyebrow,html[data-theme="dark"] .event-meta,html[data-theme="dark"] .event-summary,html[data-theme="dark"] .source-kind,html[data-theme="dark"] .source-card p,html[data-theme="dark"] .results-count { color: #a8c1bd; }
+html[data-theme="dark"] .event-details span,html[data-theme="dark"] .event-tags span,html[data-theme="dark"] .source-tags span { background: #28444d; color: #f0f7f5; }
+html[data-theme="dark"] .tag-filters button,html[data-theme="dark"] .source-filter { color: #b4cbc7; }
+html[data-theme="dark"] .tag-filters button.active { color: #10232e; }
+html[data-theme="dark"] .event-link { color: #f0f7f5; border-color: #f0f7f5; }
+html[data-theme="dark"] .event-link:hover { color: var(--lime); border-color: var(--lime); }
 .new-source-button { border: 1px solid var(--ink); background: var(--lime); color: var(--ink); padding: 9px 11px; font: 500 10px var(--mono); letter-spacing: .04em; }
 .new-source-button:hover { background: var(--coral); }
 .event-detail-button:hover,.translate-button:hover,.download-button:hover { background: var(--lime); }
