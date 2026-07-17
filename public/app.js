@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", search: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null };
+const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -8,6 +8,7 @@ const elements = {
   eventSearch: document.querySelector("#event-search"),
   sourceFilter: document.querySelector("#source-filter"),
   eventList: document.querySelector("#event-list"),
+  eventPagination: document.querySelector("#event-pagination"),
   sourceList: document.querySelector("#source-list"),
   sourcePagination: document.querySelector("#source-pagination"),
   sourceSort: document.querySelector("#source-sort"),
@@ -359,7 +360,7 @@ function renderFilters() {
     const categoryCount = document.createElement("small");
     categoryCount.textContent = String(count);
     button.append(categoryIcon, categoryLabel, categoryCount);
-    button.addEventListener("click", () => { state.tag = value; renderFilters(); renderEvents(); });
+    button.addEventListener("click", () => { state.tag = value; state.eventPage = 1; renderFilters(); renderEvents(); });
     elements.tagFilters.append(button);
   });
 
@@ -405,10 +406,33 @@ function openCardContextMenu(source, event) {
   elements.cardContextMenu.style.top = `${Math.max(12, top)}px`;
 }
 
+function renderEventPagination(pageCount, groupCount) {
+  elements.eventPagination.replaceChildren();
+  if (pageCount <= 1) return;
+  const previous = document.createElement("button");
+  previous.type = "button";
+  previous.textContent = "← 上一页";
+  previous.disabled = state.eventPage === 1;
+  previous.addEventListener("click", () => { state.eventPage -= 1; renderEvents(); });
+  const status = document.createElement("span");
+  status.textContent = `第 ${state.eventPage} / ${pageCount} 页 · ${groupCount} 个监控项目`;
+  const next = document.createElement("button");
+  next.type = "button";
+  next.textContent = "下一页 →";
+  next.disabled = state.eventPage === pageCount;
+  next.addEventListener("click", () => { state.eventPage += 1; renderEvents(); });
+  elements.eventPagination.append(previous, status, next);
+}
+
+function eventDisplayTags(event) {
+  return [...new Set(event.tags ?? [])].filter((tag) => tag && tag !== event.sourceKind && !detailOnlyTags.has(tag));
+}
+
 function renderEvents() {
   const events = state.events.filter((event) => (!state.tag || eventCategories(event).includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
   elements.eventList.replaceChildren();
+  elements.eventPagination.replaceChildren();
   if (!events.length) {
     elements.eventList.innerHTML = '<div class="empty">这个筛选条件下尚未发现更新。尝试切换来源或标签。</div>';
     return;
@@ -419,7 +443,13 @@ function renderEvents() {
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(event);
   });
-  groups.forEach((sourceEvents, sourceId) => {
+  const groupEntries = [...groups.entries()];
+  const pageSize = 10;
+  const pageCount = Math.max(1, Math.ceil(groupEntries.length / pageSize));
+  state.eventPage = Math.min(state.eventPage, pageCount);
+  const pageGroups = groupEntries.slice((state.eventPage - 1) * pageSize, state.eventPage * pageSize);
+  if (pageCount > 1) elements.resultsCount.textContent += ` · PAGE ${state.eventPage}/${pageCount}`;
+  pageGroups.forEach(([sourceId, sourceEvents]) => {
     const expanded = state.expandedEventSourceIds.has(sourceId);
     const visibleEvents = expanded ? sourceEvents : sourceEvents.slice(0, 1);
     const group = document.createElement("section");
@@ -490,11 +520,13 @@ function renderEvents() {
     const link = card.querySelector(".event-link");
     link.href = event.url;
     if (index === 0 && sourceEvents.length > 1) card.querySelector(".event-card-actions").prepend(groupToggle(sourceEvents, sourceId, expanded));
-    eventCategories(event).forEach((tag) => {
+    const eventTags = card.querySelector(".event-tags");
+    eventDisplayTags(event).forEach((tag) => {
       const pill = document.createElement("span");
       pill.textContent = categoryLabel(tag);
-      card.querySelector(".event-tags").append(pill);
+      eventTags.append(pill);
     });
+    if (!eventTags.childElementCount) eventTags.remove();
     const assets = releaseAssets(event);
     if (assets.length) {
       const downloads = document.createElement("details");
@@ -511,6 +543,7 @@ function renderEvents() {
     });
     elements.eventList.append(group);
   });
+  renderEventPagination(pageCount, groupEntries.length);
 }
 
 function renderSources() {
@@ -984,8 +1017,8 @@ async function load() {
   renderMetrics(); renderFilters(); renderEvents(); renderSources();
 }
 
-elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
-elements.eventSearch.addEventListener("input", (event) => { state.search = event.target.value; renderEvents(); });
+elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; state.eventPage = 1; renderEvents(); });
+elements.eventSearch.addEventListener("input", (event) => { state.search = event.target.value; state.eventPage = 1; renderEvents(); });
 document.addEventListener("click", (event) => {
   if (!elements.cardContextMenu.hidden && !elements.cardContextMenu.contains(event.target)) closeCardContextMenu();
 });
