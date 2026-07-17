@@ -605,6 +605,13 @@ elements.themeToggle.addEventListener("click", () => {
   applyTheme(theme);
 });
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
+elements.settingsDialog.addEventListener("click", (event) => {
+  const bounds = elements.settingsDialog.getBoundingClientRect();
+  const clickedBackdrop = event.target === elements.settingsDialog && (
+    event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom
+  );
+  if (clickedBackdrop) elements.settingsDialog.close();
+});
 elements.exportBackup.addEventListener("click", exportBackup);
 elements.importBackup.addEventListener("click", () => elements.backupFile.click());
 elements.backupFile.addEventListener("change", async () => {
