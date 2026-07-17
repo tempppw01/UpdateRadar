@@ -1,6 +1,15 @@
 import { fetchText } from "../lib/http.js";
 import { fetchInAppPurchase } from "./app-store-purchase.js";
 
+function appPrice(app, country) {
+  const numericPrice = Number(app.price);
+  const formattedPrice = String(app.formattedPrice ?? "").trim();
+  const price = numericPrice === 0 || /^(free|免费)$/i.test(formattedPrice)
+    ? "免费"
+    : formattedPrice || (Number.isFinite(numericPrice) ? `${app.currency || ""} ${numericPrice}`.trim() : "");
+  return price ? { price, country, currency: app.currency || "" } : null;
+}
+
 export async function collectAppStore(source, dependencies = { fetchText }) {
   const country = source.country ?? "us";
   const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(source.appId)}&country=${encodeURIComponent(country)}`;
@@ -8,6 +17,7 @@ export async function collectAppStore(source, dependencies = { fetchText }) {
   const app = payload.results?.[0];
   if (!app) return [];
   const inAppPurchase = await fetchInAppPurchase(source, app, dependencies);
+  const storePrice = appPrice(app, country);
 
   return [{
     externalId: `${app.trackId}:${app.version}${inAppPurchase ? `:${inAppPurchase.fingerprint}` : ""}`,
@@ -19,6 +29,7 @@ export async function collectAppStore(source, dependencies = { fetchText }) {
     metadata: {
       bundleId: app.bundleId, artist: app.artistName, store: country,
       artworkUrl: app.artworkUrl512 || app.artworkUrl100 || app.artworkUrl60 || "",
+      storePrice,
       inAppPurchase
     }
   }];

@@ -38,7 +38,7 @@ test("GitHub commit collector normalizes recent commits", async () => {
 test("Apple App Store collector adds official in-app purchase data to the application update", async () => {
   const source = { id: "chatgpt", name: "ChatGPT", appId: "6448311069", subscriptionId: "chatgpt-plus", country: "us" };
   const lookup = { results: [{
-    trackId: 6448311069, trackName: "ChatGPT", version: "1.2.3", trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069?uo=4",
+    trackId: 6448311069, trackName: "ChatGPT", version: "1.2.3", trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069?uo=4", price: 0, formattedPrice: "Free",
     currentVersionReleaseDate: "2026-01-02T00:00:00Z", artworkUrl100: "https://example.test/icon.jpg"
   }] };
   const page = JSON.stringify({ addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] });
@@ -47,6 +47,7 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   assert.match(update.externalId, /^6448311069:1\.2\.3:[a-f0-9]{16}$/);
   assert.equal(update.version, "1.2.3");
   assert.equal(update.metadata.inAppPurchase.price, "$19.99");
+  assert.deepEqual(update.metadata.storePrice, { price: "免费", country: "us", currency: "" });
   assert.equal(update.metadata.artworkUrl, "https://example.test/icon.jpg");
 });
 

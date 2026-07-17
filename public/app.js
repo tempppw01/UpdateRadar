@@ -261,9 +261,15 @@ function openEventDetails(event) {
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
   elements.eventDialogDetails.replaceChildren();
   const purchase = event.metadata?.inAppPurchase;
+  const storePrice = event.metadata?.storePrice;
+  if (storePrice?.price) {
+    const price = document.createElement("span");
+    price.textContent = `App Store 售价 · ${storePrice.price}${storePrice.country ? ` · ${storeRegion(storePrice.country)}` : ""}`;
+    elements.eventDialogDetails.append(price);
+  }
   if (purchase?.price) {
     const price = document.createElement("span");
-    price.textContent = `App Store 内购 · ${purchase.name || "未命名套餐"} · ${purchase.price}${purchase.country ? ` · ${storeRegion(purchase.country)}` : ""}`;
+    price.textContent = `App Store 内购价格 · ${purchase.name || "未命名套餐"} · ${purchase.price}${purchase.country ? ` · ${storeRegion(purchase.country)}` : ""}`;
     elements.eventDialogDetails.append(price);
   }
   elements.eventDialogDetails.hidden = elements.eventDialogDetails.childElementCount === 0;
@@ -449,9 +455,14 @@ function renderEvents() {
       region.textContent = `App Store ${storeRegion(event.metadata.store)}`;
       details.append(region);
     }
+    if (event.metadata?.storePrice?.price) {
+      const price = document.createElement("span");
+      price.textContent = `售价 ${event.metadata.storePrice.price}`;
+      details.append(price);
+    }
     if (event.metadata?.inAppPurchase?.price) {
       const purchase = document.createElement("span");
-      purchase.textContent = `内购 ${event.metadata.inAppPurchase.name} · ${event.metadata.inAppPurchase.price}`;
+      purchase.textContent = `内购价格 ${event.metadata.inAppPurchase.name} · ${event.metadata.inAppPurchase.price}`;
       details.append(purchase);
     }
     if (details.childElementCount) card.querySelector(".event-tags").before(details);
