@@ -1,14 +1,14 @@
 [
   {
     "id": "app-store-333206289",
-    "name": "Alipay - Simplify Your Life",
+    "name": "支付宝-你的AI生活伙伴",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
     "appId": "333206289",
-    "country": "us",
+    "country": "cn",
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/43/97/bd/4397bdf2-1e8b-ee87-56b5-5ef4b0bf52f9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg"
   },
   {
@@ -58,7 +58,7 @@
       "app-store"
     ],
     "appId": "444934666",
-    "country": "us",
+    "country": "cn",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
@@ -96,14 +96,14 @@
   },
   {
     "id": "app-store-414478124",
-    "name": "WeChat",
+    "name": "微信",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
     "appId": "414478124",
-    "country": "us",
+    "country": "cn",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
@@ -156,14 +156,14 @@
   },
   {
     "id": "app-store-387682726",
-    "name": "Taobao - Online Shopping App",
+    "name": "淘宝-万能的淘宝！",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
     "appId": "387682726",
-    "country": "us",
+    "country": "cn",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
@@ -182,5 +182,27 @@
     "repo": "new-api",
     "branch": "dev",
     "cooldownMinutes": 15
+  },
+  {
+    "id": "app-store-1142110895",
+    "name": "抖音",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "1142110895",
+    "country": "cn"
+  },
+  {
+    "id": "app-store-440948110",
+    "name": "快手",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "440948110",
+    "country": "cn"
   }
 ]
