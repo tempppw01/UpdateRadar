@@ -48,6 +48,14 @@
 .theme-toggle { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); letter-spacing: .04em; }
 .signal-heading-title { display: flex; align-items: end; gap: 18px; }
 .signal-heading-title .sync-button { margin-bottom: 1px; }
+.source-grid { display: block!important; border-top: 1px solid var(--ink); }
+.source-card.source-row { display: grid; grid-template-columns: 200px minmax(150px,1fr) 130px minmax(180px,1.4fr); gap: 18px; align-items: center; min-height: 0; padding: 15px 17px; border: 0; border-bottom: 1px solid var(--line); background: transparent; }
+.source-card.source-row:hover { transform: none; box-shadow: inset 4px 0 0 var(--lime); }
+.source-row > div:first-child { display: flex; justify-content: space-between; font: 500 9px var(--mono); letter-spacing: .06em; }
+.source-row .source-provider img { width: 24px; height: 24px; border-radius: 6px; }.source-row h3 { margin: 0; font-size: 17px; }.source-row p { margin: 0; }.source-row .source-tags { margin: 0; }
+.source-pagination { display: flex; justify-content: end; align-items: center; gap: 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
+.source-pagination button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }.source-pagination button:hover { background: var(--lime); color: #10232e; }.source-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+html[data-theme="dark"] .source-card.source-row { background: transparent; }.source-pagination { color: #a8c1bd; }
 .theme-toggle:hover { background: var(--lime); color: #10232e; }
 html[data-theme="dark"] body { background: radial-gradient(circle at 93% 2%,rgba(198,241,53,.13),transparent 23rem),linear-gradient(90deg,rgba(237,244,237,.045) 1px,transparent 1px),linear-gradient(rgba(237,244,237,.045) 1px,transparent 1px),var(--paper); }
 html[data-theme="dark"] .source-card,html[data-theme="dark"] .settings-dialog,html[data-theme="dark"] .event-dialog { background: #17323d; }
@@ -109,3 +117,4 @@ html[data-theme="dark"] .event-link:hover { color: var(--lime); border-color: va
 .event-assets h3 { margin: 0; font-size: 16px; }
 @media (max-width: 720px) { .event-card-actions { grid-column: 2; align-items: start; flex-direction: row; } .event-card.event-with-app-icon .event-card-actions { grid-column: 3; } .event-dialog-shell { padding: 19px; } }
 @media (max-width: 720px) { .signal-heading-title { align-items: start; flex-direction: column; gap: 12px; } }
+@media (max-width: 720px) { .source-card.source-row { grid-template-columns: 1fr auto; gap: 8px; }.source-row h3 { grid-column: 1; }.source-row p { grid-column: 2; grid-row: 2; }.source-row .source-tags { grid-column: 1 / -1; }.source-row > div:first-child { grid-column: 1 / -1; }.source-pagination { justify-content: center; } }

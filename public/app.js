@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -8,6 +8,7 @@ const elements = {
   sourceFilter: document.querySelector("#source-filter"),
   eventList: document.querySelector("#event-list"),
   sourceList: document.querySelector("#source-list"),
+  sourcePagination: document.querySelector("#source-pagination"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   themeToggle: document.querySelector("#theme-toggle"),
@@ -295,15 +296,18 @@ function renderEvents() {
 
 function renderSources() {
   elements.sourceList.replaceChildren();
-  state.sources.forEach((source) => {
-    const eventTotal = state.events.filter((event) => event.sourceId === source.id).length;
-    if (!eventTotal) return;
+  const sources = state.sources.map((source) => ({ source, eventTotal: state.events.filter((event) => event.sourceId === source.id).length })).filter(({ eventTotal }) => eventTotal);
+  const pageSize = 5;
+  const pageCount = Math.max(1, Math.ceil(sources.length / pageSize));
+  state.sourcePage = Math.min(state.sourcePage, pageCount);
+  const start = (state.sourcePage - 1) * pageSize;
+  sources.slice(start, start + pageSize).forEach(({ source, eventTotal }) => {
     const card = document.createElement("article");
-    card.className = `source-card ${source.enabled ? "" : "paused"}`;
+    card.className = `source-card source-row ${source.enabled ? "" : "paused"}`;
     const header = document.createElement("div");
     const provider = document.createElement("span");
     provider.className = "source-provider";
-    const icon = sourceIcons[source.kind];
+    const icon = source.artworkUrl ? { name: source.name, url: source.artworkUrl } : sourceIcons[source.kind];
     if (icon) {
       const image = document.createElement("img");
       image.src = icon.url;
@@ -330,6 +334,18 @@ function renderSources() {
     card.append(header, name, count, tags);
     elements.sourceList.append(card);
   });
+  elements.sourcePagination.replaceChildren();
+  if (sources.length > pageSize) {
+    const previous = document.createElement("button");
+    previous.type = "button"; previous.textContent = "← 上一页"; previous.disabled = state.sourcePage === 1;
+    previous.addEventListener("click", () => { state.sourcePage -= 1; renderSources(); });
+    const status = document.createElement("span");
+    status.textContent = `第 ${state.sourcePage} / ${pageCount} 页`;
+    const next = document.createElement("button");
+    next.type = "button"; next.textContent = "下一页 →"; next.disabled = state.sourcePage === pageCount;
+    next.addEventListener("click", () => { state.sourcePage += 1; renderSources(); });
+    elements.sourcePagination.append(previous, status, next);
+  }
 }
 
 function showProviderFields() {
