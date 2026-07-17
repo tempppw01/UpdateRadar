@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -264,7 +264,18 @@ function renderEvents() {
     elements.eventList.innerHTML = '<div class="empty">这个筛选条件下尚未发现更新。尝试切换来源或标签。</div>';
     return;
   }
+  const groups = new Map();
   events.forEach((event) => {
+    const key = event.sourceId || event.sourceName;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(event);
+  });
+  groups.forEach((sourceEvents, sourceId) => {
+    const expanded = state.expandedEventSourceIds.has(sourceId);
+    const visibleEvents = expanded ? sourceEvents : sourceEvents.slice(0, 1);
+    const group = document.createElement("section");
+    group.className = `event-source-group ${expanded ? "expanded" : "collapsed"}`;
+    visibleEvents.forEach((event) => {
     const card = elements.template.content.cloneNode(true);
     const article = card.querySelector(".event-card");
     const appIcon = card.querySelector(".event-app-icon");
@@ -339,7 +350,22 @@ function renderEvents() {
       downloads.append(summary, list);
       card.querySelector(".event-main").append(downloads);
     }
-    elements.eventList.append(card);
+    group.append(card);
+    });
+    if (sourceEvents.length > 1) {
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "event-group-toggle";
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.textContent = expanded ? `收起 ${sourceEvents.length - 1} 条 ${sourceEvents[0].sourceName} 历史更新` : `展开 ${sourceEvents.length - 1} 条 ${sourceEvents[0].sourceName} 历史更新`;
+      toggle.addEventListener("click", () => {
+        if (state.expandedEventSourceIds.has(sourceId)) state.expandedEventSourceIds.delete(sourceId);
+        else state.expandedEventSourceIds.add(sourceId);
+        renderEvents();
+      });
+      group.append(toggle);
+    }
+    elements.eventList.append(group);
   });
 }
 
