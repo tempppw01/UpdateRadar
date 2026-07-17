@@ -357,6 +357,20 @@ function matchesEventSearch(event) {
     .some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
 }
 
+function groupToggle(sourceEvents, sourceId, expanded) {
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "event-group-toggle";
+  toggle.setAttribute("aria-expanded", String(expanded));
+  toggle.textContent = expanded ? `收起 ${sourceEvents.length - 1} 条历史更新` : `展开 ${sourceEvents.length - 1} 条历史更新`;
+  toggle.addEventListener("click", () => {
+    if (state.expandedEventSourceIds.has(sourceId)) state.expandedEventSourceIds.delete(sourceId);
+    else state.expandedEventSourceIds.add(sourceId);
+    renderEvents();
+  });
+  return toggle;
+}
+
 function renderEvents() {
   const events = state.events.filter((event) => (!state.tag || eventCategories(event).includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
@@ -376,7 +390,7 @@ function renderEvents() {
     const visibleEvents = expanded ? sourceEvents : sourceEvents.slice(0, 1);
     const group = document.createElement("section");
     group.className = `event-source-group ${expanded ? "expanded" : "collapsed"}`;
-    visibleEvents.forEach((event) => {
+    visibleEvents.forEach((event, index) => {
     const card = elements.template.content.cloneNode(true);
     const article = card.querySelector(".event-card");
     const appIcon = card.querySelector(".event-app-icon");
@@ -434,6 +448,7 @@ function renderEvents() {
     if (details.childElementCount) card.querySelector(".event-tags").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
+    if (index === 0 && sourceEvents.length > 1) card.querySelector(".event-card-actions").prepend(groupToggle(sourceEvents, sourceId, expanded));
     eventCategories(event).forEach((tag) => {
       const pill = document.createElement("span");
       pill.textContent = categoryLabel(tag);
@@ -453,19 +468,6 @@ function renderEvents() {
     }
     group.append(card);
     });
-    if (sourceEvents.length > 1) {
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "event-group-toggle";
-      toggle.setAttribute("aria-expanded", String(expanded));
-      toggle.textContent = expanded ? `收起 ${sourceEvents.length - 1} 条 ${sourceEvents[0].sourceName} 历史更新` : `展开 ${sourceEvents.length - 1} 条 ${sourceEvents[0].sourceName} 历史更新`;
-      toggle.addEventListener("click", () => {
-        if (state.expandedEventSourceIds.has(sourceId)) state.expandedEventSourceIds.delete(sourceId);
-        else state.expandedEventSourceIds.add(sourceId);
-        renderEvents();
-      });
-      group.append(toggle);
-    }
     elements.eventList.append(group);
   });
 }
