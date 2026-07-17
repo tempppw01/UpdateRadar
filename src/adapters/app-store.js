@@ -1,4 +1,5 @@
 import { fetchText } from "../lib/http.js";
+import { fetchInAppPurchase } from "./app-store-purchase.js";
 
 export async function collectAppStore(source, dependencies = { fetchText }) {
   const country = source.country ?? "us";
@@ -6,14 +7,19 @@ export async function collectAppStore(source, dependencies = { fetchText }) {
   const payload = JSON.parse(await dependencies.fetchText(url));
   const app = payload.results?.[0];
   if (!app) return [];
+  const inAppPurchase = await fetchInAppPurchase(source, app, dependencies);
 
   return [{
-    externalId: `${app.trackId}:${app.version}`,
+    externalId: `${app.trackId}:${app.version}${inAppPurchase ? `:${inAppPurchase.fingerprint}` : ""}`,
     version: app.version,
     title: `${app.trackName} ${app.version}`,
-    url: app.trackViewUrl,
+    url: inAppPurchase?.url ?? app.trackViewUrl,
     publishedAt: app.currentVersionReleaseDate,
     summary: app.releaseNotes || "",
-    metadata: { bundleId: app.bundleId, artist: app.artistName, store: country }
+    metadata: {
+      bundleId: app.bundleId, artist: app.artistName, store: country,
+      artworkUrl: app.artworkUrl512 || app.artworkUrl100 || app.artworkUrl60 || "",
+      inAppPurchase
+    }
   }];
 }

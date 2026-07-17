@@ -9,3 +9,36 @@
   height: 13px;
   object-fit: contain;
 }
+
+.event-card.event-with-app-icon {
+  grid-template-columns: 35px 46px 1fr auto;
+}
+
+.event-app-icon img {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.event-details {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.event-details span {
+  padding: 3px 5px;
+  background: #e1ebd6;
+  color: var(--ink);
+  font: 500 9px var(--mono);
+  letter-spacing: .04em;
+}
+
+@media (max-width: 720px) {
+  .event-card.event-with-app-icon { grid-template-columns: 22px 40px 1fr; }
+  .event-card.event-with-app-icon .event-app-icon img { width: 36px; height: 36px; }
+  .event-card.event-with-app-icon .event-link { grid-column: 3; }
+}

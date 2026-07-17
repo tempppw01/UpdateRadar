@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "rss", "app-store", "app-store-price", "google-play"]);
+const kinds = new Set(["github-releases", "rss", "app-store", "google-play"]);
 
 export class SourceValidationError extends Error {}
 
@@ -46,13 +46,10 @@ export function normalizeSource(input, { id } = {}) {
   if (kind === "app-store") {
     source.appId = required(input.appId, "App Store 应用 ID");
     source.country = String(input.country || "us").trim().toLowerCase();
-  }
-  if (kind === "app-store-price") {
-    source.appId = required(input.appId, "App Store 应用 ID");
-    source.subscriptionId = required(input.subscriptionId, "订阅套餐 ID");
+    source.subscriptionId = String(input.subscriptionId || "").trim();
     source.planName = String(input.planName || "").trim();
-    source.country = String(input.country || "us").trim().toLowerCase();
     source.storefrontId = String(input.storefrontId || "").trim();
+    source.artworkUrl = String(input.artworkUrl || "").trim();
   }
   if (kind === "google-play") {
     source.packageId = required(input.packageId, "Google Play 包名");

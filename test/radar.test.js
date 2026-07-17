@@ -4,7 +4,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
-import { collectAppStorePrice } from "../src/adapters/app-store-price.js";
+import { collectAppStore } from "../src/adapters/app-store.js";
 import { pollAll } from "../src/radar.js";
 import { JsonEventStore } from "../src/store.js";
 
@@ -20,16 +20,19 @@ test("GitHub collector ignores draft and prerelease versions by default", async 
   assert.equal(updates[0].version, "v2.0.0");
 });
 
-test("Apple App Store collector fingerprints an official in-app purchase price", async () => {
-  const page = JSON.stringify({ storePlatformData: { "product-dv": { results: {
-    "6448311069": { addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] }
-  } } } });
-  const source = { id: "chatgpt-plus", name: "ChatGPT Plus 内购价格", appId: "6448311069", subscriptionId: "chatgpt-plus", country: "us" };
-  const responses = [JSON.stringify({ results: [{ trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069" }] }), page];
-  const [update] = await collectAppStorePrice(source, { fetchText: async () => responses.shift() });
-  assert.match(update.externalId, /^chatgpt-plus:us:[a-f0-9]{16}$/);
-  assert.equal(update.version, "$19.99");
-  assert.match(update.summary, /Apple App Store US/);
+test("Apple App Store collector adds official in-app purchase data to the application update", async () => {
+  const source = { id: "chatgpt", name: "ChatGPT", appId: "6448311069", subscriptionId: "chatgpt-plus", country: "us" };
+  const lookup = { results: [{
+    trackId: 6448311069, trackName: "ChatGPT", version: "1.2.3", trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069?uo=4",
+    currentVersionReleaseDate: "2026-01-02T00:00:00Z", artworkUrl100: "https://example.test/icon.jpg"
+  }] };
+  const page = JSON.stringify({ addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] });
+  const responses = [JSON.stringify(lookup), page];
+  const [update] = await collectAppStore(source, { fetchText: async () => responses.shift() });
+  assert.match(update.externalId, /^6448311069:1\.2\.3:[a-f0-9]{16}$/);
+  assert.equal(update.version, "1.2.3");
+  assert.equal(update.metadata.inAppPurchase.price, "$19.99");
+  assert.equal(update.metadata.artworkUrl, "https://example.test/icon.jpg");
 });
 
 test("polling records a new update only once", async () => {

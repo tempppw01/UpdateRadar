@@ -58,7 +58,8 @@
       "app-store"
     ],
     "appId": "333206289",
-    "country": "us"
+    "country": "us",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/43/97/bd/4397bdf2-1e8b-ee87-56b5-5ef4b0bf52f9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg"
   },
   {
     "id": "app-store-1210638245",
@@ -69,17 +70,19 @@
       "app-store"
     ],
     "appId": "1210638245",
-    "country": "us"
+    "country": "us",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/ff/e1/56ffe1e1-05ec-1058-858b-5bd004e01fc7/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg"
   },
   {
-    "id": "chatgpt-plus-price",
-    "name": "ChatGPT Plus App Store 内购价格（美国）",
-    "kind": "app-store-price",
+    "id": "app-store-6448311069",
+    "name": "ChatGPT",
+    "kind": "app-store",
     "enabled": true,
     "appId": "6448311069",
     "subscriptionId": "oai_chatgpt_plus_1999_1m",
     "planName": "ChatGPT Plus",
     "country": "us",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1b/b8/66/1bb86608-721f-bc92-5c02-1f2ddf30b055/AppIcon-0-0-1x_U007epad-0-0-0-1-0-P3-85-220.png/512x512bb.jpg",
     "tags": [
       "app-store",
       "in-app-purchase",

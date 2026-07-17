@@ -36,7 +36,6 @@ const sourceIcons = {
   "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
   rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
-  "app-store-price": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
   "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" }
 };
 
@@ -92,6 +91,21 @@ function renderEvents() {
   }
   events.forEach((event) => {
     const card = elements.template.content.cloneNode(true);
+    const article = card.querySelector(".event-card");
+    const appIcon = card.querySelector(".event-app-icon");
+    const source = state.sources.find((candidate) => candidate.id === event.sourceId);
+    const artworkUrl = event.metadata?.artworkUrl || source?.artworkUrl || "";
+    if (artworkUrl) {
+      article.classList.add("event-with-app-icon");
+      const image = document.createElement("img");
+      image.src = artworkUrl;
+      image.alt = "";
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => { article.classList.remove("event-with-app-icon"); appIcon.remove(); });
+      appIcon.append(image);
+    } else {
+      appIcon.remove();
+    }
     const eventSource = card.querySelector(".event-source");
     const sourceIcon = sourceIcons[event.sourceKind];
     if (sourceIcon) {
@@ -111,6 +125,19 @@ function renderEvents() {
     const summary = card.querySelector(".event-summary");
     summary.textContent = event.summary || "官方未提供本次更新说明。";
     summary.hidden = !event.summary;
+    const details = document.createElement("div");
+    details.className = "event-details";
+    if (event.version) {
+      const version = document.createElement("span");
+      version.textContent = `版本 ${event.version}`;
+      details.append(version);
+    }
+    if (event.metadata?.inAppPurchase?.price) {
+      const purchase = document.createElement("span");
+      purchase.textContent = `内购 ${event.metadata.inAppPurchase.name} · ${event.metadata.inAppPurchase.price}`;
+      details.append(purchase);
+    }
+    if (details.childElementCount) card.querySelector(".event-tags").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
     event.tags.forEach((tag) => {
@@ -287,7 +314,7 @@ async function addAppStoreSource(app, button) {
   try {
     await requestJson("/v1/sources", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, tags: ["app-store"] })
+      body: JSON.stringify({ id, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] })
     });
     await load();
     renderSettingsSources();
