@@ -23,13 +23,13 @@ function articleUrl(article) {
 export async function collectNintendoSwitch(source, dependencies = { fetchText }) {
   const region = source.nintendoRegion ?? "us";
   const indexUrl = `https://www.nintendo.com/${region}/whatsnew/`;
-  const query = comparable(source.gameName);
+  const queries = [source.gameName, ...(source.gameAliases ?? [])].map(comparable).filter(Boolean);
   const updatePattern = /\b(update|updates|patch|patches|version)\b/i;
 
   return newsArticles(await dependencies.fetchText(indexUrl))
     .filter((article) => {
       const content = `${article.title ?? ""} ${articleText(article)}`;
-      return comparable(content).includes(query) && updatePattern.test(content);
+      return queries.some((query) => comparable(content).includes(query)) && updatePattern.test(content);
     })
     .map((article) => ({
       externalId: article.id,

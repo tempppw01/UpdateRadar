@@ -58,6 +58,16 @@ test("source store supports Docker Hub, QNAP, and Nintendo Switch sources", asyn
   assert.equal(nintendo.nintendoRegion, "us");
 });
 
+test("source store supports Steam, PlayStation, and Xbox game sources", async () => {
+  const store = await makeStore();
+  const steam = await store.create({ id: "elden-ring-steam", name: "艾尔登法环", kind: "steam", steamAppId: "1245620" });
+  const playstation = await store.create({ id: "helldivers-psn", name: "绝地潜兵 2", kind: "playstation", gameName: "Helldivers 2", gameAliases: ["Helldivers"] });
+  const xbox = await store.create({ id: "forza-xbox", name: "极限竞速：地平线 5", kind: "xbox", gameName: "Forza Horizon 5" });
+  assert.equal(steam.steamAppId, "1245620");
+  assert.deepEqual(playstation.gameAliases, ["Helldivers"]);
+  assert.equal(xbox.gameName, "Forza Horizon 5");
+});
+
 test("source store removes multiple selected sources", async () => {
   const store = await makeStore();
   await store.create({ id: "one", name: "One", kind: "rss", feedUrl: "https://example.test/one.xml" });

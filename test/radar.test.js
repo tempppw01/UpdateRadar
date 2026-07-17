@@ -8,6 +8,8 @@ import { collectAppStore } from "../src/adapters/app-store.js";
 import { collectDockerHub } from "../src/adapters/docker-hub.js";
 import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
 import { collectQnapApp } from "../src/adapters/qnap-app.js";
+import { collectPlayStation, collectXbox } from "../src/adapters/game-news.js";
+import { collectSteam } from "../src/adapters/steam.js";
 import { pollAll } from "../src/radar.js";
 import { JsonEventStore } from "../src/store.js";
 
@@ -62,6 +64,19 @@ test("Nintendo Switch collector filters official update announcements by game", 
   const [update] = await collectNintendoSwitch({ gameName: "Mario Kart World", nintendoRegion: "us" }, { fetchText: async () => html });
   assert.equal(update.externalId, "update-1");
   assert.equal(update.url, "https://www.nintendo.com/us/whatsnew/mario-kart-world-update/");
+});
+
+test("Steam collector reads official game announcements", async () => {
+  const [update] = await collectSteam({ steamAppId: "1245620" }, { fetchText: async () => JSON.stringify({ appnews: { newsitems: [{ gid: "steam-1", title: "Patch 1.2", url: "https://example.test/news", date: 1767225600, contents: "<b>Balance</b> update", feedlabel: "Steam Announcements", is_external_url: false }] } }) });
+  assert.equal(update.externalId, "steam-1");
+  assert.equal(update.summary, "Balance update");
+});
+
+test("PlayStation and Xbox collectors filter official update articles", async () => {
+  const feed = "<rss><channel><item><guid>patch-1</guid><title>Helldivers 2 patch update</title><link>https://example.test/patch</link><pubDate>2026-01-02T00:00:00Z</pubDate><description>Patch notes</description></item></channel></rss>";
+  const dependencies = { fetchText: async () => feed };
+  assert.equal((await collectPlayStation({ gameName: "Helldivers 2" }, dependencies)).length, 1);
+  assert.equal((await collectXbox({ gameName: "Helldivers 2" }, dependencies)).length, 1);
 });
 
 test("polling records a new update only once", async () => {

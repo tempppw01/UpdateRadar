@@ -80,3 +80,17 @@ export async function searchNintendoSwitchGames({ term, limit = 10 }, dependenci
     return { gameName, title: item.title, publishedAt: item.publishDate || "" };
   }).filter((item) => item.gameName && !seen.has(item.gameName.toLowerCase()) && seen.add(item.gameName.toLowerCase())).slice(0, Math.min(Math.max(Number(limit) || 10, 1), 20));
 }
+
+export async function searchSteamGames({ term, limit = 10 }, dependencies = { fetchText }) {
+  const url = new URL("https://store.steampowered.com/api/storesearch/");
+  url.searchParams.set("term", term);
+  url.searchParams.set("l", "schinese");
+  url.searchParams.set("cc", "CN");
+  const payload = JSON.parse(await dependencies.fetchText(url));
+  return (payload.items ?? []).filter((item) => item.type === "app" && item.id && item.name).slice(0, Math.min(Math.max(Number(limit) || 10, 1), 20)).map((item) => ({
+    appId: String(item.id),
+    name: item.name,
+    artworkUrl: item.tiny_image || "",
+    meta: item.platforms ? Object.entries(item.platforms).filter(([, available]) => available).map(([platform]) => platform).join(" / ") : "Steam"
+  }));
+}

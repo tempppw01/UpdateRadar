@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps } from "../src/catalog.js";
+import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps, searchSteamGames } from "../src/catalog.js";
 
 test("App Store search normalizes official catalog results", async () => {
   let requestedUrl;
@@ -50,4 +50,9 @@ test("Nintendo Switch search lists matching official update announcements", asyn
   const html = `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(state)}</script>`;
   const results = await searchNintendoSwitchGames({ term: "mario kart" }, { fetchText: async () => html });
   assert.equal(results[0].gameName, "Mario Kart World");
+});
+
+test("Steam search supports Chinese game names", async () => {
+  const results = await searchSteamGames({ term: "艾尔登法环" }, { fetchText: async () => JSON.stringify({ items: [{ type: "app", id: 1245620, name: "艾尔登法环", tiny_image: "https://example.test/elden.jpg", platforms: { windows: true, mac: false, linux: false } }] }) });
+  assert.deepEqual(results, [{ appId: "1245620", name: "艾尔登法环", artworkUrl: "https://example.test/elden.jpg", meta: "windows" }]);
 });

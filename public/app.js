@@ -51,6 +51,9 @@ const elements = {
   nintendoSearchInput: document.querySelector("#nintendo-search-input"),
   nintendoSearchButton: document.querySelector("#nintendo-search-button"),
   nintendoResults: document.querySelector("#nintendo-results"),
+  steamSearchInput: document.querySelector("#steam-search-input"),
+  steamSearchButton: document.querySelector("#steam-search-button"),
+  steamResults: document.querySelector("#steam-results"),
   translationBaseUrl: document.querySelector("#translation-base-url"),
   translationModel: document.querySelector("#translation-model"),
   loadTranslationModels: document.querySelector("#load-translation-models"),
@@ -82,7 +85,10 @@ const sourceIcons = {
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
   "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" },
   "qnap-app": { name: "QNAP", url: "https://cdn.simpleicons.org/qnap/10232e" },
-  "nintendo-switch": { name: "Nintendo Switch", url: "https://cdn.simpleicons.org/nintendoswitch/10232e" }
+  "nintendo-switch": { name: "Nintendo Switch", url: "https://cdn.simpleicons.org/nintendoswitch/10232e" },
+  steam: { name: "Steam", url: "https://cdn.simpleicons.org/steam/10232e" },
+  playstation: { name: "PlayStation", url: "https://cdn.simpleicons.org/playstation/10232e" },
+  xbox: { name: "Xbox", url: "https://cdn.simpleicons.org/xbox/10232e" }
 };
 
 function applyTheme(theme) {
@@ -422,6 +428,7 @@ function startNewEditor() {
   elements.dockerHubResults.replaceChildren();
   elements.qnapResults.replaceChildren();
   elements.nintendoResults.replaceChildren();
+  elements.steamResults.replaceChildren();
   showProviderFields();
 }
 
@@ -511,8 +518,8 @@ function sourcePayload() {
     owner: value("owner"), repo: value("repo"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
-    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"),
-    tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
+    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"),
+    tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }
 
@@ -659,11 +666,13 @@ async function searchGithubRepositories() {
 
 function useCatalogResult(values, message) {
   const form = elements.sourceForm.elements;
+  const shouldSetName = !form.name.value.trim() && values.name;
   for (const [name, value] of Object.entries(values)) {
+    if (name === "name") continue;
     const field = form[name];
     if (field && value !== undefined && value !== null) field.value = value;
   }
-  if (!form.name.value.trim() && values.name) {
+  if (shouldSetName) {
     form.name.value = values.name;
     if (!state.editingSourceId) form.name.dispatchEvent(new Event("input"));
   }
@@ -767,6 +776,24 @@ function searchNintendoSwitch() {
   });
 }
 
+function searchSteam() {
+  return searchCatalog({
+    input: elements.steamSearchInput,
+    button: elements.steamSearchButton,
+    results: elements.steamResults,
+    endpoint: "/v1/catalog/steam",
+    loadingText: "正在搜索 Steam 官方商店…",
+    toResult: (item) => {
+      useCatalogResult({ steamAppId: item.appId, name: item.name }, `已填入 ${item.name}`);
+      if (!state.editingSourceId) {
+        elements.sourceForm.elements.id.value = `steam-${item.appId}`;
+        elements.sourceForm.elements.id.dataset.touched = "true";
+      }
+      elements.steamResults.replaceChildren();
+    }
+  });
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const body = await response.json();
@@ -866,6 +893,7 @@ elements.githubRepositorySearch.addEventListener("click", searchGithubRepositori
 elements.dockerHubSearchButton.addEventListener("click", searchDockerHub);
 elements.qnapSearchButton.addEventListener("click", searchQnapApps);
 elements.nintendoSearchButton.addEventListener("click", searchNintendoSwitch);
+elements.steamSearchButton.addEventListener("click", searchSteam);
 elements.appStoreSearchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); searchForAppStoreApps(); }
 });
@@ -880,6 +908,9 @@ elements.qnapSearchInput.addEventListener("keydown", (event) => {
 });
 elements.nintendoSearchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); searchNintendoSwitch(); }
+});
+elements.steamSearchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchSteam(); }
 });
 elements.sourceForm.elements.name.addEventListener("input", () => {
   const id = elements.sourceForm.elements.id;

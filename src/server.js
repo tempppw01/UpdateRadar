@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, join, relative } from "node:path";
-import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps } from "./catalog.js";
+import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps, searchSteamGames } from "./catalog.js";
 import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
@@ -67,7 +67,7 @@ async function sendPublicFile(response, path, method) {
   return true;
 }
 
-export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, translator = translateText, modelLister = listModels } = {}) {
+export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, steamSearch = searchSteamGames, translator = translateText, modelLister = listModels } = {}) {
   return createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
@@ -105,6 +105,11 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         const term = (url.searchParams.get("term") ?? url.searchParams.get("query"))?.trim() ?? "";
         if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 Nintendo Switch 游戏");
         return send(response, 200, await nintendoSearch({ term, limit: url.searchParams.get("limit") }));
+      }
+      if (request.method === "GET" && url.pathname === "/v1/catalog/steam") {
+        const term = (url.searchParams.get("term") ?? url.searchParams.get("query"))?.trim() ?? "";
+        if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 Steam 游戏");
+        return send(response, 200, await steamSearch({ term, limit: url.searchParams.get("limit") }));
       }
       if (request.method === "GET" && url.pathname === "/v1/settings/translation") {
         return send(response, 200, await settingsRepository.publicTranslation());

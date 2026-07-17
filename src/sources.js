@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch"]);
+const kinds = new Set(["github-releases", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 export class SourceValidationError extends Error {}
 
@@ -69,10 +69,17 @@ export function normalizeSource(input, { id } = {}) {
     if (!new Set(["qts", "quts_hero", "qutscloud", "qvp"]).has(source.qnapOs)) throw new SourceValidationError("不支持的 QNAP 系统类型");
     source.qnapVersion = String(input.qnapVersion || "").trim();
   }
+  if (["nintendo-switch", "playstation", "xbox"].includes(kind)) {
+    source.gameName = required(input.gameName, "游戏官方名称或关键词");
+    source.gameAliases = Array.isArray(input.gameAliases) ? [...new Set(input.gameAliases.map((item) => String(item).trim()).filter(Boolean))] : [];
+  }
   if (kind === "nintendo-switch") {
-    source.gameName = required(input.gameName, "Nintendo Switch 游戏名称");
     source.nintendoRegion = String(input.nintendoRegion || "us").trim().toLowerCase();
     if (!/^[a-z]{2}$/.test(source.nintendoRegion)) throw new SourceValidationError("Nintendo 地区代码应为两个小写字母");
+  }
+  if (kind === "steam") {
+    source.steamAppId = required(input.steamAppId, "Steam App ID");
+    if (!/^\d+$/.test(source.steamAppId)) throw new SourceValidationError("Steam App ID 应为数字");
   }
   return source;
 }
