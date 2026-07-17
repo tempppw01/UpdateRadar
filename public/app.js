@@ -749,14 +749,12 @@ function sourcePayload() {
 
 function renderAppStoreResults(apps) {
   elements.appStoreResults.replaceChildren();
-  if (!apps.length) {
-    const empty = document.createElement("p");
-    empty.className = "app-search-empty";
-    empty.textContent = "没有找到匹配的软件，请换一个名称或地区。";
-    elements.appStoreResults.append(empty);
+  const availableApps = apps.filter((app) => !isCatalogSourceTracked(appStoreSource(app)));
+  if (!availableApps.length) {
+    renderCatalogEmpty(elements.appStoreResults, apps.length ? "匹配的软件均已在监控中，移除后可再次搜索添加。" : "没有找到匹配的软件，请换一个名称或地区。");
     return;
   }
-  apps.forEach((app) => {
+  availableApps.forEach((app) => {
     const result = document.createElement("article");
     result.className = "app-result";
     if (app.artworkUrl) {
@@ -775,14 +773,20 @@ function renderAppStoreResults(apps) {
     const add = document.createElement("button");
     add.type = "button";
     add.textContent = "添加并保存";
-    add.addEventListener("click", () => addAppStoreSource(app, add));
+    add.addEventListener("click", async () => {
+      if (await addAppStoreSource(app, add)) removeTrackedCatalogResult(result, elements.appStoreResults);
+    });
     result.append(detail, add);
     elements.appStoreResults.append(result);
   });
 }
 
+function appStoreSource(app) {
+  return { id: `app-store-${app.appId}`, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] };
+}
+
 async function addAppStoreSource(app, button) {
-  return addCatalogSource({ id: `app-store-${app.appId}`, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] }, button);
+  return addCatalogSource(appStoreSource(app), button);
 }
 
 function catalogSourceId(prefix, value) {
@@ -794,7 +798,7 @@ async function addCatalogSource(source, button) {
   const id = source.id;
   if (state.sources.some((source) => source.id === id)) {
     showToast("该监控源已经在监控列表中", "error");
-    return;
+    return false;
   }
   button.disabled = true;
   button.textContent = "添加中…";
@@ -807,10 +811,12 @@ async function addCatalogSource(source, button) {
     renderSettingsSources();
     showToast(`已开始监控 ${source.name}`);
     button.textContent = "已添加";
+    return true;
   } catch (error) {
     button.disabled = false;
     button.textContent = "添加并保存";
     showToast(`无法加入：${error.message}`, "error");
+    return false;
   }
 }
 
@@ -849,11 +855,12 @@ function useGithubRepository(repository) {
 
 function renderGithubRepositoryResults(repositories) {
   elements.githubRepositoryResults.replaceChildren();
-  if (!repositories.length) {
-    elements.githubRepositoryResults.innerHTML = '<p class="app-search-empty">没有找到匹配仓库，请检查链接或关键词。</p>';
+  const availableRepositories = repositories.filter((repository) => !isCatalogSourceTracked(githubRepositorySource(repository)));
+  if (!availableRepositories.length) {
+    renderCatalogEmpty(elements.githubRepositoryResults, repositories.length ? "匹配的仓库均已在监控中，移除后可再次搜索添加。" : "没有找到匹配仓库，请检查链接或关键词。");
     return;
   }
-  repositories.forEach((repository) => {
+  availableRepositories.forEach((repository) => {
     const result = document.createElement("article");
     result.className = "github-repository-result";
     const detail = document.createElement("div");
@@ -865,15 +872,17 @@ function renderGithubRepositoryResults(repositories) {
     const use = document.createElement("button");
     use.type = "button";
     use.textContent = "添加并保存";
-    use.addEventListener("click", () => addGithubRepositorySource(repository, use));
+    use.addEventListener("click", async () => {
+      if (await addGithubRepositorySource(repository, use)) removeTrackedCatalogResult(result, elements.githubRepositoryResults);
+    });
     result.append(detail, use);
     elements.githubRepositoryResults.append(result);
   });
 }
 
-function addGithubRepositorySource(repository, button) {
+function githubRepositorySource(repository) {
   const kind = ["github-releases", "github-commits"].includes(elements.sourceKind.value) ? elements.sourceKind.value : "github-releases";
-  return addCatalogSource({
+  return {
     id: catalogSourceId(kind, `${repository.owner}-${repository.repo}`),
     name: repository.name || `${repository.owner}/${repository.repo}`,
     kind,
@@ -881,7 +890,11 @@ function addGithubRepositorySource(repository, button) {
     owner: repository.owner,
     repo: repository.repo,
     tags: [kind]
-  }, button);
+  };
+}
+
+function addGithubRepositorySource(repository, button) {
+  return addCatalogSource(githubRepositorySource(repository), button);
 }
 
 async function searchGithubRepositories() {
@@ -925,13 +938,31 @@ function useCatalogResult(values, message) {
   showToast(message);
 }
 
-function renderCatalogResults(container, items, toResult) {
+function isCatalogSourceTracked(source) {
+  return state.sources.some((candidate) => candidate.id === source.id);
+}
+
+function renderCatalogEmpty(container, message) {
   container.replaceChildren();
-  if (!items.length) {
-    container.innerHTML = '<p class="app-search-empty">没有找到匹配项，请尝试其他关键词。</p>';
+  const empty = document.createElement("p");
+  empty.className = "app-search-empty";
+  empty.textContent = message;
+  container.append(empty);
+}
+
+function removeTrackedCatalogResult(result, container) {
+  result.remove();
+  if (!container.querySelector("article")) renderCatalogEmpty(container, "匹配项均已在监控中，移除后可再次搜索添加。");
+}
+
+function renderCatalogResults(container, items, sourceForItem) {
+  const availableItems = items.map((item) => ({ item, source: sourceForItem(item) })).filter(({ source }) => !isCatalogSourceTracked(source));
+  container.replaceChildren();
+  if (!availableItems.length) {
+    renderCatalogEmpty(container, items.length ? "匹配项均已在监控中，移除后可再次搜索添加。" : "没有找到匹配项，请尝试其他关键词。");
     return;
   }
-  items.forEach((item) => {
+  availableItems.forEach(({ item, source }) => {
     const result = document.createElement("article");
     result.className = "catalog-result";
     if (item.artworkUrl) {
@@ -951,13 +982,15 @@ function renderCatalogResults(container, items, toResult) {
     const use = document.createElement("button");
     use.type = "button";
     use.textContent = "添加并保存";
-    use.addEventListener("click", () => toResult(item, use));
+    use.addEventListener("click", async () => {
+      if (await addCatalogSource(source, use)) removeTrackedCatalogResult(result, container);
+    });
     result.append(detail, use);
     container.append(result);
   });
 }
 
-async function searchCatalog({ input, button, results, endpoint, parameters = {}, toResult, loadingText }) {
+async function searchCatalog({ input, button, results, endpoint, parameters = {}, sourceForItem, loadingText }) {
   const query = input.value.trim();
   if (query.length < 2) {
     showToast("请至少输入两个字符后再搜索", "error");
@@ -968,7 +1001,7 @@ async function searchCatalog({ input, button, results, endpoint, parameters = {}
   button.textContent = "搜索中…";
   results.innerHTML = `<p class="app-search-empty">${loadingText}</p>`;
   try {
-    renderCatalogResults(results, await requestJson(`${endpoint}?${new URLSearchParams({ query, ...parameters })}`), toResult);
+    renderCatalogResults(results, await requestJson(`${endpoint}?${new URLSearchParams({ query, ...parameters })}`), sourceForItem);
   } catch (error) {
     results.innerHTML = '<p class="app-search-empty">搜索暂时不可用，请稍后重试。</p>';
     showToast(`搜索失败：${error.message}`, "error");
@@ -985,7 +1018,7 @@ function searchDockerHub() {
     results: elements.dockerHubResults,
     endpoint: "/v1/catalog/docker-hub",
     loadingText: "正在搜索 Docker Hub 官方目录…",
-    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("docker", item.repository), name: item.repository, kind: "docker-hub", enabled: true, repository: item.repository, tags: ["docker-hub"] }, button)
+    sourceForItem: (item) => ({ id: catalogSourceId("docker", item.repository), name: item.repository, kind: "docker-hub", enabled: true, repository: item.repository, tags: ["docker-hub"] })
   });
 }
 
@@ -998,7 +1031,7 @@ function searchQnapApps() {
     endpoint: "/v1/catalog/qnap",
     parameters: { os },
     loadingText: "正在搜索 QNAP 官方 App Center…",
-    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("qnap", item.appName), name: item.name, kind: "qnap-app", enabled: true, qnapAppName: item.appName, qnapOs: item.os || os, tags: ["qnap-app"] }, button)
+    sourceForItem: (item) => ({ id: catalogSourceId("qnap", item.appName), name: item.name, kind: "qnap-app", enabled: true, qnapAppName: item.appName, qnapOs: item.os || os, tags: ["qnap-app"] })
   });
 }
 
@@ -1029,7 +1062,7 @@ function searchNintendoSwitch() {
     results: elements.nintendoResults,
     endpoint: "/v1/catalog/nintendo-switch",
     loadingText: "正在搜索 Nintendo 官方更新公告…",
-    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("switch", item.gameName), name: item.gameName, kind: "nintendo-switch", enabled: true, gameName: item.gameName, nintendoRegion: "us", tags: ["nintendo-switch"] }, button)
+    sourceForItem: (item) => ({ id: catalogSourceId("switch", item.gameName), name: item.gameName, kind: "nintendo-switch", enabled: true, gameName: item.gameName, nintendoRegion: "us", tags: ["nintendo-switch"] })
   });
 }
 
@@ -1040,7 +1073,7 @@ function searchSteam() {
     results: elements.steamResults,
     endpoint: "/v1/catalog/steam",
     loadingText: "正在搜索 Steam 官方商店…",
-    toResult: (item, button) => addCatalogSource({ id: `steam-${item.appId}`, name: item.name, kind: "steam", enabled: true, steamAppId: String(item.appId), tags: ["steam"] }, button)
+    sourceForItem: (item) => ({ id: `steam-${item.appId}`, name: item.name, kind: "steam", enabled: true, steamAppId: String(item.appId), tags: ["steam"] })
   });
 }
 
