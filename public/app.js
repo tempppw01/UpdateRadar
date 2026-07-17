@@ -33,6 +33,7 @@ const elements = {
   githubRepositoryResults: document.querySelector("#github-repository-results"),
   translationBaseUrl: document.querySelector("#translation-base-url"),
   translationModel: document.querySelector("#translation-model"),
+  loadTranslationModels: document.querySelector("#load-translation-models"),
   translationApiKey: document.querySelector("#translation-api-key"),
   translationTargetLanguage: document.querySelector("#translation-target-language"),
   saveTranslationSettings: document.querySelector("#save-translation-settings"),
@@ -94,6 +95,27 @@ function assetLink(asset) {
   link.className = "download-button";
   link.textContent = `下载 ${asset.name}${asset.size ? ` · ${formatBytes(asset.size)}` : ""}`;
   return link;
+}
+
+function setTranslationModels(models, selected = "") {
+  const options = [...new Set([selected, ...models].filter(Boolean))];
+  elements.translationModel.replaceChildren(new Option(options.length ? "选择模型" : "未找到模型", ""));
+  options.forEach((model) => elements.translationModel.add(new Option(model, model)));
+  elements.translationModel.value = selected || "";
+}
+
+async function loadTranslationModels() {
+  elements.loadTranslationModels.disabled = true;
+  elements.loadTranslationModels.textContent = "加载中";
+  try {
+    const result = await requestJson("/v1/translation/models", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ baseUrl: elements.translationBaseUrl.value, apiKey: elements.translationApiKey.value })
+    });
+    setTranslationModels(result.models, elements.translationModel.value);
+    showToast(`已加载 ${result.models.length} 个模型`);
+  } catch (error) { showToast(`无法加载模型：${error.message}`, "error"); }
+  finally { elements.loadTranslationModels.disabled = false; elements.loadTranslationModels.textContent = "加载模型"; }
 }
 
 function openEventDetails(event) {
@@ -348,7 +370,7 @@ function openSettings() {
   renderSettingsSources();
   requestJson("/v1/settings/translation").then((config) => {
     elements.translationBaseUrl.value = config.baseUrl || "";
-    elements.translationModel.value = config.model || "";
+    setTranslationModels([], config.model || "");
     elements.translationTargetLanguage.value = config.targetLanguage || "简体中文";
     elements.translationApiKey.value = "";
   }).catch(() => showToast("无法读取翻译设置", "error"));
@@ -554,6 +576,10 @@ elements.saveTranslationSettings.addEventListener("click", async () => {
     elements.translationApiKey.value = "";
     showToast("翻译设置已保存");
   } catch (error) { showToast(`无法保存翻译设置：${error.message}`, "error"); }
+});
+elements.loadTranslationModels.addEventListener("click", loadTranslationModels);
+elements.translationModel.addEventListener("focus", () => {
+  if (elements.translationModel.options.length <= 1 && !elements.loadTranslationModels.disabled) loadTranslationModels();
 });
 elements.translateEvent.addEventListener("click", async () => {
   if (!state.activeEvent) return;

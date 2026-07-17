@@ -74,6 +74,8 @@
 @media (max-width: 720px) { .github-search-controls { grid-template-columns: 1fr; }.github-repository-result { grid-template-columns: 1fr; }.github-repository-result button { justify-self: start; } }
 .translation-settings summary { cursor: pointer; font: 500 11px var(--mono); }
 .translation-settings .form-grid { margin-top: 15px; }
+.model-select-control { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 6px; }
+.model-select-control select { margin-top: 0!important; }.model-select-control button { border: 1px solid var(--ink); background: var(--lime); padding: 0 10px; font: 500 10px var(--mono); }
 .event-dialog { width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .event-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
 .event-dialog-shell { padding: 26px; }

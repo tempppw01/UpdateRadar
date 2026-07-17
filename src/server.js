@@ -7,7 +7,7 @@ import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
 import { JsonSettingsStore } from "./settings.js";
-import { translateText } from "./translation.js";
+import { listModels, translateText } from "./translation.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicPath = join(root, "public");
@@ -56,7 +56,7 @@ async function sendPublicFile(response, path, method) {
   return true;
 }
 
-export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, translator = translateText } = {}) {
+export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, translator = translateText, modelLister = listModels } = {}) {
   return createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
@@ -88,6 +88,16 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       if (request.method === "POST" && url.pathname === "/v1/translate") {
         const body = await requestBody(request);
         return send(response, 200, { text: await translator(body.text, await settingsRepository.translation()) });
+      }
+      if (request.method === "POST" && url.pathname === "/v1/translation/models") {
+        const body = await requestBody(request);
+        const saved = await settingsRepository.translation();
+        const config = {
+          ...saved,
+          baseUrl: String(body.baseUrl || saved.baseUrl).trim(),
+          apiKey: String(body.apiKey || saved.apiKey).trim()
+        };
+        return send(response, 200, { models: await modelLister(config) });
       }
       if (request.method === "POST" && url.pathname === "/v1/sources") {
         return send(response, 201, await sourceRepository.create(await requestBody(request)));

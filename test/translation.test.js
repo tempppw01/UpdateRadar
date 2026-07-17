@@ -4,7 +4,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JsonSettingsStore } from "../src/settings.js";
-import { translateText } from "../src/translation.js";
+import { listModels, translateText } from "../src/translation.js";
 
 test("translation uses the OpenAI-compatible chat completions shape", async () => {
   let request;
@@ -25,4 +25,15 @@ test("translation settings do not expose or erase a saved API key", async () => 
   await store.updateTranslation({ model: "new-model", apiKey: "" });
   assert.equal((await store.translation()).apiKey, "secret");
   assert.deepEqual(await store.publicTranslation(), { baseUrl: "https://api.example.test/v1", model: "new-model", targetLanguage: "简体中文", apiKeyConfigured: true });
+});
+
+test("model listing uses the OpenAI-compatible models endpoint", async () => {
+  let request;
+  const models = await listModels({ baseUrl: "https://api.example.test/v1", apiKey: "secret" }, async (url, options) => {
+    request = { url, options };
+    return new Response(JSON.stringify({ data: [{ id: "z-model" }, { id: "a-model" }] }), { status: 200 });
+  });
+  assert.deepEqual(models, ["a-model", "z-model"]);
+  assert.equal(request.url, "https://api.example.test/v1/models");
+  assert.equal(request.options.headers.Authorization, "Bearer secret");
 });

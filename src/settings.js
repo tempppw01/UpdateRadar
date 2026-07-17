@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const defaults = { translation: { baseUrl: "", apiKey: "", model: "", targetLanguage: "简体中文" } };
+const defaults = { translation: { baseUrl: "https://ai.shuaihong.fun/v1", apiKey: "", model: "", targetLanguage: "简体中文" } };
 
 export class JsonSettingsStore {
   constructor(path) { this.path = path; }
