@@ -48,3 +48,13 @@ test("polling records a new update only once", async () => {
   assert.deepEqual(await pollAll([source], { store, collectorResolver }), [{ ok: true, sourceId: "tool", fetched: 1, inserted: 0 }]);
   assert.equal((await store.list({ tag: "dev" })).length, 1);
 });
+
+test("event store removes events belonging to deleted sources", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-events-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  await store.insert({ id: "one", name: "One", kind: "test", tags: [] }, { externalId: "1", title: "One", url: "https://example.test/1", publishedAt: "2026-01-01T00:00:00Z" });
+  await store.insert({ id: "two", name: "Two", kind: "test", tags: [] }, { externalId: "2", title: "Two", url: "https://example.test/2", publishedAt: "2026-01-01T00:00:00Z" });
+  assert.equal(await store.removeBySourceIds(["one"]), 1);
+  assert.equal((await store.list({ limit: 10 })).length, 1);
+  assert.equal(await store.removeOutsideSourceIds(["two"]), 0);
+});

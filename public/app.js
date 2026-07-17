@@ -538,11 +538,11 @@ elements.selectAllSources.addEventListener("change", () => {
 });
 elements.bulkDeleteSources.addEventListener("click", async () => {
   const ids = [...state.selectedSourceIds];
-  if (!ids.length || !window.confirm(`确定删除选中的 ${ids.length} 个数据源吗？历史更新不会被删除。`)) return;
+  if (!ids.length || !window.confirm(`确定删除选中的 ${ids.length} 个数据源及其全部历史更新吗？`)) return;
   try {
     const result = await requestJson("/v1/sources", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
     state.selectedSourceIds.clear();
-    await load(); startNewEditor(); renderSettingsSources(); showToast(`已删除 ${result.removed} 个数据源`);
+    await load(); startNewEditor(); renderSettingsSources(); showToast(`已删除 ${result.removed} 个数据源及 ${result.eventsRemoved} 条历史更新`);
   } catch (error) { showToast(`无法批量删除：${error.message}`, "error"); }
 });
 elements.saveTranslationSettings.addEventListener("click", async () => {
@@ -596,10 +596,10 @@ elements.sourceForm.addEventListener("submit", async (event) => {
 });
 elements.deleteSource.addEventListener("click", async () => {
   const source = state.sources.find((item) => item.id === state.editingSourceId);
-  if (!source || !window.confirm(`确定删除“${source.name}”吗？历史更新不会被删除。`)) return;
+  if (!source || !window.confirm(`确定删除“${source.name}”及其全部历史更新吗？`)) return;
   try {
-    await requestJson(`/v1/sources/${source.id}`, { method: "DELETE" });
-    await load(); startNewEditor(); renderSettingsSources(); showToast("数据源已删除");
+    const result = await requestJson(`/v1/sources/${source.id}`, { method: "DELETE" });
+    await load(); startNewEditor(); renderSettingsSources(); showToast(`数据源及 ${result.eventsRemoved} 条历史更新已删除`);
   } catch (error) { showToast(`无法删除：${error.message}`, "error"); }
 });
 elements.syncButton.addEventListener("click", async () => {

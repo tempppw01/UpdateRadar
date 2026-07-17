@@ -59,4 +59,25 @@ export class JsonEventStore {
       .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
       .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 200));
   }
+
+  async removeBySourceIds(ids) {
+    const sourceIds = new Set(ids.map((id) => String(id)));
+    if (!sourceIds.size) return 0;
+    const state = await this.load();
+    const before = state.events.length;
+    state.events = state.events.filter((event) => !sourceIds.has(event.sourceId));
+    const removed = before - state.events.length;
+    if (removed) await this.save();
+    return removed;
+  }
+
+  async removeOutsideSourceIds(ids) {
+    const sourceIds = new Set(ids.map((id) => String(id)));
+    const state = await this.load();
+    const before = state.events.length;
+    state.events = state.events.filter((event) => sourceIds.has(event.sourceId));
+    const removed = before - state.events.length;
+    if (removed) await this.save();
+    return removed;
+  }
 }

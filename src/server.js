@@ -95,7 +95,9 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       if (request.method === "DELETE" && url.pathname === "/v1/sources") {
         const body = await requestBody(request);
         if (!Array.isArray(body.ids)) throw new SourceValidationError("ids must be an array");
-        return send(response, 200, { removed: await sourceRepository.removeMany(body.ids) });
+        const removed = await sourceRepository.removeMany(body.ids);
+        const eventsRemoved = await store.removeBySourceIds(body.ids);
+        return send(response, 200, { removed, eventsRemoved });
       }
       const sourceMatch = url.pathname.match(/^\/v1\/sources\/([a-z0-9-]+)$/);
       if (sourceMatch && request.method === "PUT") {
@@ -103,11 +105,14 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         return source ? send(response, 200, source) : send(response, 404, { error: "Source not found" });
       }
       if (sourceMatch && request.method === "DELETE") {
-        return (await sourceRepository.remove(sourceMatch[1]))
-          ? send(response, 200, { removed: true })
-          : send(response, 404, { error: "Source not found" });
+        if (await sourceRepository.remove(sourceMatch[1])) {
+          return send(response, 200, { removed: true, eventsRemoved: await store.removeBySourceIds([sourceMatch[1]]) });
+        }
+        return send(response, 404, { error: "Source not found" });
       }
       if (request.method === "GET" && url.pathname === "/v1/events") {
+        const activeSources = await getSources();
+        await store.removeOutsideSourceIds(activeSources.map((source) => source.id));
         return send(response, 200, await store.list({
           sourceId: url.searchParams.get("sourceId") ?? undefined,
           tag: url.searchParams.get("tag") ?? undefined,

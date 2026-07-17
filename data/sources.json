@@ -38,5 +38,15 @@
       "in-app-purchase",
       "pricing"
     ]
+  },
+  {
+    "id": "redis-redis",
+    "name": "redis/redis",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [],
+    "owner": "redis",
+    "repo": "redis",
+    "includePrereleases": false
   }
 ]
