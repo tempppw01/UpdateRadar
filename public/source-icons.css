@@ -179,10 +179,11 @@ html[data-theme="dark"] .event-dialog-meta { color: var(--text-muted); }
 .event-highlights { margin-top: 20px; border: 1px solid var(--coral); border-left: 4px solid var(--coral); padding: 12px 15px; background: rgba(255,118,93,.11); }.event-highlights p { margin: 0; color: var(--coral); font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }.event-highlights ul { display: grid; gap: 5px; margin: 9px 0 0; padding-left: 17px; }.event-highlights li { color: var(--ink); font-size: 13px; line-height: 1.45; }
 .translation-view-toggle { display: flex; border: 1px solid var(--ink); }
 .translation-view-toggle button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }
-.translation-view-toggle button:last-child { border-right: 0; }.translation-view-toggle button.active { background: var(--lime); color: #10232e; }
+.translation-view-toggle button:last-child { border-right: 0; }.translation-view-toggle button.active { background: var(--lime); color: #10232e; }.translation-view-toggle button:disabled { cursor: wait; opacity: .58; }
 .event-dialog-content,.event-translation { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 20px; color: #365152; font-size: 14px; line-height: 1.65; }
 html[data-theme="dark"] .event-dialog-content { color: var(--text-body); }
 .event-translation { border-left: 3px solid var(--lime); padding: 14px 16px; background: #edf2df; color: var(--ink); }
+.event-bilingual-content { display: grid; gap: 16px; }.event-bilingual-content section { border: 1px solid var(--line); padding: 14px 16px; }.event-bilingual-content h3 { margin: 0 0 9px; color: var(--coral); font: 500 10px var(--mono); letter-spacing: .07em; }.event-bilingual-content section:last-child { border-left: 3px solid var(--lime); background: rgba(198,241,53,.08); }
 .event-history { margin-top: 24px; border-top: 1px solid var(--line); }
 .event-history-toggle { display: flex; width: 100%; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--ink); padding: 16px 0 13px; text-align: left; font: 500 11px var(--mono); letter-spacing: .04em; }
 .event-history-toggle small { color: #587170; font: 500 10px var(--mono); }.event-history-toggle span:last-child { margin-left: auto; color: #587170; }

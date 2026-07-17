@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -81,10 +81,10 @@ const elements = {
   eventScreenshotsList: document.querySelector("#event-screenshots-list"),
   eventHighlights: document.querySelector("#event-highlights"),
   eventHighlightsList: document.querySelector("#event-highlights-list"),
-  translateEvent: document.querySelector("#translate-event"),
   translationViewToggle: document.querySelector("#translation-view-toggle"),
   viewOriginal: document.querySelector("#view-original"),
   viewTranslated: document.querySelector("#view-translated"),
+  viewBilingual: document.querySelector("#view-bilingual"),
   eventAssets: document.querySelector("#event-assets"),
   eventAssetsList: document.querySelector("#event-assets-list"),
   cardContextMenu: document.querySelector("#card-context-menu"),
@@ -289,6 +289,9 @@ async function loadTranslationModels() {
 function openEventDetails(event) {
   state.activeEvent = event;
   state.activeTranslation = "";
+  state.translationView = "original";
+  state.translationRequestVersion += 1;
+  state.translating = false;
   elements.eventDialogTitle.textContent = eventHeading(event);
   const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
@@ -315,9 +318,7 @@ function openEventDetails(event) {
   }));
   elements.eventHighlights.hidden = highlights.length === 0;
   renderEventDialogText("original");
-  elements.translationViewToggle.hidden = true;
-  elements.translateEvent.disabled = false;
-  elements.translateEvent.textContent = "翻译为简体中文";
+  setTranslationLoading(false);
   const screenshots = event.sourceKind === "app-store" ? event.metadata?.screenshots ?? [] : [];
   elements.eventScreenshotsList.replaceChildren(...screenshots.map((url, index) => screenshotCard(url, event.sourceName, index)));
   elements.eventScreenshots.hidden = screenshots.length === 0;
@@ -384,9 +385,61 @@ async function loadEventHistory(event) {
 function renderEventDialogText(view) {
   const original = state.activeEvent?.summary || "官方未提供本次发布说明。";
   const translated = state.activeTranslation || original;
-  elements.eventDialogContent.textContent = view === "translation" ? translated : original;
+  state.translationView = view;
+  if (view === "bilingual") {
+    const bilingual = document.createElement("div");
+    bilingual.className = "event-bilingual-content";
+    [
+      ["原文", original],
+      ["译文", translated]
+    ].forEach(([label, text]) => {
+      const section = document.createElement("section");
+      const heading = document.createElement("h3");
+      const content = document.createElement("div");
+      heading.textContent = label;
+      content.textContent = text;
+      section.append(heading, content);
+      bilingual.append(section);
+    });
+    elements.eventDialogContent.replaceChildren(bilingual);
+  } else {
+    elements.eventDialogContent.textContent = view === "translation" ? translated : original;
+  }
   elements.viewOriginal.classList.toggle("active", view === "original");
   elements.viewTranslated.classList.toggle("active", view === "translation");
+  elements.viewBilingual.classList.toggle("active", view === "bilingual");
+}
+
+function setTranslationLoading(loading) {
+  elements.viewTranslated.disabled = loading;
+  elements.viewBilingual.disabled = loading;
+}
+
+async function showTranslation(view) {
+  if (!state.activeEvent) return;
+  if (state.activeTranslation) return renderEventDialogText(view);
+  if (state.translating) return;
+  const event = state.activeEvent;
+  const requestVersion = ++state.translationRequestVersion;
+  state.translating = true;
+  state.translationView = view;
+  setTranslationLoading(true);
+  showToast("正在翻译更新说明");
+  try {
+    const result = await requestJson("/v1/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: event.summary || event.title }) });
+    if (requestVersion !== state.translationRequestVersion) return;
+    state.activeTranslation = result.text;
+    renderEventDialogText(state.translationView);
+  } catch (error) {
+    if (requestVersion !== state.translationRequestVersion) return;
+    state.translationView = "original";
+    renderEventDialogText("original");
+    showToast(`翻译失败：${error.message}`, "error");
+  } finally {
+    if (requestVersion !== state.translationRequestVersion) return;
+    state.translating = false;
+    setTranslationLoading(false);
+  }
 }
 
 function categoryLabel(category) {
@@ -1329,20 +1382,9 @@ elements.loadTranslationModels.addEventListener("click", loadTranslationModels);
 elements.translationModel.addEventListener("focus", () => {
   if (elements.translationModel.options.length <= 1 && !elements.loadTranslationModels.disabled) loadTranslationModels();
 });
-elements.translateEvent.addEventListener("click", async () => {
-  if (!state.activeEvent) return;
-  elements.translateEvent.disabled = true;
-  elements.translateEvent.textContent = "翻译中";
-  try {
-    const result = await requestJson("/v1/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: state.activeEvent.summary || state.activeEvent.title }) });
-    state.activeTranslation = result.text;
-    elements.translationViewToggle.hidden = false;
-    renderEventDialogText("translation");
-  } catch (error) { showToast(`翻译失败：${error.message}`, "error"); }
-  finally { elements.translateEvent.disabled = false; elements.translateEvent.textContent = "翻译为简体中文"; }
-});
 elements.viewOriginal.addEventListener("click", () => renderEventDialogText("original"));
-elements.viewTranslated.addEventListener("click", () => renderEventDialogText("translation"));
+elements.viewTranslated.addEventListener("click", () => showTranslation("translation"));
+elements.viewBilingual.addEventListener("click", () => showTranslation("bilingual"));
 elements.eventHistoryToggle.addEventListener("click", () => setEventHistoryExpanded(elements.eventHistoryList.hidden));
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
