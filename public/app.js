@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -9,6 +9,7 @@ const elements = {
   eventList: document.querySelector("#event-list"),
   sourceList: document.querySelector("#source-list"),
   sourcePagination: document.querySelector("#source-pagination"),
+  sourceSort: document.querySelector("#source-sort"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   quickAddSource: document.querySelector("#quick-add-source"),
@@ -326,7 +327,19 @@ function renderEvents() {
 
 function renderSources() {
   elements.sourceList.replaceChildren();
-  const sources = state.sources.map((source) => ({ source, eventTotal: state.events.filter((event) => event.sourceId === source.id).length })).filter(({ eventTotal }) => eventTotal);
+  const sources = state.sources.map((source) => {
+    const events = state.events.filter((event) => event.sourceId === source.id);
+    return {
+      source,
+      eventTotal: events.length,
+      latestUpdateAt: events.reduce((latest, event) => Math.max(latest, new Date(event.detectedAt || event.publishedAt || 0).getTime()), 0)
+    };
+  }).filter(({ eventTotal }) => eventTotal);
+  sources.sort((left, right) => {
+    if (state.sourceSort === "oldest") return left.latestUpdateAt - right.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
+    if (state.sourceSort === "popular") return right.eventTotal - left.eventTotal || right.latestUpdateAt - left.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
+    return right.latestUpdateAt - left.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
+  });
   const pageSize = 5;
   const pageCount = Math.max(1, Math.ceil(sources.length / pageSize));
   state.sourcePage = Math.min(state.sourcePage, pageCount);
@@ -643,6 +656,7 @@ async function load() {
 }
 
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
+elements.sourceSort.addEventListener("change", (event) => { state.sourceSort = event.target.value; state.sourcePage = 1; renderSources(); });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
 elements.quickAddSource.addEventListener("click", openSettings);

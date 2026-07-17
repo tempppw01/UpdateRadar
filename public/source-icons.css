@@ -58,6 +58,9 @@
 .source-row .source-provider img { width: 24px; height: 24px; border-radius: 6px; }.source-row h3 { margin: 0; font-size: 17px; }.source-row p { margin: 0; }.source-row .source-tags { margin: 0; }
 .source-pagination { display: flex; justify-content: end; align-items: center; gap: 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
 .source-pagination button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }.source-pagination button:hover { background: var(--lime); color: #10232e; }.source-pagination button:disabled { opacity: .4; cursor: not-allowed; }
+.source-heading-actions { display: flex; align-items: center; gap: 22px; }
+.source-sort-label { display: flex; align-items: center; gap: 8px; color: #587170; font: 500 10px var(--mono); letter-spacing: .04em; white-space: nowrap; }
+.source-sort-label select { border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); padding: 5px 18px 5px 5px; font: 500 11px var(--mono); }
 html[data-theme="dark"] .source-card.source-row { background: transparent; }.source-pagination { color: #a8c1bd; }
 .theme-toggle:hover { background: var(--lime); color: #10232e; }
 html[data-theme="dark"] body { background: radial-gradient(circle at 93% 2%,rgba(198,241,53,.13),transparent 23rem),linear-gradient(90deg,rgba(237,244,237,.045) 1px,transparent 1px),linear-gradient(rgba(237,244,237,.045) 1px,transparent 1px),var(--paper); }
@@ -136,3 +139,4 @@ html[data-theme="dark"] .welcome-description { color: #c2d4d0; }
 @media (max-width: 720px) { .welcome-shell { padding: 20px; } .welcome-header h2 { font-size: 26px; } .welcome-actions { align-items: stretch; flex-direction: column-reverse; gap: 12px; } .welcome-actions .save-button { width: 100%; } .welcome-actions .text-button { align-self: center; } }
 @media (max-width: 720px) { .signal-heading-title { align-items: start; flex-direction: column; gap: 12px; }.signal-actions { flex-wrap: wrap; } }
 @media (max-width: 720px) { .source-card.source-row { grid-template-columns: 1fr auto; gap: 8px; }.source-row h3 { grid-column: 1; }.source-row p { grid-column: 2; grid-row: 2; }.source-row .source-tags { grid-column: 1 / -1; }.source-row > div:first-child { grid-column: 1 / -1; }.source-pagination { justify-content: center; } }
+@media (max-width: 720px) { .source-heading-actions { width: 100%; justify-content: space-between; gap: 12px; }.source-sort-label { flex: 1; }.source-sort-label select { min-width: 0; flex: 1; } }
