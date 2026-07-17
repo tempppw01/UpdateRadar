@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { readFile, stat } from "node:fs/promises";
+import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { searchAppStore, searchGithubRepositories } from "./catalog.js";
@@ -12,12 +12,23 @@ import { listModels, translateText } from "./translation.js";
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicPath = join(root, "public");
 const sourcesPath = process.env.SOURCES_PATH ?? join(root, "data/sources.json");
+const defaultSourcesPath = process.env.DEFAULT_SOURCES_PATH ?? join(root, "defaults/sources.json");
 const eventStore = new JsonEventStore(process.env.EVENTS_PATH ?? join(root, "data/events.json"));
 const sourceStore = new JsonSourceStore(sourcesPath);
 const settingsStore = new JsonSettingsStore(process.env.SETTINGS_PATH ?? join(root, "data/settings.json"));
 
 async function sources() {
   return sourceStore.list();
+}
+
+export async function initializeSources(path = sourcesPath, seedPath = defaultSourcesPath) {
+  try {
+    await readFile(path);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    await mkdir(dirname(path), { recursive: true });
+    await copyFile(seedPath, path);
+  }
 }
 
 function send(response, status, body) {
@@ -167,5 +178,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT ?? 8787);
-  createApp().listen(port, () => console.log(`UpdateRadar listening on http://localhost:${port}`));
+  initializeSources()
+    .then(() => createApp().listen(port, () => console.log(`UpdateRadar listening on http://localhost:${port}`)))
+    .catch((error) => { console.error("Unable to initialize data directory", error); process.exitCode = 1; });
 }

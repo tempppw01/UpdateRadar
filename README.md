@@ -67,6 +67,18 @@ docker compose logs -f update-radar
 docker compose down
 ```
 
+### Railway 部署与持久化
+
+在 Railway 服务中创建 Volume，并将挂载路径设为 `/app/data`。然后在 Variables 中设置：
+
+```text
+SOURCES_PATH=/app/data/sources.json
+EVENTS_PATH=/app/data/events.json
+SETTINGS_PATH=/app/data/settings.json
+```
+
+首次挂载空 Volume 时，服务会自动将镜像内置的默认 `sources.json` 复制到 Volume；以后始终使用 Volume 中的数据，不会在重新构建或重新部署时覆盖已添加的数据源。若需迁移已有配置，请先使用“导出设置”，部署后再通过“导入设置”恢复。
+
 ### 发布详情、下载与翻译
 
 GitHub Releases 会保存每个发布包的名称、大小和官方下载地址。时间线中点击“发布详情”可查看完整发布说明；有发布包时，点击“下载发布包”即可展开下载列表。

@@ -6,6 +6,7 @@ ENV NODE_ENV=production
 COPY package.json ./
 COPY src ./src
 COPY public ./public
+COPY data/sources.json ./defaults/sources.json
 COPY data/sources.json ./data/sources.json
 
 EXPOSE 8787

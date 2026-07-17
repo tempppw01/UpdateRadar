@@ -48,5 +48,125 @@
     "owner": "redis",
     "repo": "redis",
     "includePrereleases": false
+  },
+  {
+    "id": "app-store-444934666",
+    "name": "QQ",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "444934666",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a9/e7/0f/a9e70f4d-ec88-a832-b9c0-756bc0e6057a/AppIcon-1-0-1x_U007epad-0-1-0-sRGB-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-473225145",
+    "name": "QQ邮箱",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "473225145",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b6/23/c6/b623c61a-57d6-4180-03f2-55dc62b403f4/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-370139302",
+    "name": "QQ浏览器-高考AI填志愿",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "370139302",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/b6/20/6d/b6206d29-3943-372b-1ab5-b3e012eed98f/AppIcon-0-1x_U007emarketing-0-7-0-sRGB-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-414478124",
+    "name": "WeChat",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "414478124",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e4/4f/16/e44f16cb-0a64-464e-13f2-05091f930c79/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-741292507",
+    "name": "rednote",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "741292507",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/49/bd/e2/49bde295-f809-1217-3d13-06cc4ad5bc46/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1175213887",
+    "name": "TIM – QQ办公简洁版",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "1175213887",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/22/79/cc/2279cc34-9e3f-faef-39e0-e66013384961/AppIcon-1-0-1x_U007emarketing-0-8-0-sRGB-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-461703208",
+    "name": "AMap Global",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "461703208",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bb/97/cf/bb97cff5-1654-c30f-0b06-404bf67c0b66/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-387682726",
+    "name": "Taobao - Online Shopping App",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "387682726",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ac/bc/ee/acbcee55-7331-cf33-ba52-03327971f9c5/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/100x100bb.jpg"
   }
 ]
