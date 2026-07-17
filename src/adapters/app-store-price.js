@@ -1,13 +1,11 @@
 import { createHash } from "node:crypto";
 import { fetchText } from "../lib/http.js";
 
-const baseUrl = "https://appstoreprice.org";
-
-function decodeFlightData(html) {
-  return [...html.matchAll(/self\.__next_f\.push\(\[1,"((?:\\.|[^"\\])*)"\]\)<\/script>/g)]
-    .map((match) => JSON.parse(`"${match[1]}"`))
-    .join("\n");
-}
+const storefrontIds = {
+  au: "143460", br: "143503", ca: "143455", cn: "143465", de: "143443",
+  fr: "143442", gb: "143444", hk: "143463", in: "143467", jp: "143462",
+  kr: "143466", ph: "143474", sg: "143464", tw: "143470", us: "143441"
+};
 
 function jsonArrayEnd(text, start) {
   let depth = 0;
@@ -28,57 +26,52 @@ function jsonArrayEnd(text, start) {
   return -1;
 }
 
-function pricesForSubscription(flight, subscriptionId) {
-  const marker = `"subscriptionId":"${subscriptionId}"`;
-  const subscriptionIndex = flight.indexOf(marker);
-  if (subscriptionIndex === -1) return [];
-  const pricesIndex = flight.indexOf('"prices":', subscriptionIndex);
-  if (pricesIndex === -1) return [];
-  const arrayStart = flight.indexOf("[", pricesIndex);
-  if (arrayStart === -1) return [];
-  const arrayEnd = jsonArrayEnd(flight, arrayStart);
-  if (arrayEnd === -1) return [];
-  return JSON.parse(flight.slice(arrayStart, arrayEnd));
+function addOnsFromPage(html) {
+  const marker = '"addOns":';
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex === -1) return [];
+  const start = html.indexOf("[", markerIndex);
+  if (start === -1) return [];
+  const end = jsonArrayEnd(html, start);
+  if (end === -1) return [];
+  return JSON.parse(html.slice(start, end));
 }
 
-function subscriptionName(flight, subscriptionId) {
-  const subscriptionIndex = flight.indexOf(`"subscriptionId":"${subscriptionId}"`);
-  const nameIndex = flight.lastIndexOf('"name":"', subscriptionIndex);
-  if (nameIndex === -1) return subscriptionId;
-  const valueStart = nameIndex + '"name":"'.length;
-  const valueEnd = flight.indexOf('"', valueStart);
-  return valueEnd === -1 ? subscriptionId : flight.slice(valueStart, valueEnd);
-}
-
-function fingerprint(prices) {
-  const snapshot = prices
-    .map(({ region, currency, price }) => ({ region, currency, price }))
-    .sort((left, right) => left.region.localeCompare(right.region));
-  return createHash("sha256").update(JSON.stringify(snapshot)).digest("hex").slice(0, 16);
+function fingerprint(addOn) {
+  return createHash("sha256")
+    .update(JSON.stringify({ offerName: addOn.offerName, name: addOn.name, price: addOn.price }))
+    .digest("hex")
+    .slice(0, 16);
 }
 
 export async function collectAppStorePrice(source, dependencies = { fetchText }) {
-  const locale = source.locale ?? "zh";
-  const url = `${baseUrl}/${encodeURIComponent(locale)}/apps/${encodeURIComponent(source.appId)}`;
-  const flight = decodeFlightData(await dependencies.fetchText(url));
-  const prices = pricesForSubscription(flight, source.subscriptionId);
-  if (!prices.length) return [];
+  const country = source.country ?? "us";
+  const lookupUrl = `https://itunes.apple.com/lookup?id=${encodeURIComponent(source.appId)}&country=${encodeURIComponent(country)}`;
+  const lookup = JSON.parse(await dependencies.fetchText(lookupUrl));
+  const app = lookup.results?.[0];
+  if (!app?.trackViewUrl) return [];
 
-  const lowest = prices
-    .filter((price) => Number.isFinite(price.priceCny))
-    .toSorted((left, right) => left.priceCny - right.priceCny)[0];
-  const planName = source.planName || subscriptionName(flight, source.subscriptionId);
-  const lowestSummary = lowest
-    ? `${lowest.regionName} ${lowest.currency} ${lowest.price}（约 ¥${lowest.priceCny}）`
-    : "暂无折算价格";
+  const storefrontId = source.storefrontId || storefrontIds[country];
+  if (!storefrontId) throw new Error(`Unsupported App Store storefront: ${country}`);
+  const pageUrl = new URL(app.trackViewUrl);
+  pageUrl.search = "";
+  const headers = {
+    "Accept-Language": "en-US,en;q=0.9",
+    "X-Apple-Store-Front": `${storefrontId}-1,29`,
+    "X-Apple-Storefront": `${storefrontId}-1,29`
+  };
+  const officialUrl = pageUrl.toString();
+  const addOn = addOnsFromPage(await dependencies.fetchText(officialUrl, { headers }))
+    .find((candidate) => candidate.buyParams?.includes(`offerName=${source.subscriptionId}`));
+  if (!addOn) return [];
 
   return [{
-    externalId: `${source.subscriptionId}:${fingerprint(prices)}`,
-    version: lowest ? `${lowest.currency} ${lowest.price}` : "价格快照",
-    title: `${source.name}：${planName} 订阅价格`,
-    url,
+    externalId: `${source.subscriptionId}:${country}:${fingerprint({ ...addOn, offerName: source.subscriptionId })}`,
+    version: addOn.price,
+    title: `${source.name}：${source.planName || addOn.name}`,
+    url: officialUrl,
     publishedAt: new Date().toISOString(),
-    summary: `已采集 ${prices.length} 个地区的订阅价格；当前最低为 ${lowestSummary}。`,
-    metadata: { subscriptionId: source.subscriptionId, planName, lowest, prices }
+    summary: `Apple App Store ${country.toUpperCase()} 商店当前内购价格：${addOn.price}。`,
+    metadata: { appId: source.appId, country, subscriptionId: source.subscriptionId, name: addOn.name, price: addOn.price }
   }];
 }

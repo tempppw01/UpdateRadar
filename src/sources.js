@@ -51,7 +51,8 @@ export function normalizeSource(input, { id } = {}) {
     source.appId = required(input.appId, "App Store 应用 ID");
     source.subscriptionId = required(input.subscriptionId, "订阅套餐 ID");
     source.planName = String(input.planName || "").trim();
-    source.locale = String(input.locale || "zh").trim().toLowerCase();
+    source.country = String(input.country || "us").trim().toLowerCase();
+    source.storefrontId = String(input.storefrontId || "").trim();
   }
   if (kind === "google-play") {
     source.packageId = required(input.packageId, "Google Play 包名");

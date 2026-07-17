@@ -237,7 +237,7 @@ function sourcePayload() {
     enabled: elements.sourceForm.elements.enabled.checked,
     owner: value("owner"), repo: value("repo"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
-    subscriptionId: value("subscriptionId"), planName: value("planName"), locale: value("locale"),
+    subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
     includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }

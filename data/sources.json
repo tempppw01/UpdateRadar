@@ -73,16 +73,16 @@
   },
   {
     "id": "chatgpt-plus-price",
-    "name": "ChatGPT Plus 全球订阅价格",
+    "name": "ChatGPT Plus App Store 内购价格（美国）",
     "kind": "app-store-price",
     "enabled": true,
     "appId": "6448311069",
     "subscriptionId": "oai_chatgpt_plus_1999_1m",
     "planName": "ChatGPT Plus",
-    "locale": "zh",
+    "country": "us",
     "tags": [
       "app-store",
-      "subscription",
+      "in-app-purchase",
       "pricing"
     ]
   }

@@ -38,12 +38,12 @@ test("source store rejects unsupported and incomplete configurations", async () 
   );
 });
 
-test("source store validates App Store subscription price monitors", async () => {
+test("source store validates Apple App Store in-app purchase monitors", async () => {
   const store = await makeStore();
   const source = await store.create({
     id: "chatgpt-plus-price", name: "ChatGPT Plus 全球订阅价格", kind: "app-store-price",
-    appId: "6448311069", subscriptionId: "oai_chatgpt_plus_1999_1m", locale: "zh", tags: ["pricing"]
+    appId: "6448311069", subscriptionId: "oai_chatgpt_plus_1999_1m", country: "us", tags: ["pricing"]
   });
   assert.equal(source.subscriptionId, "oai_chatgpt_plus_1999_1m");
-  assert.equal(source.locale, "zh");
+  assert.equal(source.country, "us");
 });

@@ -20,14 +20,16 @@ test("GitHub collector ignores draft and prerelease versions by default", async 
   assert.equal(updates[0].version, "v2.0.0");
 });
 
-test("App Store Price collector fingerprints subscription prices in their native currencies", async () => {
-  const flight = '{"name":"ChatGPT Plus","subscriptionId":"chatgpt-plus","prices":[{"region":"PH","regionName":"菲律宾","currency":"PHP","price":999,"priceCny":109.74},{"region":"US","regionName":"美国","currency":"USD","price":19.99,"priceCny":135.5}]}';
-  const html = `<script>self.__next_f.push([1,"${JSON.stringify(flight).slice(1, -1)}"])</script>`;
-  const source = { id: "chatgpt-plus", name: "ChatGPT Plus 全球订阅价格", appId: "6448311069", subscriptionId: "chatgpt-plus", locale: "zh" };
-  const [update] = await collectAppStorePrice(source, { fetchText: async () => html });
-  assert.match(update.externalId, /^chatgpt-plus:[a-f0-9]{16}$/);
-  assert.equal(update.metadata.prices.length, 2);
-  assert.match(update.summary, /菲律宾 PHP 999/);
+test("Apple App Store collector fingerprints an official in-app purchase price", async () => {
+  const page = JSON.stringify({ storePlatformData: { "product-dv": { results: {
+    "6448311069": { addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] }
+  } } } });
+  const source = { id: "chatgpt-plus", name: "ChatGPT Plus 内购价格", appId: "6448311069", subscriptionId: "chatgpt-plus", country: "us" };
+  const responses = [JSON.stringify({ results: [{ trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069" }] }), page];
+  const [update] = await collectAppStorePrice(source, { fetchText: async () => responses.shift() });
+  assert.match(update.externalId, /^chatgpt-plus:us:[a-f0-9]{16}$/);
+  assert.equal(update.version, "$19.99");
+  assert.match(update.summary, /Apple App Store US/);
 });
 
 test("polling records a new update only once", async () => {
