@@ -76,7 +76,7 @@
       <div class="settings-shell">
         <header class="settings-header"><div><p class="eyebrow">CONFIGURATION / 04</p><h2 id="settings-title">数据源设置</h2></div><button class="icon-button" id="close-settings" type="button" aria-label="关闭设置">×</button></header>
         <div class="settings-grid">
-          <section class="saved-sources" aria-label="已配置数据源"><div class="settings-label">已配置来源</div><div id="settings-source-list"></div></section>
+          <section class="saved-sources" aria-label="已配置数据源"><div class="settings-source-toolbar"><label class="settings-label"><input id="select-all-sources" type="checkbox"> 全选</label><button class="bulk-delete-button" id="bulk-delete-sources" type="button" disabled>删除所选</button></div><div id="settings-source-list"></div></section>
           <section class="editor-pane">
             <div class="editor-heading"><div><p class="settings-label" id="editor-mode">新增数据源</p><h3 id="editor-title">开始监控新渠道</h3></div><button class="text-button" id="reset-editor" type="button">清空表单</button></div>
             <form id="source-form">
@@ -96,10 +96,12 @@
               <label class="check-field enabled-field"><input name="enabled" type="checkbox" checked> 立即启用此数据源</label>
               <div class="form-actions"><button class="delete-button" id="delete-source" type="button" hidden>删除来源</button><button class="text-button" id="cancel-edit" type="button">取消</button><button class="save-button" type="submit">保存数据源</button></div>
             </form>
+            <details class="translation-settings"><summary>翻译服务（OpenAI 兼容接口）</summary><div class="form-grid"><label>接口地址<input id="translation-base-url" type="url" placeholder="https://api.example.com/v1"></label><label>模型<input id="translation-model" placeholder="例如 gpt-4o-mini"></label><label>API Key<input id="translation-api-key" type="password" autocomplete="off" placeholder="仅在更新时填写"></label><label>目标语言<input id="translation-target-language" value="简体中文"></label></div><button class="save-button" id="save-translation-settings" type="button">保存翻译设置</button></details>
           </section>
         </div>
       </div>
     </dialog>
+    <dialog class="event-dialog" id="event-dialog"><div class="event-dialog-shell"><header class="event-dialog-header"><div><p class="eyebrow">RELEASE DETAILS</p><h2 id="event-dialog-title"></h2></div><button class="icon-button" id="close-event-dialog" type="button" aria-label="关闭详情">×</button></header><div class="event-dialog-meta" id="event-dialog-meta"></div><div class="event-dialog-actions"><a class="event-link" id="event-dialog-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a><button class="translate-button" id="translate-event" type="button">翻译为简体中文</button></div><div class="event-dialog-content" id="event-dialog-content"></div><div class="event-translation" id="event-translation" hidden></div><section class="event-assets" id="event-assets" hidden><h3>下载资源</h3><div id="event-assets-list"></div></section></div></dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <template id="event-template">
       <article class="event-card">
@@ -110,7 +112,7 @@
           <h3></h3><p class="event-summary"></p>
           <div class="event-tags"></div>
         </div>
-        <a class="event-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a>
+        <div class="event-card-actions"><button class="event-detail-button" type="button">发布详情</button><a class="event-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a></div>
       </article>
     </template>
     <script type="module" src="/app.js"></script>

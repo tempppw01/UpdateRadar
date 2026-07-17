@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", editingSourceId: null };
+const state = { events: [], sources: [], tag: "", sourceId: "", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -15,6 +15,8 @@ const elements = {
   settingsDialog: document.querySelector("#settings-dialog"),
   closeSettings: document.querySelector("#close-settings"),
   settingsSourceList: document.querySelector("#settings-source-list"),
+  selectAllSources: document.querySelector("#select-all-sources"),
+  bulkDeleteSources: document.querySelector("#bulk-delete-sources"),
   sourceForm: document.querySelector("#source-form"),
   sourceKind: document.querySelector("#source-kind"),
   editorMode: document.querySelector("#editor-mode"),
@@ -26,6 +28,21 @@ const elements = {
   appStoreSearchCountry: document.querySelector("#app-store-search-country"),
   appStoreSearchButton: document.querySelector("#app-store-search-button"),
   appStoreResults: document.querySelector("#app-store-results"),
+  translationBaseUrl: document.querySelector("#translation-base-url"),
+  translationModel: document.querySelector("#translation-model"),
+  translationApiKey: document.querySelector("#translation-api-key"),
+  translationTargetLanguage: document.querySelector("#translation-target-language"),
+  saveTranslationSettings: document.querySelector("#save-translation-settings"),
+  eventDialog: document.querySelector("#event-dialog"),
+  closeEventDialog: document.querySelector("#close-event-dialog"),
+  eventDialogTitle: document.querySelector("#event-dialog-title"),
+  eventDialogMeta: document.querySelector("#event-dialog-meta"),
+  eventDialogLink: document.querySelector("#event-dialog-link"),
+  eventDialogContent: document.querySelector("#event-dialog-content"),
+  eventTranslation: document.querySelector("#event-translation"),
+  translateEvent: document.querySelector("#translate-event"),
+  eventAssets: document.querySelector("#event-assets"),
+  eventAssetsList: document.querySelector("#event-assets-list"),
   toast: document.querySelector("#toast"),
   template: document.querySelector("#event-template")
 };
@@ -53,6 +70,44 @@ function showToast(message, type = "success") {
   elements.toast.classList.add("visible");
   window.clearTimeout(showToast.timeout);
   showToast.timeout = window.setTimeout(() => elements.toast.classList.remove("visible"), 4200);
+}
+
+function releaseAssets(event) {
+  return Array.isArray(event.metadata?.assets) ? event.metadata.assets.filter((asset) => asset?.url && asset?.name) : [];
+}
+
+function formatBytes(value) {
+  if (!Number.isFinite(value) || value < 1) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+  return `${(value / 1024 ** exponent).toFixed(exponent ? 1 : 0)} ${units[exponent]}`;
+}
+
+function assetLink(asset) {
+  const link = document.createElement("a");
+  link.href = asset.url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.className = "download-button";
+  link.textContent = `下载 ${asset.name}${asset.size ? ` · ${formatBytes(asset.size)}` : ""}`;
+  return link;
+}
+
+function openEventDetails(event) {
+  state.activeEvent = event;
+  elements.eventDialogTitle.textContent = event.title;
+  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"} · ${dateFormat.format(new Date(event.publishedAt))}`;
+  elements.eventDialogLink.href = event.url;
+  elements.eventDialogContent.textContent = event.summary || "官方未提供本次发布说明。";
+  elements.eventTranslation.hidden = true;
+  elements.eventTranslation.replaceChildren();
+  elements.translateEvent.disabled = false;
+  elements.translateEvent.textContent = "翻译为简体中文";
+  elements.eventAssetsList.replaceChildren();
+  const assets = releaseAssets(event);
+  elements.eventAssets.hidden = !assets.length;
+  assets.forEach((asset) => elements.eventAssetsList.append(assetLink(asset)));
+  elements.eventDialog.showModal();
 }
 
 function renderMetrics() {
@@ -140,11 +195,25 @@ function renderEvents() {
     if (details.childElementCount) card.querySelector(".event-tags").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
+    const detailButton = card.querySelector(".event-detail-button");
+    detailButton.addEventListener("click", () => openEventDetails(event));
     event.tags.forEach((tag) => {
       const pill = document.createElement("span");
       pill.textContent = tag;
       card.querySelector(".event-tags").append(pill);
     });
+    const assets = releaseAssets(event);
+    if (assets.length) {
+      const downloads = document.createElement("details");
+      downloads.className = "release-downloads";
+      const summary = document.createElement("summary");
+      summary.textContent = assets.length === 1 ? "下载发布包" : `下载发布包（${assets.length}）`;
+      const list = document.createElement("div");
+      list.className = "release-download-list";
+      assets.forEach((asset) => list.append(assetLink(asset)));
+      downloads.append(summary, list);
+      card.querySelector(".event-main").append(downloads);
+    }
     elements.eventList.append(card);
   });
 }
@@ -231,24 +300,50 @@ function editSource(source) {
 function renderSettingsSources() {
   elements.settingsSourceList.replaceChildren();
   state.sources.forEach((source) => {
+    const row = document.createElement("div");
+    row.className = `saved-source ${state.editingSourceId === source.id ? "selected" : ""}`;
+    const select = document.createElement("input");
+    select.type = "checkbox";
+    select.checked = state.selectedSourceIds.has(source.id);
+    select.setAttribute("aria-label", `选择 ${source.name}`);
+    select.addEventListener("change", () => {
+      if (select.checked) state.selectedSourceIds.add(source.id);
+      else state.selectedSourceIds.delete(source.id);
+      renderSettingsSources();
+    });
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `saved-source ${state.editingSourceId === source.id ? "selected" : ""}`;
+    button.className = "saved-source-button";
     const status = document.createElement("i");
     status.className = source.enabled ? "" : "paused";
+    const provider = document.createElement("img");
+    const icon = source.artworkUrl || sourceIcons[source.kind]?.url;
+    if (icon) { provider.src = icon; provider.alt = ""; provider.referrerPolicy = "no-referrer"; provider.addEventListener("error", () => provider.remove()); }
     const name = document.createElement("strong");
     name.textContent = source.name;
     const detail = document.createElement("span");
     detail.textContent = `${source.kind} / ${source.id}`;
-    button.append(status, name, detail);
+    button.append(status, provider, name, detail);
     button.addEventListener("click", () => { editSource(source); renderSettingsSources(); });
-    elements.settingsSourceList.append(button);
+    row.append(select, button);
+    elements.settingsSourceList.append(row);
   });
+  const selectedCount = state.selectedSourceIds.size;
+  elements.selectAllSources.checked = selectedCount === state.sources.length && state.sources.length > 0;
+  elements.selectAllSources.indeterminate = selectedCount > 0 && selectedCount < state.sources.length;
+  elements.bulkDeleteSources.disabled = selectedCount === 0;
+  elements.bulkDeleteSources.textContent = selectedCount ? `删除所选（${selectedCount}）` : "删除所选";
 }
 
 function openSettings() {
   startNewEditor();
   renderSettingsSources();
+  requestJson("/v1/settings/translation").then((config) => {
+    elements.translationBaseUrl.value = config.baseUrl || "";
+    elements.translationModel.value = config.model || "";
+    elements.translationTargetLanguage.value = config.targetLanguage || "简体中文";
+    elements.translationApiKey.value = "";
+  }).catch(() => showToast("无法读取翻译设置", "error"));
   elements.settingsDialog.showModal();
 }
 
@@ -358,6 +453,7 @@ async function requestJson(url, options) {
 
 async function load() {
   [state.sources, state.events] = await Promise.all([requestJson("/v1/sources"), requestJson("/v1/events?limit=200")]);
+  state.selectedSourceIds = new Set([...state.selectedSourceIds].filter((id) => state.sources.some((source) => source.id === id)));
   if (state.sourceId && !state.sources.some((source) => source.id === state.sourceId)) state.sourceId = "";
   renderMetrics(); renderFilters(); renderEvents(); renderSources();
 }
@@ -366,6 +462,41 @@ elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = e
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
+elements.closeEventDialog.addEventListener("click", () => elements.eventDialog.close());
+elements.selectAllSources.addEventListener("change", () => {
+  state.selectedSourceIds = elements.selectAllSources.checked ? new Set(state.sources.map((source) => source.id)) : new Set();
+  renderSettingsSources();
+});
+elements.bulkDeleteSources.addEventListener("click", async () => {
+  const ids = [...state.selectedSourceIds];
+  if (!ids.length || !window.confirm(`确定删除选中的 ${ids.length} 个数据源吗？历史更新不会被删除。`)) return;
+  try {
+    const result = await requestJson("/v1/sources", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
+    state.selectedSourceIds.clear();
+    await load(); startNewEditor(); renderSettingsSources(); showToast(`已删除 ${result.removed} 个数据源`);
+  } catch (error) { showToast(`无法批量删除：${error.message}`, "error"); }
+});
+elements.saveTranslationSettings.addEventListener("click", async () => {
+  try {
+    await requestJson("/v1/settings/translation", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ baseUrl: elements.translationBaseUrl.value, model: elements.translationModel.value, apiKey: elements.translationApiKey.value, targetLanguage: elements.translationTargetLanguage.value })
+    });
+    elements.translationApiKey.value = "";
+    showToast("翻译设置已保存");
+  } catch (error) { showToast(`无法保存翻译设置：${error.message}`, "error"); }
+});
+elements.translateEvent.addEventListener("click", async () => {
+  if (!state.activeEvent) return;
+  elements.translateEvent.disabled = true;
+  elements.translateEvent.textContent = "翻译中";
+  try {
+    const result = await requestJson("/v1/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: state.activeEvent.summary || state.activeEvent.title }) });
+    elements.eventTranslation.textContent = result.text;
+    elements.eventTranslation.hidden = false;
+  } catch (error) { showToast(`翻译失败：${error.message}`, "error"); }
+  finally { elements.translateEvent.disabled = false; elements.translateEvent.textContent = "翻译为简体中文"; }
+});
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);

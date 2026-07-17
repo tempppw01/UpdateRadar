@@ -6,12 +6,15 @@ import { searchAppStore } from "./catalog.js";
 import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
+import { JsonSettingsStore } from "./settings.js";
+import { translateText } from "./translation.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicPath = join(root, "public");
 const sourcesPath = process.env.SOURCES_PATH ?? join(root, "data/sources.json");
 const eventStore = new JsonEventStore(process.env.EVENTS_PATH ?? join(root, "data/events.json"));
 const sourceStore = new JsonSourceStore(sourcesPath);
+const settingsStore = new JsonSettingsStore(process.env.SETTINGS_PATH ?? join(root, "data/settings.json"));
 
 async function sources() {
   return sourceStore.list();
@@ -53,7 +56,7 @@ async function sendPublicFile(response, path, method) {
   return true;
 }
 
-export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, appStoreSearch = searchAppStore } = {}) {
+export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, translator = translateText } = {}) {
   return createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
@@ -70,8 +73,24 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         if (!/^[a-z]{2}$/.test(country)) throw new SourceValidationError("App Store 国家/地区代码应为两个字母");
         return send(response, 200, await appStoreSearch({ term, country, limit: url.searchParams.get("limit") }));
       }
+      if (request.method === "GET" && url.pathname === "/v1/settings/translation") {
+        return send(response, 200, await settingsRepository.publicTranslation());
+      }
+      if (request.method === "PUT" && url.pathname === "/v1/settings/translation") {
+        await settingsRepository.updateTranslation(await requestBody(request));
+        return send(response, 200, await settingsRepository.publicTranslation());
+      }
+      if (request.method === "POST" && url.pathname === "/v1/translate") {
+        const body = await requestBody(request);
+        return send(response, 200, { text: await translator(body.text, await settingsRepository.translation()) });
+      }
       if (request.method === "POST" && url.pathname === "/v1/sources") {
         return send(response, 201, await sourceRepository.create(await requestBody(request)));
+      }
+      if (request.method === "DELETE" && url.pathname === "/v1/sources") {
+        const body = await requestBody(request);
+        if (!Array.isArray(body.ids)) throw new SourceValidationError("ids must be an array");
+        return send(response, 200, { removed: await sourceRepository.removeMany(body.ids) });
       }
       const sourceMatch = url.pathname.match(/^\/v1\/sources\/([a-z0-9-]+)$/);
       if (sourceMatch && request.method === "PUT") {

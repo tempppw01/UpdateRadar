@@ -30,7 +30,12 @@ export class JsonEventStore {
   async insert(source, update) {
     const state = await this.load();
     const fingerprint = `${source.id}:${update.externalId}`;
-    if (state.events.some((event) => event.fingerprint === fingerprint)) return false;
+    const existing = state.events.find((event) => event.fingerprint === fingerprint);
+    if (existing) {
+      Object.assign(existing, { ...update, metadata: { ...existing.metadata, ...update.metadata } });
+      await this.save();
+      return false;
+    }
 
     state.events.push({
       id: crypto.randomUUID(),

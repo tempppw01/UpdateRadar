@@ -11,13 +11,14 @@ import { JsonEventStore } from "../src/store.js";
 test("GitHub collector ignores draft and prerelease versions by default", async () => {
   const updates = await collectGithubReleases({ owner: "acme", repo: "tool", includePrereleases: false }, {
     fetchText: async () => JSON.stringify([
-      { id: 1, tag_name: "v2.0.0", name: "2.0", html_url: "https://example.test/2", published_at: "2026-01-02T00:00:00Z", body: "stable", draft: false, prerelease: false, assets: [] },
+      { id: 1, tag_name: "v2.0.0", name: "2.0", html_url: "https://example.test/2", published_at: "2026-01-02T00:00:00Z", body: "stable", draft: false, prerelease: false, assets: [{ name: "tool.zip", size: 2048, browser_download_url: "https://example.test/tool.zip", content_type: "application/zip" }] },
       { id: 2, tag_name: "v2.1.0-rc1", draft: false, prerelease: true },
       { id: 3, tag_name: "v0", draft: true, prerelease: false }
     ])
   });
   assert.equal(updates.length, 1);
   assert.equal(updates[0].version, "v2.0.0");
+  assert.deepEqual(updates[0].metadata.assets, [{ name: "tool.zip", size: 2048, url: "https://example.test/tool.zip", contentType: "application/zip" }]);
 });
 
 test("Apple App Store collector adds official in-app purchase data to the application update", async () => {

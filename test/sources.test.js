@@ -47,3 +47,11 @@ test("source store supports an Apple App Store source with an in-app purchase mo
   assert.equal(source.subscriptionId, "oai_chatgpt_plus_1999_1m");
   assert.equal(source.country, "us");
 });
+
+test("source store removes multiple selected sources", async () => {
+  const store = await makeStore();
+  await store.create({ id: "one", name: "One", kind: "rss", feedUrl: "https://example.test/one.xml" });
+  await store.create({ id: "two", name: "Two", kind: "rss", feedUrl: "https://example.test/two.xml" });
+  assert.equal(await store.removeMany(["one", "missing"]), 1);
+  assert.deepEqual((await store.list()).map((source) => source.id), ["two"]);
+});

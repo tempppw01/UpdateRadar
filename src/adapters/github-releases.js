@@ -15,6 +15,9 @@ export async function collectGithubReleases(source, dependencies = { fetchText }
       url: release.html_url,
       publishedAt: release.published_at || release.created_at,
       summary: release.body || "",
-      metadata: { prerelease: release.prerelease, assets: release.assets?.length ?? 0 }
+      metadata: {
+        prerelease: release.prerelease,
+        assets: (release.assets ?? []).map((asset) => ({ name: asset.name, size: asset.size, url: asset.browser_download_url, contentType: asset.content_type }))
+      }
     }));
 }

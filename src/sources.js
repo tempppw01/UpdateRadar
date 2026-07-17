@@ -97,4 +97,14 @@ export class JsonSourceStore {
     await this.save(remaining);
     return true;
   }
+
+  async removeMany(ids) {
+    const selected = new Set(ids.map((id) => String(id)));
+    if (!selected.size) return 0;
+    const sources = await this.list();
+    const remaining = sources.filter((source) => !selected.has(source.id));
+    const removed = sources.length - remaining.length;
+    if (removed) await this.save(remaining);
+    return removed;
+  }
 }

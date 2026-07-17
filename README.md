@@ -67,6 +67,12 @@ docker compose logs -f update-radar
 docker compose down
 ```
 
+### 发布详情、下载与翻译
+
+GitHub Releases 会保存每个发布包的名称、大小和官方下载地址。时间线中点击“发布详情”可查看完整发布说明；有发布包时，点击“下载发布包”即可展开下载列表。
+
+翻译服务使用 OpenAI 兼容的 Chat Completions 接口。在“数据源设置”底部填写接口地址（例如 `https://api.example.com/v1`）、模型和 API Key；密钥只保存于服务器的 `data/settings.json`，不会由读取设置接口返回，也不会提交到 Git。配置后可在发布详情中将说明翻译为简体中文。
+
 监控卡片中的 GitHub、RSS、App Store 与 Google Play 图标通过 [Simple Icons CDN](https://cdn.simpleicons.org/) 引用；其中 App Store 图标为 `https://cdn.simpleicons.org/appstore/10232e`。
 
 ## API
