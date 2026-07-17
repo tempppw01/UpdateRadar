@@ -40,7 +40,10 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   const source = { id: "chatgpt", name: "ChatGPT", appId: "6448311069", subscriptionId: "chatgpt-plus", country: "us" };
   const lookup = { results: [{
     trackId: 6448311069, trackName: "ChatGPT", version: "1.2.3", trackViewUrl: "https://apps.apple.com/us/app/chatgpt/id6448311069?uo=4", price: 0, formattedPrice: "Free",
-    currentVersionReleaseDate: "2026-01-02T00:00:00Z", artworkUrl100: "https://example.test/icon.jpg"
+    currentVersionReleaseDate: "2026-01-02T00:00:00Z", artworkUrl100: "https://example.test/icon.jpg",
+    screenshotUrls: ["https://example.test/iphone-1.jpg", "https://example.test/shared.jpg"],
+    ipadScreenshotUrls: ["https://example.test/ipad-1.jpg", "https://example.test/shared.jpg"],
+    appletvScreenshotUrls: ["https://example.test/tv-1.jpg"]
   }] };
   const page = JSON.stringify({ addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] });
   const responses = [JSON.stringify(lookup), page];
@@ -50,6 +53,7 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   assert.equal(update.metadata.inAppPurchase.price, "$19.99");
   assert.deepEqual(update.metadata.storePrice, { price: "免费", country: "us", currency: "" });
   assert.equal(update.metadata.artworkUrl, "https://example.test/icon.jpg");
+  assert.deepEqual(update.metadata.screenshots, ["https://example.test/iphone-1.jpg", "https://example.test/shared.jpg", "https://example.test/ipad-1.jpg", "https://example.test/tv-1.jpg"]);
 });
 
 test("Docker Hub collector tracks tag digests and optional tag filters", async () => {

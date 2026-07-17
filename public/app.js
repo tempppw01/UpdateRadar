@@ -77,6 +77,8 @@ const elements = {
   eventHistoryCount: document.querySelector("#event-history-count"),
   eventHistoryIndicator: document.querySelector("#event-history-indicator"),
   eventHistoryList: document.querySelector("#event-history-list"),
+  eventScreenshots: document.querySelector("#event-screenshots"),
+  eventScreenshotsList: document.querySelector("#event-screenshots-list"),
   eventHighlights: document.querySelector("#event-highlights"),
   eventHighlightsList: document.querySelector("#event-highlights-list"),
   translateEvent: document.querySelector("#translate-event"),
@@ -247,6 +249,22 @@ function assetLink(asset) {
   return link;
 }
 
+function screenshotCard(url, appName, index) {
+  const link = document.createElement("a");
+  link.className = "event-screenshot-card";
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  const image = document.createElement("img");
+  image.src = url;
+  image.alt = `${appName} App Store 截图 ${index + 1}`;
+  image.loading = "lazy";
+  image.referrerPolicy = "no-referrer";
+  image.addEventListener("error", () => link.remove());
+  link.append(image);
+  return link;
+}
+
 function setTranslationModels(models, selected = "") {
   const options = [...new Set([selected, ...models].filter(Boolean))];
   elements.translationModel.replaceChildren(new Option(options.length ? "选择模型" : "未找到模型", ""));
@@ -300,6 +318,9 @@ function openEventDetails(event) {
   elements.translationViewToggle.hidden = true;
   elements.translateEvent.disabled = false;
   elements.translateEvent.textContent = "翻译为简体中文";
+  const screenshots = event.sourceKind === "app-store" ? event.metadata?.screenshots ?? [] : [];
+  elements.eventScreenshotsList.replaceChildren(...screenshots.map((url, index) => screenshotCard(url, event.sourceName, index)));
+  elements.eventScreenshots.hidden = screenshots.length === 0;
   elements.eventAssetsList.replaceChildren();
   const assets = releaseAssets(event);
   elements.eventAssets.hidden = !assets.length;

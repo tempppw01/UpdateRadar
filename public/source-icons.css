@@ -190,6 +190,13 @@ html[data-theme="dark"] .event-dialog-content { color: var(--text-body); }
 .event-history-list li { position: relative; }.event-history-list li::before { position: absolute; z-index: 1; top: 17px; left: -27px; width: 9px; height: 9px; border: 2px solid var(--paper); outline: 1px solid var(--ink); background: var(--lime); content: ""; }
 .event-history-item { display: grid; width: 100%; grid-template-columns: 1fr auto; gap: 4px 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); padding: 12px 0; text-align: left; }.event-history-item:hover strong { color: var(--coral); text-decoration: underline; text-underline-offset: 3px; }.event-history-item strong { font-size: 14px; }.event-history-item time { color: #587170; font: 10px var(--mono); }.event-history-item span { grid-column: 1 / -1; overflow: hidden; color: #587170; font: 11px/1.45 var(--sans); text-overflow: ellipsis; white-space: nowrap; }
 html[data-theme="dark"] .event-history-toggle small,html[data-theme="dark"] .event-history-toggle span:last-child,html[data-theme="dark"] .event-history-item time,html[data-theme="dark"] .event-history-item span { color: var(--text-muted); }
+.event-screenshots { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
+.event-screenshots-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.event-screenshots h3 { margin: 0; font-size: 16px; }.event-screenshots-heading span { color: #587170; font: 500 9px var(--mono); letter-spacing: .06em; }
+.event-screenshots-list { display: flex; gap: 10px; margin-top: 12px; overflow-x: auto; overscroll-behavior-x: contain; padding: 0 1px 5px; scroll-snap-type: x mandatory; }
+.event-screenshot-card { display: block; flex: 0 0 min(195px, 58vw); overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #e1ebd6; scroll-snap-align: start; }.event-screenshot-card:hover { border-color: var(--coral); }
+.event-screenshot-card img { display: block; width: 100%; aspect-ratio: 9 / 16; object-fit: cover; }
+html[data-theme="dark"] .event-screenshots-heading span { color: var(--text-muted); }.event-screenshot-card { background: #28444d; }
 .event-assets { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
 .event-assets h3 { margin: 0; font-size: 16px; }
 @media (max-width: 720px) { .event-dialog-shell { padding: 19px; } }

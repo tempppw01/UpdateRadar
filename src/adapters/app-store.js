@@ -10,6 +10,14 @@ function appPrice(app, country) {
   return price ? { price, country, currency: app.currency || "" } : null;
 }
 
+function appScreenshots(app) {
+  return [...new Set([
+    ...(app.screenshotUrls ?? []),
+    ...(app.ipadScreenshotUrls ?? []),
+    ...(app.appletvScreenshotUrls ?? [])
+  ].filter((url) => typeof url === "string" && url.trim()))].slice(0, 10);
+}
+
 export async function collectAppStore(source, dependencies = { fetchText }) {
   const country = source.country ?? "us";
   const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(source.appId)}&country=${encodeURIComponent(country)}`;
@@ -18,6 +26,7 @@ export async function collectAppStore(source, dependencies = { fetchText }) {
   if (!app) return [];
   const inAppPurchase = await fetchInAppPurchase(source, app, dependencies);
   const storePrice = appPrice(app, country);
+  const screenshots = appScreenshots(app);
 
   return [{
     externalId: `${app.trackId}:${app.version}${inAppPurchase ? `:${inAppPurchase.fingerprint}` : ""}`,
@@ -30,7 +39,8 @@ export async function collectAppStore(source, dependencies = { fetchText }) {
       bundleId: app.bundleId, artist: app.artistName, store: country,
       artworkUrl: app.artworkUrl512 || app.artworkUrl100 || app.artworkUrl60 || "",
       storePrice,
-      inAppPurchase
+      inAppPurchase,
+      screenshots
     }
   }];
 }
