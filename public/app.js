@@ -120,6 +120,10 @@ function releaseAssets(event) {
   return Array.isArray(event.metadata?.assets) ? event.metadata.assets.filter((asset) => asset?.url && asset?.name) : [];
 }
 
+function eventHeading(event) {
+  return event.version ? `${event.sourceName} / ${event.version}` : event.title;
+}
+
 function formatBytes(value) {
   if (!Number.isFinite(value) || value < 1) return "";
   const units = ["B", "KB", "MB", "GB"];
@@ -161,7 +165,7 @@ async function loadTranslationModels() {
 function openEventDetails(event) {
   state.activeEvent = event;
   state.activeTranslation = "";
-  elements.eventDialogTitle.textContent = event.title;
+  elements.eventDialogTitle.textContent = eventHeading(event);
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"} · ${dateFormat.format(new Date(event.publishedAt))}`;
   elements.eventDialogLink.href = event.url;
   renderEventDialogText("original");
@@ -252,7 +256,7 @@ function renderEvents() {
     const time = card.querySelector("time");
     time.dateTime = event.publishedAt;
     time.textContent = `${relativeTime(event.publishedAt)} · ${dateFormat.format(new Date(event.publishedAt))}`;
-    card.querySelector("h3").textContent = event.title;
+    card.querySelector("h3").textContent = eventHeading(event);
     const summary = card.querySelector(".event-summary");
     summary.textContent = event.summary || "官方未提供本次更新说明。";
     summary.hidden = !event.summary;
