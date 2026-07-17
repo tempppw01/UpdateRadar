@@ -44,6 +44,10 @@
 }
 
 .event-card-actions { align-self: center; display: flex; flex-direction: column; gap: 10px; align-items: end; }
+.card-context-menu { position: fixed; z-index: 20; min-width: 190px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 5px 5px 0 var(--lime); padding: 10px; }
+.card-context-menu p { overflow: hidden; margin: 0 0 8px; color: #587170; font: 500 10px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+.card-context-menu button { width: 100%; border: 1px solid var(--coral); background: transparent; color: var(--coral); padding: 8px 9px; text-align: left; font: 500 11px var(--mono); }
+.card-context-menu button:hover { background: var(--coral); color: #fff; }
 .event-card > *, .event-main { min-width: 0; }
 .event-title-button { width: 100%; overflow-wrap: anywhere; }
 .event-summary { overflow-wrap: anywhere; word-break: break-word; }

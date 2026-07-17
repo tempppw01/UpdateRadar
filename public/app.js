@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", search: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", search: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", contextSourceId: null };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -76,6 +76,9 @@ const elements = {
   viewTranslated: document.querySelector("#view-translated"),
   eventAssets: document.querySelector("#event-assets"),
   eventAssetsList: document.querySelector("#event-assets-list"),
+  cardContextMenu: document.querySelector("#card-context-menu"),
+  cardContextSource: document.querySelector("#card-context-source"),
+  cardContextDelete: document.querySelector("#card-context-delete"),
   toast: document.querySelector("#toast"),
   template: document.querySelector("#event-template")
 };
@@ -386,6 +389,22 @@ function groupToggle(sourceEvents, sourceId, expanded) {
   return toggle;
 }
 
+function closeCardContextMenu() {
+  state.contextSourceId = null;
+  elements.cardContextMenu.hidden = true;
+}
+
+function openCardContextMenu(source, event) {
+  event.preventDefault();
+  state.contextSourceId = source.id;
+  elements.cardContextSource.textContent = source.name;
+  elements.cardContextMenu.hidden = false;
+  const left = Math.min(event.clientX, window.innerWidth - elements.cardContextMenu.offsetWidth - 12);
+  const top = Math.min(event.clientY, window.innerHeight - elements.cardContextMenu.offsetHeight - 12);
+  elements.cardContextMenu.style.left = `${Math.max(12, left)}px`;
+  elements.cardContextMenu.style.top = `${Math.max(12, top)}px`;
+}
+
 function renderEvents() {
   const events = state.events.filter((event) => (!state.tag || eventCategories(event).includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
@@ -410,6 +429,7 @@ function renderEvents() {
     const article = card.querySelector(".event-card");
     const appIcon = card.querySelector(".event-app-icon");
     const source = state.sources.find((candidate) => candidate.id === event.sourceId);
+    if (source) article.addEventListener("contextmenu", (clickEvent) => openCardContextMenu(source, clickEvent));
     const artworkUrl = event.metadata?.artworkUrl || source?.artworkUrl || "";
     if (artworkUrl) {
       article.classList.add("event-with-app-icon");
@@ -965,6 +985,24 @@ async function load() {
 
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
 elements.eventSearch.addEventListener("input", (event) => { state.search = event.target.value; renderEvents(); });
+document.addEventListener("click", (event) => {
+  if (!elements.cardContextMenu.hidden && !elements.cardContextMenu.contains(event.target)) closeCardContextMenu();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeCardContextMenu();
+});
+window.addEventListener("scroll", closeCardContextMenu, true);
+elements.cardContextDelete.addEventListener("click", async () => {
+  const source = state.sources.find((item) => item.id === state.contextSourceId);
+  if (!source) return closeCardContextMenu();
+  if (!window.confirm(`确定删除“${source.name}”及其全部历史更新吗？`)) return;
+  closeCardContextMenu();
+  try {
+    const result = await requestJson(`/v1/sources/${source.id}`, { method: "DELETE" });
+    await load();
+    showToast(`已删除监控及 ${result.eventsRemoved} 条历史更新`);
+  } catch (error) { showToast(`无法删除监控：${error.message}`, "error"); }
+});
 elements.eventViewButtons.forEach((button) => button.addEventListener("click", () => {
   localStorage.setItem("update-radar-event-view", button.dataset.eventView);
   applyEventView(button.dataset.eventView);
