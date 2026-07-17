@@ -1,0 +1,11 @@
+.event-source-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.event-source-with-icon img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+}

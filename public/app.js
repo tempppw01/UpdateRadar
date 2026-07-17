@@ -91,7 +91,18 @@ function renderEvents() {
   }
   events.forEach((event) => {
     const card = elements.template.content.cloneNode(true);
-    card.querySelector(".event-source").textContent = event.sourceName;
+    const eventSource = card.querySelector(".event-source");
+    const sourceIcon = sourceIcons[event.sourceKind];
+    if (sourceIcon) {
+      eventSource.classList.add("event-source-with-icon");
+      const image = document.createElement("img");
+      image.src = sourceIcon.url;
+      image.alt = `${sourceIcon.name} 图标`;
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => image.remove());
+      eventSource.append(image);
+    }
+    eventSource.append(document.createTextNode(event.sourceName));
     const time = card.querySelector("time");
     time.dateTime = event.publishedAt;
     time.textContent = `${relativeTime(event.publishedAt)} · ${dateFormat.format(new Date(event.publishedAt))}`;
