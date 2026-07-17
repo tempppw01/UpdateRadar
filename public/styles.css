@@ -1,4 +1,5 @@
 :root { --ink:#10232e; --paper:#f5f1e8; --lime:#c6f135; --coral:#ff765d; --mist:#bfd0cd; --line:rgba(16,35,46,.16); --mono:"DM Mono",monospace; --sans:"Space Grotesk",sans-serif; }
+html[data-theme="dark"] { --ink:#edf4ed; --paper:#10232e; --lime:#c6f135; --coral:#ff8b76; --mist:#587170; --line:rgba(237,244,237,.18); color-scheme:dark; }
 * { box-sizing:border-box; }
 html { background:var(--paper); }
 body { margin:0; color:var(--ink); background:radial-gradient(circle at 93% 2%,rgba(198,241,53,.23),transparent 23rem),linear-gradient(90deg,rgba(16,35,46,.035) 1px,transparent 1px),linear-gradient(rgba(16,35,46,.035) 1px,transparent 1px),var(--paper); background-size:auto,32px 32px,32px 32px,auto; font-family:var(--sans); }

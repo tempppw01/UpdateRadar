@@ -10,6 +10,7 @@ const elements = {
   sourceList: document.querySelector("#source-list"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
+  themeToggle: document.querySelector("#theme-toggle"),
   settingsButton: document.querySelector("#settings-button"),
   manageSources: document.querySelector("#manage-sources"),
   settingsDialog: document.querySelector("#settings-dialog"),
@@ -62,6 +63,15 @@ const sourceIcons = {
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
   "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" }
 };
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  elements.themeToggle.setAttribute("aria-pressed", String(theme === "dark"));
+  elements.themeToggle.textContent = theme === "dark" ? "☀ 明亮" : "◐ 暗黑";
+}
+
+const savedTheme = localStorage.getItem("update-radar-theme");
+applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
 
 function relativeTime(value) {
   const minutes = Math.round((new Date(value) - Date.now()) / 60_000);
@@ -579,6 +589,11 @@ async function load() {
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
+elements.themeToggle.addEventListener("click", () => {
+  const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  localStorage.setItem("update-radar-theme", theme);
+  applyTheme(theme);
+});
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
 elements.exportBackup.addEventListener("click", exportBackup);
 elements.importBackup.addEventListener("click", () => elements.backupFile.click());
