@@ -453,7 +453,8 @@ function renderEvents() {
       image.addEventListener("error", () => image.remove());
       eventSource.append(image);
     }
-    eventSource.append(document.createTextNode(event.sourceName));
+    eventSource.title = event.sourceName;
+    eventSource.append(document.createTextNode(sourceIcon ? categoryLabel(event.sourceKind) : event.sourceName));
     const time = card.querySelector("time");
     time.dateTime = event.publishedAt;
     time.textContent = `${relativeTime(event.publishedAt)} · ${dateFormat.format(new Date(event.publishedAt))}`;
