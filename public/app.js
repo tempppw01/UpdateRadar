@@ -1,10 +1,11 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", search: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
   tagCount: document.querySelector("#tag-count"),
   lastSync: document.querySelector("#last-sync"),
   tagFilters: document.querySelector("#tag-filters"),
+  eventSearch: document.querySelector("#event-search"),
   sourceFilter: document.querySelector("#source-filter"),
   eventList: document.querySelector("#event-list"),
   sourceList: document.querySelector("#source-list"),
@@ -101,6 +102,8 @@ const tagCategories = {
   "github-releases": { label: "GitHub 发布", iconUrl: sourceIcons["github-releases"].url },
   "github-commits": { label: "GitHub 提交", iconUrl: sourceIcons["github-commits"].url },
   "docker-hub": { label: "Docker Hub", iconUrl: sourceIcons["docker-hub"].url },
+  "qnap-app": { label: "QNAP App Center", iconUrl: sourceIcons["qnap-app"].url },
+  "nintendo-switch": { label: "Nintendo Switch", iconUrl: sourceIcons["nintendo-switch"].url },
   rss: { label: "RSS", iconUrl: sourceIcons.rss.url },
   steam: { label: "Steam", iconUrl: sourceIcons.steam.url },
   playstation: { label: "PlayStation", iconUrl: sourceIcons.playstation.url },
@@ -326,8 +329,15 @@ function renderFilters() {
   elements.sourceFilter.value = state.sourceId;
 }
 
+function matchesEventSearch(event) {
+  const query = state.search.trim().toLocaleLowerCase();
+  if (!query) return true;
+  return [event.sourceName, event.title, event.version, event.summary, ...(event.tags ?? [])]
+    .some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
+}
+
 function renderEvents() {
-  const events = state.events.filter((event) => (!state.tag || event.tags.includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId));
+  const events = state.events.filter((event) => (!state.tag || event.tags.includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
   elements.eventList.replaceChildren();
   if (!events.length) {
@@ -646,7 +656,7 @@ function renderAppStoreResults(apps) {
     detail.append(name, meta);
     const add = document.createElement("button");
     add.type = "button";
-    add.textContent = "快捷加入";
+    add.textContent = "添加并保存";
     add.addEventListener("click", () => addAppStoreSource(app, add));
     result.append(detail, add);
     elements.appStoreResults.append(result);
@@ -654,25 +664,34 @@ function renderAppStoreResults(apps) {
 }
 
 async function addAppStoreSource(app, button) {
-  const id = `app-store-${app.appId}`;
+  return addCatalogSource({ id: `app-store-${app.appId}`, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] }, button);
+}
+
+function catalogSourceId(prefix, value) {
+  const suffix = String(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  return `${prefix}-${suffix}`.slice(0, 63).replace(/-+$/g, "");
+}
+
+async function addCatalogSource(source, button) {
+  const id = source.id;
   if (state.sources.some((source) => source.id === id)) {
-    showToast("该 App Store 软件已经在监控列表中", "error");
+    showToast("该监控源已经在监控列表中", "error");
     return;
   }
   button.disabled = true;
-  button.textContent = "加入中";
+  button.textContent = "添加中…";
   try {
     await requestJson("/v1/sources", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] })
+      body: JSON.stringify(source)
     });
     await load();
     renderSettingsSources();
-    showToast(`已开始监控 ${app.name}`);
-    button.textContent = "已加入";
+    showToast(`已开始监控 ${source.name}`);
+    button.textContent = "已添加";
   } catch (error) {
     button.disabled = false;
-    button.textContent = "快捷加入";
+    button.textContent = "添加并保存";
     showToast(`无法加入：${error.message}`, "error");
   }
 }
@@ -727,11 +746,24 @@ function renderGithubRepositoryResults(repositories) {
     detail.append(name, meta);
     const use = document.createElement("button");
     use.type = "button";
-    use.textContent = "使用此仓库";
-    use.addEventListener("click", () => useGithubRepository(repository));
+    use.textContent = "添加并保存";
+    use.addEventListener("click", () => addGithubRepositorySource(repository, use));
     result.append(detail, use);
     elements.githubRepositoryResults.append(result);
   });
+}
+
+function addGithubRepositorySource(repository, button) {
+  const kind = ["github-releases", "github-commits"].includes(elements.sourceKind.value) ? elements.sourceKind.value : "github-releases";
+  return addCatalogSource({
+    id: catalogSourceId(kind, `${repository.owner}-${repository.repo}`),
+    name: repository.name || `${repository.owner}/${repository.repo}`,
+    kind,
+    enabled: true,
+    owner: repository.owner,
+    repo: repository.repo,
+    tags: [kind]
+  }, button);
 }
 
 async function searchGithubRepositories() {
@@ -800,8 +832,8 @@ function renderCatalogResults(container, items, toResult) {
     detail.append(name, meta);
     const use = document.createElement("button");
     use.type = "button";
-    use.textContent = "使用此结果";
-    use.addEventListener("click", () => toResult(item));
+    use.textContent = "添加并保存";
+    use.addEventListener("click", () => toResult(item, use));
     result.append(detail, use);
     container.append(result);
   });
@@ -835,10 +867,7 @@ function searchDockerHub() {
     results: elements.dockerHubResults,
     endpoint: "/v1/catalog/docker-hub",
     loadingText: "正在搜索 Docker Hub 官方目录…",
-    toResult: (item) => {
-      useCatalogResult({ repository: item.repository, name: item.repository }, `已填入 ${item.repository}`);
-      elements.dockerHubResults.replaceChildren();
-    }
+    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("docker", item.repository), name: item.repository, kind: "docker-hub", enabled: true, repository: item.repository, tags: ["docker-hub"] }, button)
   });
 }
 
@@ -851,10 +880,7 @@ function searchQnapApps() {
     endpoint: "/v1/catalog/qnap",
     parameters: { os },
     loadingText: "正在搜索 QNAP 官方 App Center…",
-    toResult: (item) => {
-      useCatalogResult({ qnapAppName: item.appName, qnapOs: item.os, name: item.name }, `已填入 ${item.name} v${item.version}`);
-      elements.qnapResults.replaceChildren();
-    }
+    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("qnap", item.appName), name: item.name, kind: "qnap-app", enabled: true, qnapAppName: item.appName, qnapOs: item.os || os, tags: ["qnap-app"] }, button)
   });
 }
 
@@ -865,10 +891,7 @@ function searchNintendoSwitch() {
     results: elements.nintendoResults,
     endpoint: "/v1/catalog/nintendo-switch",
     loadingText: "正在搜索 Nintendo 官方更新公告…",
-    toResult: (item) => {
-      useCatalogResult({ gameName: item.gameName, name: item.gameName }, `已填入 ${item.gameName}`);
-      elements.nintendoResults.replaceChildren();
-    }
+    toResult: (item, button) => addCatalogSource({ id: catalogSourceId("switch", item.gameName), name: item.gameName, kind: "nintendo-switch", enabled: true, gameName: item.gameName, nintendoRegion: "us", tags: ["nintendo-switch"] }, button)
   });
 }
 
@@ -879,14 +902,7 @@ function searchSteam() {
     results: elements.steamResults,
     endpoint: "/v1/catalog/steam",
     loadingText: "正在搜索 Steam 官方商店…",
-    toResult: (item) => {
-      useCatalogResult({ steamAppId: item.appId, name: item.name }, `已填入 ${item.name}`);
-      if (!state.editingSourceId) {
-        elements.sourceForm.elements.id.value = `steam-${item.appId}`;
-        elements.sourceForm.elements.id.dataset.touched = "true";
-      }
-      elements.steamResults.replaceChildren();
-    }
+    toResult: (item, button) => addCatalogSource({ id: `steam-${item.appId}`, name: item.name, kind: "steam", enabled: true, steamAppId: String(item.appId), tags: ["steam"] }, button)
   });
 }
 
@@ -905,6 +921,7 @@ async function load() {
 }
 
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
+elements.eventSearch.addEventListener("input", (event) => { state.search = event.target.value; renderEvents(); });
 elements.eventViewButtons.forEach((button) => button.addEventListener("click", () => {
   localStorage.setItem("update-radar-event-view", button.dataset.eventView);
   applyEventView(button.dataset.eventView);

@@ -135,6 +135,9 @@ dialog .toast { z-index: 10; }
 .tag-filters button { display: inline-flex; align-items: center; gap: 5px; }
 .tag-filter-icon { width: 13px; height: 13px; display: inline-grid; place-items: center; flex: 0 0 13px; object-fit: contain; font: 700 12px/1 var(--mono); }
 .tag-filters button small { margin-left: 1px; color: currentColor; opacity: .65; font: 500 9px var(--mono); }
+.event-search { display: flex; align-items: center; gap: 8px; color: #587170; font: 500 10px var(--mono); }
+.event-search input { width: min(260px, 30vw); border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); padding: 5px; font: 11px var(--sans); outline: none; }
+.event-search input:focus { border-bottom-color: var(--coral); }
 .welcome-dialog { width: min(590px, calc(100% - 32px)); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .welcome-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
 .welcome-shell { padding: 28px; }
@@ -166,6 +169,7 @@ html[data-theme="dark"] .welcome-description { color: #c2d4d0; }
 @media (max-width: 720px) { .event-group-toggle { padding-left: 30px; } }
 @media (max-width: 720px) { .welcome-shell { padding: 20px; } .welcome-header h2 { font-size: 26px; } .welcome-actions { align-items: stretch; flex-direction: column-reverse; gap: 12px; } .welcome-actions .save-button { width: 100%; } .welcome-actions .text-button { align-self: center; } }
 @media (max-width: 720px) { .signal-heading-title { align-items: start; flex-direction: column; gap: 12px; }.signal-actions { flex-wrap: wrap; } }
+@media (max-width: 720px) { .event-search { width: 100%; }.event-search input { width: 100%; } }
 @media (max-width: 720px) { .event-view-toggle { order: 3; }.timeline[data-view="cards"] { grid-template-columns: 1fr; }.event-title-button { font-size: 18px; } }
 @media (max-width: 720px) { .refresh-cooldown-field { grid-template-columns: 1fr; }.refresh-cooldown-field input { width: 100%; } }
 @media (max-width: 720px) { .source-card.source-row { grid-template-columns: 1fr auto; gap: 8px; }.source-row h3 { grid-column: 1; }.source-row p { grid-column: 2; grid-row: 2; }.source-row .source-tags { grid-column: 1 / -1; }.source-row > div:first-child { grid-column: 1 / -1; }.source-pagination { justify-content: center; } }
