@@ -55,16 +55,24 @@ test("source store supports an Apple App Store source with an in-app purchase mo
   assert.equal(source.country, "us");
 });
 
-test("source store supports Docker Hub, QNAP, QQ, and Nintendo Switch sources", async () => {
+test("source store supports Docker Hub, QNAP, official websites, and Nintendo Switch sources", async () => {
   const store = await makeStore();
   const docker = await store.create({ id: "nginx-image", name: "NGINX", kind: "docker-hub", repository: "library/nginx", tagsFilter: ["latest"] });
   const qnap = await store.create({ id: "container-station", name: "Container Station", kind: "qnap-app", qnapAppName: "ContainerStation", qnapOs: "qts" });
-  const qq = await store.create({ id: "qq-macos", name: "QQ macOS", kind: "qq-official", qqPlatform: "macos" });
+  const website = await store.create({ id: "qq-macos", name: "QQ macOS", kind: "official-website", officialUrl: "https://example.test/qq.json", officialFormat: "json", versionPath: "macOS.version" });
   const nintendo = await store.create({ id: "mario-kart-world", name: "Mario Kart World", kind: "nintendo-switch", gameName: "Mario Kart World" });
   assert.deepEqual(docker.tagsFilter, ["latest"]);
   assert.equal(qnap.qnapOs, "qts");
-  assert.equal(qq.qqPlatform, "macos");
+  assert.equal(website.versionPath, "macOS.version");
   assert.equal(nintendo.nintendoRegion, "us");
+});
+
+test("source store validates custom official website extraction rules", async () => {
+  const store = await makeStore();
+  await assert.rejects(
+    store.create({ id: "bad-pattern", name: "Bad pattern", kind: "official-website", officialUrl: "https://example.test", officialFormat: "html", versionPath: "(" }),
+    /正则表达式/
+  );
 });
 
 test("source store supports Steam, PlayStation, and Xbox game sources", async () => {

@@ -51,6 +51,8 @@ const elements = {
   qnapSearchInput: document.querySelector("#qnap-search-input"),
   qnapSearchButton: document.querySelector("#qnap-search-button"),
   qnapResults: document.querySelector("#qnap-results"),
+  officialWebsiteTemplate: document.querySelector("#official-website-template"),
+  applyOfficialWebsiteTemplate: document.querySelector("#apply-official-website-template"),
   nintendoSearchInput: document.querySelector("#nintendo-search-input"),
   nintendoSearchButton: document.querySelector("#nintendo-search-button"),
   nintendoResults: document.querySelector("#nintendo-results"),
@@ -94,7 +96,7 @@ const sourceIcons = {
   "app-store": { name: "App Store", slug: "appstore" },
   "google-play": { name: "Google Play", slug: "googleplay" },
   "qnap-app": { name: "QNAP", slug: "qnap" },
-  "qq-official": { name: "QQ 官网版本", assetUrl: "/icons/qq-official.svg" },
+  "official-website": { name: "官网自定义监控", assetUrl: "/icons/official-website.svg" },
   "nintendo-switch": { name: "Nintendo Switch", slug: "nintendoswitch" },
   steam: { name: "Steam", slug: "steam" },
   playstation: { name: "PlayStation", slug: "playstation" },
@@ -117,6 +119,7 @@ const tagCategories = {
   commits: { label: "提交", icon: "↗" },
   "docker-hub": { label: "Docker Hub", iconKind: "docker-hub" },
   "qnap-app": { label: "QNAP App Center", iconKind: "qnap-app" },
+  "official-website": { label: "官网自定义监控", iconKind: "official-website" },
   "nintendo-switch": { label: "Nintendo Switch", iconKind: "nintendo-switch" },
   rss: { label: "RSS", iconKind: "rss" },
   steam: { label: "Steam", iconKind: "steam" },
@@ -723,7 +726,7 @@ function sourcePayload() {
     owner: value("owner"), repo: value("repo"), branch: value("branch"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
-    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), qqPlatform: value("qqPlatform"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
+    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), officialUrl: value("officialUrl"), homepageUrl: value("homepageUrl"), officialFormat: value("officialFormat"), versionPath: value("versionPath"), publishedAtPath: value("publishedAtPath"), downloadPath: value("downloadPath"), summaryPath: value("summaryPath"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
     tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }
@@ -983,6 +986,26 @@ function searchQnapApps() {
   });
 }
 
+const officialWebsiteTemplates = {
+  "qq-windows": { name: "QQ Windows 官网版", id: "qq-windows-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "Windows.version", publishedAtPath: "Windows.updateDate", downloadPath: "Windows" },
+  "qq-macos": { name: "QQ macOS 官网版", id: "qq-macos-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "macOS.version", publishedAtPath: "macOS.updateDate", downloadPath: "macOS" },
+  "qq-linux": { name: "QQ Linux 官网版", id: "qq-linux-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "Linux.version", publishedAtPath: "Linux.updateDate", downloadPath: "Linux" }
+};
+
+function applyOfficialWebsiteTemplate() {
+  const template = officialWebsiteTemplates[elements.officialWebsiteTemplate.value];
+  if (!template) {
+    showToast("请选择一个官网监控模板", "error");
+    return;
+  }
+  Object.entries(template).forEach(([name, value]) => {
+    const field = elements.sourceForm.elements[name];
+    if (field) field.value = value;
+  });
+  elements.sourceForm.elements.id.dataset.touched = "true";
+  showToast("官网监控模板已填入，可按需调整后保存");
+}
+
 function searchNintendoSwitch() {
   return searchCatalog({
     input: elements.nintendoSearchInput,
@@ -1135,6 +1158,7 @@ elements.appStoreSearchButton.addEventListener("click", searchForAppStoreApps);
 elements.githubRepositorySearch.addEventListener("click", searchGithubRepositories);
 elements.dockerHubSearchButton.addEventListener("click", searchDockerHub);
 elements.qnapSearchButton.addEventListener("click", searchQnapApps);
+elements.applyOfficialWebsiteTemplate.addEventListener("click", applyOfficialWebsiteTemplate);
 elements.nintendoSearchButton.addEventListener("click", searchNintendoSwitch);
 elements.steamSearchButton.addEventListener("click", searchSteam);
 elements.appStoreSearchInput.addEventListener("keydown", (event) => {

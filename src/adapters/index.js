@@ -6,7 +6,7 @@ import { collectGooglePlay } from "./google-play.js";
 import { collectPlayStation, collectXbox } from "./game-news.js";
 import { collectNintendoSwitch } from "./nintendo-switch.js";
 import { collectQnapApp } from "./qnap-app.js";
-import { collectQqOfficial } from "./qq-official.js";
+import { collectOfficialWebsite } from "./official-website.js";
 import { collectRss } from "./rss.js";
 import { collectSteam } from "./steam.js";
 
@@ -17,7 +17,7 @@ const collectors = {
   "app-store": collectAppStore,
   "google-play": collectGooglePlay,
   "qnap-app": collectQnapApp,
-  "qq-official": collectQqOfficial,
+  "official-website": collectOfficialWebsite,
   "nintendo-switch": collectNintendoSwitch,
   steam: collectSteam,
   playstation: collectPlayStation,

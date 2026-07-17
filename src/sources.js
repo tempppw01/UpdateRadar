@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "qq-official", "nintendo-switch", "steam", "playstation", "xbox"]);
+const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 export class SourceValidationError extends Error {}
 
@@ -75,9 +75,26 @@ export function normalizeSource(input, { id } = {}) {
     if (!new Set(["qts", "quts_hero", "qutscloud", "qvp"]).has(source.qnapOs)) throw new SourceValidationError("不支持的 QNAP 系统类型");
     source.qnapVersion = String(input.qnapVersion || "").trim();
   }
-  if (kind === "qq-official") {
-    source.qqPlatform = String(input.qqPlatform || "windows").trim().toLowerCase();
-    if (!new Set(["windows", "macos", "linux"]).has(source.qqPlatform)) throw new SourceValidationError("不支持的 QQ 平台");
+  if (kind === "official-website") {
+    source.officialUrl = validUrl(input.officialUrl, "官网数据地址");
+    source.homepageUrl = String(input.homepageUrl || "").trim();
+    if (source.homepageUrl) source.homepageUrl = validUrl(source.homepageUrl, "官网页面地址");
+    source.officialFormat = String(input.officialFormat || "json").trim().toLowerCase();
+    if (!new Set(["json", "html"]).has(source.officialFormat)) throw new SourceValidationError("官网数据格式应为 JSON 或 HTML");
+    source.versionPath = required(input.versionPath, source.officialFormat === "json" ? "版本字段路径" : "版本正则表达式");
+    source.publishedAtPath = String(input.publishedAtPath || "").trim();
+    source.downloadPath = String(input.downloadPath || "").trim();
+    source.summaryPath = String(input.summaryPath || "").trim();
+    if (source.officialFormat === "html" && [source.versionPath, source.publishedAtPath, source.downloadPath, source.summaryPath].some((pattern) => pattern.length > 200)) {
+      throw new SourceValidationError("网页提取正则表达式不能超过 200 个字符");
+    }
+    if (source.officialFormat === "html") {
+      try {
+        [source.versionPath, source.publishedAtPath, source.downloadPath, source.summaryPath].filter(Boolean).forEach((pattern) => new RegExp(pattern, "i"));
+      } catch {
+        throw new SourceValidationError("网页提取规则不是有效的正则表达式");
+      }
+    }
   }
   if (["nintendo-switch", "playstation", "xbox"].includes(kind)) {
     source.gameName = required(input.gameName, "游戏官方名称或关键词");

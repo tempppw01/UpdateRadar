@@ -9,7 +9,7 @@ import { collectAppStore } from "../src/adapters/app-store.js";
 import { collectDockerHub } from "../src/adapters/docker-hub.js";
 import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
 import { collectQnapApp } from "../src/adapters/qnap-app.js";
-import { collectQqOfficial } from "../src/adapters/qq-official.js";
+import { collectOfficialWebsite } from "../src/adapters/official-website.js";
 import { collectPlayStation, collectXbox } from "../src/adapters/game-news.js";
 import { collectSteam } from "../src/adapters/steam.js";
 import { pollAll, sourcesDueForPolling } from "../src/radar.js";
@@ -69,12 +69,18 @@ test("QNAP App Center collector reads the official app version and download", as
   assert.equal(update.metadata.assets[0].url, "https://example.test/app.qpkg");
 });
 
-test("QQ official collector reads the configured platform version and downloads", async () => {
+test("official website collector reads configured JSON fields and downloads", async () => {
   const fixture = { Windows: { version: "9.9.32", updateDate: "2026-07-16", ntDownloadX64Url: "https://example.test/QQ.exe", ntDownloadARMUrl: "https://example.test/QQ-arm.exe" } };
-  const [update] = await collectQqOfficial({ qqPlatform: "windows" }, { fetchText: async () => JSON.stringify(fixture) });
-  assert.equal(update.externalId, "windows:9.9.32");
+  const [update] = await collectOfficialWebsite({ name: "QQ Windows", officialUrl: "https://example.test/qq.json", officialFormat: "json", versionPath: "Windows.version", publishedAtPath: "Windows.updateDate", downloadPath: "Windows" }, { fetchText: async () => JSON.stringify(fixture) });
+  assert.equal(update.externalId, "9.9.32");
   assert.equal(update.publishedAt, "2026-07-16T00:00:00.000Z");
-  assert.deepEqual(update.metadata.assets, [{ name: "ntDownloadX64Url", url: "https://example.test/QQ.exe" }, { name: "ntDownloadARMUrl", url: "https://example.test/QQ-arm.exe" }]);
+  assert.deepEqual(update.metadata.assets, [{ name: "官方下载 ntDownloadX64Url", url: "https://example.test/QQ.exe" }, { name: "官方下载 ntDownloadARMUrl", url: "https://example.test/QQ-arm.exe" }]);
+});
+
+test("official website collector reads a static HTML version with regex rules", async () => {
+  const [update] = await collectOfficialWebsite({ name: "Example", officialUrl: "https://example.test/download", officialFormat: "html", versionPath: "Version\\s+([\\d.]+)", publishedAtPath: "Updated:\\s*([\\d-]+)", downloadPath: 'href="([^"]+\\.dmg)"' }, { fetchText: async () => '<p>Version 2.4.0</p><p>Updated: 2026-07-16</p><a href="https://example.test/Example.dmg">Download</a>' });
+  assert.equal(update.version, "2.4.0");
+  assert.equal(update.metadata.assets[0].url, "https://example.test/Example.dmg");
 });
 
 test("Nintendo Switch collector filters official update announcements by game", async () => {
