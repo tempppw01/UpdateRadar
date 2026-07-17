@@ -55,3 +55,11 @@ test("source store removes multiple selected sources", async () => {
   assert.equal(await store.removeMany(["one", "missing"]), 1);
   assert.deepEqual((await store.list()).map((source) => source.id), ["two"]);
 });
+
+test("source store replaces all sources from a validated backup", async () => {
+  const store = await makeStore();
+  await store.create({ id: "old", name: "Old", kind: "rss", feedUrl: "https://example.test/old.xml" });
+  const sources = await store.replaceAll([{ id: "new", name: "New", kind: "rss", feedUrl: "https://example.test/new.xml" }]);
+  assert.deepEqual(sources.map((source) => source.id), ["new"]);
+  assert.deepEqual((await store.list()).map((source) => source.id), ["new"]);
+});

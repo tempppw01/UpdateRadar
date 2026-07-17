@@ -74,7 +74,7 @@
     </main>
     <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
       <div class="settings-shell">
-        <header class="settings-header"><div><p class="eyebrow">CONFIGURATION / 04</p><h2 id="settings-title">数据源设置</h2></div><button class="icon-button" id="close-settings" type="button" aria-label="关闭设置">×</button></header>
+        <header class="settings-header"><div><p class="eyebrow">CONFIGURATION / 04</p><h2 id="settings-title">数据源设置</h2></div><div class="settings-header-actions"><button class="text-button" id="export-backup" type="button">导出设置</button><button class="text-button" id="import-backup" type="button">导入设置</button><input id="backup-file" type="file" accept="application/json,.json" hidden><button class="icon-button" id="close-settings" type="button" aria-label="关闭设置">×</button></div></header>
         <div class="settings-grid">
           <section class="saved-sources" aria-label="已配置数据源"><div class="settings-source-toolbar"><label class="settings-label"><input id="select-all-sources" type="checkbox"> 全选</label><button class="bulk-delete-button" id="bulk-delete-sources" type="button" disabled>删除所选</button></div><div id="settings-source-list"></div></section>
           <section class="editor-pane">

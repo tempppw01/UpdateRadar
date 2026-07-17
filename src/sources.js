@@ -107,4 +107,14 @@ export class JsonSourceStore {
     if (removed) await this.save(remaining);
     return removed;
   }
+
+  async replaceAll(inputs) {
+    if (!Array.isArray(inputs)) throw new SourceValidationError("sources must be an array");
+    const sources = inputs.map((input) => normalizeSource(input));
+    if (new Set(sources.map((source) => source.id)).size !== sources.length) {
+      throw new SourceValidationError("Source IDs must be unique");
+    }
+    await this.save(sources);
+    return sources;
+  }
 }

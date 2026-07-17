@@ -99,6 +99,24 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         };
         return send(response, 200, { models: await modelLister(config) });
       }
+      if (request.method === "GET" && url.pathname === "/v1/backup") {
+        const translation = await settingsRepository.publicTranslation();
+        return send(response, 200, { version: 1, exportedAt: new Date().toISOString(), sources: await getSources(), translation });
+      }
+      if (request.method === "POST" && url.pathname === "/v1/backup") {
+        const backup = await requestBody(request);
+        if (backup.version !== 1) throw new SourceValidationError("Unsupported backup version");
+        const sources = await sourceRepository.replaceAll(backup.sources);
+        if (backup.translation && typeof backup.translation === "object") {
+          await settingsRepository.updateTranslation({
+            baseUrl: backup.translation.baseUrl,
+            model: backup.translation.model,
+            targetLanguage: backup.translation.targetLanguage
+          });
+        }
+        await store.removeOutsideSourceIds(sources.map((source) => source.id));
+        return send(response, 200, { sources: sources.length });
+      }
       if (request.method === "POST" && url.pathname === "/v1/sources") {
         return send(response, 201, await sourceRepository.create(await requestBody(request)));
       }

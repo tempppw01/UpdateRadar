@@ -14,6 +14,9 @@ const elements = {
   manageSources: document.querySelector("#manage-sources"),
   settingsDialog: document.querySelector("#settings-dialog"),
   closeSettings: document.querySelector("#close-settings"),
+  exportBackup: document.querySelector("#export-backup"),
+  importBackup: document.querySelector("#import-backup"),
+  backupFile: document.querySelector("#backup-file"),
   settingsSourceList: document.querySelector("#settings-source-list"),
   selectAllSources: document.querySelector("#select-all-sources"),
   bulkDeleteSources: document.querySelector("#bulk-delete-sources"),
@@ -74,6 +77,30 @@ function showToast(message, type = "success") {
   elements.toast.classList.add("visible");
   window.clearTimeout(showToast.timeout);
   showToast.timeout = window.setTimeout(() => elements.toast.classList.remove("visible"), 4200);
+}
+
+async function exportBackup() {
+  try {
+    const backup = await requestJson("/v1/backup");
+    const blob = new Blob([`${JSON.stringify(backup, null, 2)}\n`], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `update-radar-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast("设置备份已导出（不含 API Key）");
+  } catch (error) { showToast(`无法导出备份：${error.message}`, "error"); }
+}
+
+async function importBackup(file) {
+  try {
+    const backup = JSON.parse(await file.text());
+    if (!window.confirm("导入将替换当前全部数据源配置，并清理已删除来源的历史更新，是否继续？")) return;
+    const result = await requestJson("/v1/backup", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(backup) });
+    state.selectedSourceIds.clear();
+    await load(); startNewEditor(); renderSettingsSources();
+    showToast(`已导入 ${result.sources} 个数据源`);
+  } catch (error) { showToast(`无法导入备份：${error.message}`, "error"); }
 }
 
 function releaseAssets(event) {
@@ -553,6 +580,13 @@ elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = e
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
+elements.exportBackup.addEventListener("click", exportBackup);
+elements.importBackup.addEventListener("click", () => elements.backupFile.click());
+elements.backupFile.addEventListener("change", async () => {
+  const [file] = elements.backupFile.files;
+  if (file) await importBackup(file);
+  elements.backupFile.value = "";
+});
 elements.closeEventDialog.addEventListener("click", () => elements.eventDialog.close());
 elements.selectAllSources.addEventListener("change", () => {
   state.selectedSourceIds = elements.selectAllSources.checked ? new Set(state.sources.map((source) => source.id)) : new Set();
