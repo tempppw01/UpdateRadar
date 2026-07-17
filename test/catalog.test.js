@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchAppStore, searchGithubRepositories } from "../src/catalog.js";
+import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps } from "../src/catalog.js";
 
 test("App Store search normalizes official catalog results", async () => {
   let requestedUrl;
@@ -31,4 +31,23 @@ test("GitHub repository search normalizes official repository results", async ()
   });
   assert.equal(requestedUrl.searchParams.get("q"), "node");
   assert.deepEqual(results, [{ owner: "nodejs", repo: "node", name: "nodejs/node", description: "JavaScript runtime", url: "https://github.com/nodejs/node", stars: 123 }]);
+});
+
+test("Docker Hub search normalizes official image repositories", async () => {
+  const results = await searchDockerHubRepositories({ query: "nginx" }, { fetchText: async () => JSON.stringify({ results: [{ repo_name: "nginx", is_official: true, short_description: "Official image", pull_count: 10, star_count: 2 }] }) });
+  assert.deepEqual(results, [{ repository: "library/nginx", name: "library/nginx", description: "Official image", pulls: 10, stars: 2, official: true }]);
+});
+
+test("QNAP search uses the latest selected App Center release", async () => {
+  const responses = [JSON.stringify({ results: { qts: { version: [{ version: "5.2.9" }] } } }), JSON.stringify({ app_list: [{ app_name: "ContainerStation", display_name: "Container Station", version: "3.1.2", detail: "Containers", icon: { 100: "https://example.test/icon.png" } }] })];
+  const results = await searchQnapApps({ term: "container", os: "qts" }, { fetchText: async () => responses.shift() });
+  assert.equal(results[0].appName, "ContainerStation");
+  assert.equal(results[0].osVersion, "5.2.9");
+});
+
+test("Nintendo Switch search lists matching official update announcements", async () => {
+  const state = { props: { pageProps: { initialApolloState: { one: { __typename: "NewsArticle", title: "Mario Kart World update available now", publishDate: "2026-01-02T00:00:00Z" } } } } };
+  const html = `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(state)}</script>`;
+  const results = await searchNintendoSwitchGames({ term: "mario kart" }, { fetchText: async () => html });
+  assert.equal(results[0].gameName, "Mario Kart World");
 });

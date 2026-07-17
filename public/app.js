@@ -42,6 +42,15 @@ const elements = {
   githubRepositoryInput: document.querySelector("#github-repository-input"),
   githubRepositorySearch: document.querySelector("#github-repository-search"),
   githubRepositoryResults: document.querySelector("#github-repository-results"),
+  dockerHubSearchInput: document.querySelector("#docker-hub-search-input"),
+  dockerHubSearchButton: document.querySelector("#docker-hub-search-button"),
+  dockerHubResults: document.querySelector("#docker-hub-results"),
+  qnapSearchInput: document.querySelector("#qnap-search-input"),
+  qnapSearchButton: document.querySelector("#qnap-search-button"),
+  qnapResults: document.querySelector("#qnap-results"),
+  nintendoSearchInput: document.querySelector("#nintendo-search-input"),
+  nintendoSearchButton: document.querySelector("#nintendo-search-button"),
+  nintendoResults: document.querySelector("#nintendo-results"),
   translationBaseUrl: document.querySelector("#translation-base-url"),
   translationModel: document.querySelector("#translation-model"),
   loadTranslationModels: document.querySelector("#load-translation-models"),
@@ -410,6 +419,9 @@ function startNewEditor() {
   elements.deleteSource.hidden = true;
   elements.appStoreResults.replaceChildren();
   elements.githubRepositoryResults.replaceChildren();
+  elements.dockerHubResults.replaceChildren();
+  elements.qnapResults.replaceChildren();
+  elements.nintendoResults.replaceChildren();
   showProviderFields();
 }
 
@@ -645,6 +657,116 @@ async function searchGithubRepositories() {
   }
 }
 
+function useCatalogResult(values, message) {
+  const form = elements.sourceForm.elements;
+  for (const [name, value] of Object.entries(values)) {
+    const field = form[name];
+    if (field && value !== undefined && value !== null) field.value = value;
+  }
+  if (!form.name.value.trim() && values.name) {
+    form.name.value = values.name;
+    if (!state.editingSourceId) form.name.dispatchEvent(new Event("input"));
+  }
+  showToast(message);
+}
+
+function renderCatalogResults(container, items, toResult) {
+  container.replaceChildren();
+  if (!items.length) {
+    container.innerHTML = '<p class="app-search-empty">没有找到匹配项，请尝试其他关键词。</p>';
+    return;
+  }
+  items.forEach((item) => {
+    const result = document.createElement("article");
+    result.className = "catalog-result";
+    if (item.artworkUrl) {
+      const image = document.createElement("img");
+      image.src = item.artworkUrl;
+      image.alt = "";
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => image.remove());
+      result.append(image);
+    }
+    const detail = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = item.name || item.gameName || item.repository;
+    const meta = document.createElement("span");
+    meta.textContent = item.meta || item.description || item.title || "官方目录结果";
+    detail.append(name, meta);
+    const use = document.createElement("button");
+    use.type = "button";
+    use.textContent = "使用此结果";
+    use.addEventListener("click", () => toResult(item));
+    result.append(detail, use);
+    container.append(result);
+  });
+}
+
+async function searchCatalog({ input, button, results, endpoint, parameters = {}, toResult, loadingText }) {
+  const query = input.value.trim();
+  if (query.length < 2) {
+    showToast("请至少输入两个字符后再搜索", "error");
+    input.focus();
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "搜索中…";
+  results.innerHTML = `<p class="app-search-empty">${loadingText}</p>`;
+  try {
+    renderCatalogResults(results, await requestJson(`${endpoint}?${new URLSearchParams({ query, ...parameters })}`), toResult);
+  } catch (error) {
+    results.innerHTML = '<p class="app-search-empty">搜索暂时不可用，请稍后重试。</p>';
+    showToast(`搜索失败：${error.message}`, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "搜索";
+  }
+}
+
+function searchDockerHub() {
+  return searchCatalog({
+    input: elements.dockerHubSearchInput,
+    button: elements.dockerHubSearchButton,
+    results: elements.dockerHubResults,
+    endpoint: "/v1/catalog/docker-hub",
+    loadingText: "正在搜索 Docker Hub 官方目录…",
+    toResult: (item) => {
+      useCatalogResult({ repository: item.repository, name: item.repository }, `已填入 ${item.repository}`);
+      elements.dockerHubResults.replaceChildren();
+    }
+  });
+}
+
+function searchQnapApps() {
+  const os = elements.sourceForm.elements.qnapOs.value;
+  return searchCatalog({
+    input: elements.qnapSearchInput,
+    button: elements.qnapSearchButton,
+    results: elements.qnapResults,
+    endpoint: "/v1/catalog/qnap",
+    parameters: { os },
+    loadingText: "正在搜索 QNAP 官方 App Center…",
+    toResult: (item) => {
+      useCatalogResult({ qnapAppName: item.appName, qnapOs: item.os, name: item.name }, `已填入 ${item.name} v${item.version}`);
+      elements.qnapResults.replaceChildren();
+    }
+  });
+}
+
+function searchNintendoSwitch() {
+  return searchCatalog({
+    input: elements.nintendoSearchInput,
+    button: elements.nintendoSearchButton,
+    results: elements.nintendoResults,
+    endpoint: "/v1/catalog/nintendo-switch",
+    loadingText: "正在搜索 Nintendo 官方更新公告…",
+    toResult: (item) => {
+      useCatalogResult({ gameName: item.gameName, name: item.gameName }, `已填入 ${item.gameName}`);
+      elements.nintendoResults.replaceChildren();
+    }
+  });
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const body = await response.json();
@@ -741,11 +863,23 @@ elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);
 elements.appStoreSearchButton.addEventListener("click", searchForAppStoreApps);
 elements.githubRepositorySearch.addEventListener("click", searchGithubRepositories);
+elements.dockerHubSearchButton.addEventListener("click", searchDockerHub);
+elements.qnapSearchButton.addEventListener("click", searchQnapApps);
+elements.nintendoSearchButton.addEventListener("click", searchNintendoSwitch);
 elements.appStoreSearchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); searchForAppStoreApps(); }
 });
 elements.githubRepositoryInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); searchGithubRepositories(); }
+});
+elements.dockerHubSearchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchDockerHub(); }
+});
+elements.qnapSearchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchQnapApps(); }
+});
+elements.nintendoSearchInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchNintendoSwitch(); }
 });
 elements.sourceForm.elements.name.addEventListener("input", () => {
   const id = elements.sourceForm.elements.id;

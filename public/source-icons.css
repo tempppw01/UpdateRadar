@@ -103,6 +103,18 @@ html[data-theme="dark"] .event-link:hover { color: var(--lime); border-color: va
 .github-repository-result { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid rgba(16,35,46,.14); }
 .github-repository-result strong,.github-repository-result span { display: block; }.github-repository-result strong { font-size: 13px; }.github-repository-result span { margin-top: 3px; color: #587170; font: 9px var(--mono); line-height: 1.3; }
 @media (max-width: 720px) { .github-search-controls { grid-template-columns: 1fr; }.github-repository-result { grid-template-columns: 1fr; }.github-repository-result button { justify-self: start; } }
+.catalog-search { margin: 1px 0 17px; padding: 16px; border: 1px solid var(--ink); background: linear-gradient(135deg, rgba(191,208,205,.42), rgba(255,255,255,.28)); }
+.catalog-search h4 { margin: 0; font-size: 16px; letter-spacing: -.03em; }
+.catalog-search-controls { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 12px; }
+.catalog-search-controls input { margin: 0!important; }
+.catalog-search-controls button,.catalog-result button { border: 1px solid var(--ink); background: var(--lime); color: var(--ink); font: 500 10px var(--mono); }
+.catalog-results { max-height: 255px; margin-top: 13px; overflow: auto; }
+.catalog-result { display: grid; grid-template-columns: 39px 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid rgba(16,35,46,.14); }
+.catalog-result:not(:has(img)) { grid-template-columns: 1fr auto; }
+.catalog-result img { width: 39px; height: 39px; border: 1px solid var(--line); border-radius: 9px; object-fit: cover; }
+.catalog-result strong,.catalog-result span { display: block; }.catalog-result strong { font-size: 13px; }.catalog-result span { margin-top: 3px; color: #587170; font: 9px var(--mono); line-height: 1.3; }
+html[data-theme="dark"] .catalog-search { background: linear-gradient(135deg,rgba(198,241,53,.13),rgba(23,50,61,.7)); }
+@media (max-width: 720px) { .catalog-search-controls { grid-template-columns: 1fr; }.catalog-result,.catalog-result:not(:has(img)) { grid-template-columns: 35px 1fr; }.catalog-result img { width: 35px; height: 35px; }.catalog-result button { grid-column: 2; justify-self: start; } }
 .translation-settings summary { cursor: pointer; font: 500 11px var(--mono); }
 .translation-settings .form-grid { margin-top: 15px; }
 .model-select-control { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 6px; }

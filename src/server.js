@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, join, relative } from "node:path";
-import { searchAppStore, searchGithubRepositories } from "./catalog.js";
+import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps } from "./catalog.js";
 import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
@@ -67,7 +67,7 @@ async function sendPublicFile(response, path, method) {
   return true;
 }
 
-export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, translator = translateText, modelLister = listModels } = {}) {
+export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, translator = translateText, modelLister = listModels } = {}) {
   return createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
@@ -88,6 +88,23 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         const query = url.searchParams.get("query")?.trim() ?? "";
         if (query.length < 2) throw new SourceValidationError("GitHub search query must contain at least two characters");
         return send(response, 200, await githubSearch({ query, limit: url.searchParams.get("limit") }));
+      }
+      if (request.method === "GET" && url.pathname === "/v1/catalog/docker-hub") {
+        const query = url.searchParams.get("query")?.trim() ?? "";
+        if (query.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 Docker Hub");
+        return send(response, 200, await dockerHubSearch({ query, limit: url.searchParams.get("limit") }));
+      }
+      if (request.method === "GET" && url.pathname === "/v1/catalog/qnap") {
+        const term = (url.searchParams.get("term") ?? url.searchParams.get("query"))?.trim() ?? "";
+        const os = url.searchParams.get("os")?.trim().toLowerCase() ?? "qts";
+        if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 QNAP App Center");
+        if (!new Set(["qts", "quts_hero", "qutscloud", "qvp"]).has(os)) throw new SourceValidationError("不支持的 QNAP 系统类型");
+        return send(response, 200, await qnapSearch({ term, os, limit: url.searchParams.get("limit") }));
+      }
+      if (request.method === "GET" && url.pathname === "/v1/catalog/nintendo-switch") {
+        const term = (url.searchParams.get("term") ?? url.searchParams.get("query"))?.trim() ?? "";
+        if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 Nintendo Switch 游戏");
+        return send(response, 200, await nintendoSearch({ term, limit: url.searchParams.get("limit") }));
       }
       if (request.method === "GET" && url.pathname === "/v1/settings/translation") {
         return send(response, 200, await settingsRepository.publicTranslation());
