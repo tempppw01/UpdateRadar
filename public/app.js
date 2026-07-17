@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null };
+const state = { events: [], sources: [], tag: "", sourceId: "", editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -47,8 +47,10 @@ const elements = {
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
   eventDialogLink: document.querySelector("#event-dialog-link"),
   eventDialogContent: document.querySelector("#event-dialog-content"),
-  eventTranslation: document.querySelector("#event-translation"),
   translateEvent: document.querySelector("#translate-event"),
+  translationViewToggle: document.querySelector("#translation-view-toggle"),
+  viewOriginal: document.querySelector("#view-original"),
+  viewTranslated: document.querySelector("#view-translated"),
   eventAssets: document.querySelector("#event-assets"),
   eventAssetsList: document.querySelector("#event-assets-list"),
   toast: document.querySelector("#toast"),
@@ -157,12 +159,12 @@ async function loadTranslationModels() {
 
 function openEventDetails(event) {
   state.activeEvent = event;
+  state.activeTranslation = "";
   elements.eventDialogTitle.textContent = event.title;
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"} · ${dateFormat.format(new Date(event.publishedAt))}`;
   elements.eventDialogLink.href = event.url;
-  elements.eventDialogContent.textContent = event.summary || "官方未提供本次发布说明。";
-  elements.eventTranslation.hidden = true;
-  elements.eventTranslation.replaceChildren();
+  renderEventDialogText("original");
+  elements.translationViewToggle.hidden = true;
   elements.translateEvent.disabled = false;
   elements.translateEvent.textContent = "翻译为简体中文";
   elements.eventAssetsList.replaceChildren();
@@ -170,6 +172,14 @@ function openEventDetails(event) {
   elements.eventAssets.hidden = !assets.length;
   assets.forEach((asset) => elements.eventAssetsList.append(assetLink(asset)));
   elements.eventDialog.showModal();
+}
+
+function renderEventDialogText(view) {
+  const original = state.activeEvent?.summary || "官方未提供本次发布说明。";
+  const translated = state.activeTranslation || original;
+  elements.eventDialogContent.textContent = view === "translation" ? translated : original;
+  elements.viewOriginal.classList.toggle("active", view === "original");
+  elements.viewTranslated.classList.toggle("active", view === "translation");
 }
 
 function renderMetrics() {
@@ -636,11 +646,14 @@ elements.translateEvent.addEventListener("click", async () => {
   elements.translateEvent.textContent = "翻译中";
   try {
     const result = await requestJson("/v1/translate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text: state.activeEvent.summary || state.activeEvent.title }) });
-    elements.eventTranslation.textContent = result.text;
-    elements.eventTranslation.hidden = false;
+    state.activeTranslation = result.text;
+    elements.translationViewToggle.hidden = false;
+    renderEventDialogText("translation");
   } catch (error) { showToast(`翻译失败：${error.message}`, "error"); }
   finally { elements.translateEvent.disabled = false; elements.translateEvent.textContent = "翻译为简体中文"; }
 });
+elements.viewOriginal.addEventListener("click", () => renderEventDialogText("original"));
+elements.viewTranslated.addEventListener("click", () => renderEventDialogText("translation"));
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);

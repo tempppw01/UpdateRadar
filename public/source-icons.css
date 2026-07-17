@@ -92,6 +92,9 @@ html[data-theme="dark"] .event-translation { background: #27412f; }
 .event-dialog-header h2 { margin: 0; font-size: 27px; letter-spacing: -.045em; }
 .event-dialog-meta { margin-top: 14px; color: #587170; font: 10px var(--mono); }
 .event-dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+.translation-view-toggle { display: flex; border: 1px solid var(--ink); }
+.translation-view-toggle button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }
+.translation-view-toggle button:last-child { border-right: 0; }.translation-view-toggle button.active { background: var(--lime); color: #10232e; }
 .event-dialog-content,.event-translation { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 20px; color: #365152; font-size: 14px; line-height: 1.65; }
 .event-translation { border-left: 3px solid var(--lime); padding: 14px 16px; background: #edf2df; color: var(--ink); }
 .event-assets { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
