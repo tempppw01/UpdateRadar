@@ -87,12 +87,14 @@ html[data-theme="dark"] .editor-pane input,html[data-theme="dark"] .editor-pane 
 html[data-theme="dark"] .app-store-search,html[data-theme="dark"] .github-search { background: linear-gradient(135deg,rgba(198,241,53,.13),rgba(23,50,61,.7)); }
 html[data-theme="dark"] .saved-source-button:hover { background: #22424c; }
 html[data-theme="dark"] .event-translation { background: #27412f; }
-html[data-theme="dark"] .eyebrow,html[data-theme="dark"] .event-meta,html[data-theme="dark"] .event-summary,html[data-theme="dark"] .source-kind,html[data-theme="dark"] .source-card p,html[data-theme="dark"] .results-count { color: #a8c1bd; }
+html[data-theme="dark"] .eyebrow,html[data-theme="dark"] .event-meta,html[data-theme="dark"] .event-summary,html[data-theme="dark"] .source-kind,html[data-theme="dark"] .source-card p,html[data-theme="dark"] .results-count { color: var(--text-muted); }
 html[data-theme="dark"] .event-details span,html[data-theme="dark"] .event-dialog-details span,html[data-theme="dark"] .event-tags span,html[data-theme="dark"] .source-tags span { background: #28444d; color: #f0f7f5; }
 html[data-theme="dark"] .tag-filters button,html[data-theme="dark"] .source-filter { color: #b4cbc7; }
 html[data-theme="dark"] .tag-filters button.active { color: #10232e; }
 html[data-theme="dark"] .event-link { color: #f0f7f5; border-color: #f0f7f5; }
 html[data-theme="dark"] .event-link:hover { color: var(--lime); border-color: var(--lime); }
+html[data-theme="dark"] .intro,html[data-theme="dark"] .metrics p,html[data-theme="dark"] .metrics small,html[data-theme="dark"] .settings-label,html[data-theme="dark"] .saved-source span,html[data-theme="dark"] .catalog-result span,html[data-theme="dark"] .app-result span,html[data-theme="dark"] .app-search-empty,html[data-theme="dark"] .manual-divider span,html[data-theme="dark"] .refresh-cooldown-field span,html[data-theme="dark"] .source-sort-label,html[data-theme="dark"] .card-context-menu p { color: var(--text-muted); }
+html[data-theme="dark"] .source-note code { background: #28444d; color: var(--ink); }
 .new-source-button { border: 1px solid var(--ink); background: var(--lime); color: var(--ink); padding: 9px 11px; font: 500 10px var(--mono); letter-spacing: .04em; }
 .new-source-button:hover { background: var(--coral); }
 .refresh-cooldown-field { display: grid!important; grid-template-columns: minmax(130px, 1fr) 130px; align-items: center; gap: 10px; margin-top: 19px!important; padding-top: 15px; border-top: 1px solid var(--line); }.refresh-cooldown-field input { margin: 0!important; }.refresh-cooldown-field span { grid-column: 1 / -1; color: #587170; font: 9px/1.5 var(--mono); letter-spacing: 0; text-transform: none; }
@@ -168,6 +170,7 @@ html[data-theme="dark"] .welcome-description { color: #c2d4d0; }
 .event-dialog-header { display: flex; justify-content: space-between; gap: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--ink); }
 .event-dialog-header h2 { margin: 0; font-size: 27px; letter-spacing: -.045em; }
 .event-dialog-meta { margin-top: 14px; color: #587170; font: 10px var(--mono); }
+html[data-theme="dark"] .event-dialog-meta { color: var(--text-muted); }
 .event-dialog-details { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .event-dialog-details span { padding: 5px 7px; background: #e1ebd6; color: var(--ink); font: 500 10px var(--mono); letter-spacing: .03em; }
 .event-dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
@@ -176,6 +179,7 @@ html[data-theme="dark"] .welcome-description { color: #c2d4d0; }
 .translation-view-toggle button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }
 .translation-view-toggle button:last-child { border-right: 0; }.translation-view-toggle button.active { background: var(--lime); color: #10232e; }
 .event-dialog-content,.event-translation { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 20px; color: #365152; font-size: 14px; line-height: 1.65; }
+html[data-theme="dark"] .event-dialog-content { color: var(--text-body); }
 .event-translation { border-left: 3px solid var(--lime); padding: 14px 16px; background: #edf2df; color: var(--ink); }
 .event-assets { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
 .event-assets h3 { margin: 0; font-size: 16px; }
