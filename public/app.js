@@ -94,6 +94,7 @@ const sourceIcons = {
   "app-store": { name: "App Store", slug: "appstore" },
   "google-play": { name: "Google Play", slug: "googleplay" },
   "qnap-app": { name: "QNAP", slug: "qnap" },
+  "qq-official": { name: "QQ 官网版本", assetUrl: "/icons/qq-official.svg" },
   "nintendo-switch": { name: "Nintendo Switch", slug: "nintendoswitch" },
   steam: { name: "Steam", slug: "steam" },
   playstation: { name: "PlayStation", slug: "playstation" },
@@ -103,6 +104,7 @@ const sourceIcons = {
 function sourceIconUrl(kind) {
   const icon = sourceIcons[kind];
   if (!icon) return "";
+  if (icon.assetUrl) return icon.assetUrl;
   const color = document.documentElement.dataset.theme === "dark" ? "f0f7f5" : "10232e";
   return `https://cdn.simpleicons.org/${icon.slug}/${color}`;
 }

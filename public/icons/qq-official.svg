@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="官网版本监控">
+  <rect width="64" height="64" rx="14" fill="#10232e"/>
+  <path d="M18 15h20l8 8v26H18z" fill="none" stroke="#f5f1e8" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M38 15v10h8M25 35h14M25 43h9" stroke="#c6f135" stroke-linecap="round" stroke-width="4"/>
+  <circle cx="47" cy="47" r="9" fill="#ff765d" stroke="#10232e" stroke-width="3"/>
+  <path d="m43.5 47 2.2 2.3 4.8-5" fill="none" stroke="#10232e" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/>
+</svg>
