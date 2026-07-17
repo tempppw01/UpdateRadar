@@ -12,6 +12,10 @@ const elements = {
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   quickAddSource: document.querySelector("#quick-add-source"),
+  welcomeDialog: document.querySelector("#welcome-dialog"),
+  closeWelcome: document.querySelector("#close-welcome"),
+  dismissWelcome: document.querySelector("#dismiss-welcome"),
+  welcomeAddSource: document.querySelector("#welcome-add-source"),
   themeToggle: document.querySelector("#theme-toggle"),
   settingsButton: document.querySelector("#settings-button"),
   manageSources: document.querySelector("#manage-sources"),
@@ -76,6 +80,15 @@ function applyTheme(theme) {
 
 const savedTheme = localStorage.getItem("update-radar-theme");
 applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+function dismissWelcome() {
+  localStorage.setItem("update-radar-welcome-dismissed", "true");
+  elements.welcomeDialog.close();
+}
+
+function showWelcomeOnFirstVisit() {
+  if (localStorage.getItem("update-radar-welcome-dismissed") !== "true") elements.welcomeDialog.showModal();
+}
 
 function relativeTime(value) {
   const minutes = Math.round((new Date(value) - Date.now()) / 60_000);
@@ -633,6 +646,16 @@ elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = e
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
 elements.quickAddSource.addEventListener("click", openSettings);
+elements.closeWelcome.addEventListener("click", dismissWelcome);
+elements.dismissWelcome.addEventListener("click", dismissWelcome);
+elements.welcomeAddSource.addEventListener("click", () => { dismissWelcome(); openSettings(); });
+elements.welcomeDialog.addEventListener("click", (event) => {
+  const bounds = elements.welcomeDialog.getBoundingClientRect();
+  const clickedBackdrop = event.target === elements.welcomeDialog && (
+    event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom
+  );
+  if (clickedBackdrop) dismissWelcome();
+});
 elements.themeToggle.addEventListener("click", () => {
   const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   localStorage.setItem("update-radar-theme", theme);
@@ -747,6 +770,8 @@ elements.syncButton.addEventListener("click", async () => {
     elements.syncButton.innerHTML = '<span aria-hidden="true">↻</span> 立即同步';
   }
 });
+
+showWelcomeOnFirstVisit();
 
 load().catch((error) => {
   elements.eventList.innerHTML = `<div class="empty">无法载入雷达数据：${error.message}</div>`;

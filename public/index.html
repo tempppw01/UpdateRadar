@@ -70,6 +70,17 @@
         <div class="source-grid" id="source-list"></div><nav class="source-pagination" id="source-pagination" aria-label="监控数据源分页"></nav>
       </section>
     </main>
+    <dialog class="welcome-dialog" id="welcome-dialog" aria-labelledby="welcome-title" aria-describedby="welcome-description">
+      <div class="welcome-shell">
+        <header class="welcome-header">
+          <div><p class="eyebrow">WELCOME / 00</p><h2 id="welcome-title">欢迎来到 UpdateRadar</h2></div>
+          <button class="icon-button" id="close-welcome" type="button" aria-label="关闭欢迎提示">×</button>
+        </header>
+        <p class="welcome-description" id="welcome-description">集中追踪 GitHub Releases、App Store、RSS 与 Google Play 的官方更新。添加监控源后，点击“立即同步”即可获取最新情报。</p>
+        <ol class="welcome-steps"><li><b>01</b><span>添加需要关注的数据源</span></li><li><b>02</b><span>立即同步并查看更新详情</span></li><li><b>03</b><span>按需配置备份和翻译服务</span></li></ol>
+        <div class="welcome-actions"><button class="text-button" id="dismiss-welcome" type="button">稍后再说</button><button class="save-button" id="welcome-add-source" type="button">添加第一个监控源</button></div>
+      </div>
+    </dialog>
     <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
       <div class="settings-shell">
         <header class="settings-header"><div><p class="eyebrow">CONFIGURATION / 04</p><h2 id="settings-title">数据源设置</h2></div><div class="settings-header-actions"><button class="text-button" id="export-backup" type="button">导出设置</button><button class="text-button" id="import-backup" type="button">导入设置</button><input id="backup-file" type="file" accept="application/json,.json" hidden><button class="icon-button" id="close-settings" type="button" aria-label="关闭设置">×</button></div></header>
