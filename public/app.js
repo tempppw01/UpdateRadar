@@ -133,11 +133,18 @@ function relativeTime(value) {
 }
 
 function showToast(message, type = "success") {
+  const activeDialog = [elements.eventDialog, elements.settingsDialog, elements.welcomeDialog].find((dialog) => dialog.open);
+  const container = activeDialog ?? document.body;
+  if (elements.toast.parentElement !== container) container.append(elements.toast);
   elements.toast.textContent = message;
   elements.toast.dataset.type = type;
   elements.toast.classList.add("visible");
   window.clearTimeout(showToast.timeout);
   showToast.timeout = window.setTimeout(() => elements.toast.classList.remove("visible"), 4200);
+}
+
+function restoreToastToPage() {
+  if (elements.toast.parentElement !== document.body) document.body.append(elements.toast);
 }
 
 async function exportBackup() {
@@ -909,6 +916,7 @@ elements.eventDialog.addEventListener("click", (event) => {
   );
   if (clickedBackdrop) elements.eventDialog.close();
 });
+[elements.eventDialog, elements.settingsDialog, elements.welcomeDialog].forEach((dialog) => dialog.addEventListener("close", restoreToastToPage));
 elements.selectAllSources.addEventListener("change", () => {
   state.selectedSourceIds = elements.selectAllSources.checked ? new Set(state.sources.map((source) => source.id)) : new Set();
   renderSettingsSources();

@@ -131,6 +131,7 @@ html[data-theme="dark"] .catalog-search { background: linear-gradient(135deg,rgb
 .model-select-control select { margin-top: 0!important; }.model-select-control button { border: 1px solid var(--ink); background: var(--lime); padding: 0 10px; font: 500 10px var(--mono); }
 .event-dialog { width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .event-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
+dialog .toast { z-index: 10; }
 .welcome-dialog { width: min(590px, calc(100% - 32px)); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .welcome-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
 .welcome-shell { padding: 28px; }
