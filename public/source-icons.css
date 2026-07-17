@@ -45,6 +45,8 @@
 
 .event-card-actions { align-self: center; display: flex; flex-direction: column; gap: 10px; align-items: end; }
 .event-detail-button,.translate-button,.bulk-delete-button,.download-button { border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); text-decoration: none; }
+.new-source-button { border: 1px solid var(--ink); background: var(--lime); color: var(--ink); padding: 9px 11px; font: 500 10px var(--mono); letter-spacing: .04em; }
+.new-source-button:hover { background: var(--coral); }
 .event-detail-button:hover,.translate-button:hover,.download-button:hover { background: var(--lime); }
 .release-downloads { margin-top: 14px; font: 500 10px var(--mono); }
 .release-downloads summary { cursor: pointer; color: var(--ink); }
