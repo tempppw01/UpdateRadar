@@ -44,7 +44,7 @@
 }
 
 .event-card-actions { align-self: center; display: flex; flex-direction: column; gap: 10px; align-items: end; }
-.event-pagination { display: flex; justify-content: end; align-items: center; gap: 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
+.event-pagination { display: flex; flex-wrap: wrap; justify-content: end; align-items: center; gap: 8px 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
 .event-pagination button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }.event-pagination button:hover { background: var(--lime); color: #10232e; }.event-pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .card-context-menu { position: fixed; z-index: 20; min-width: 190px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 5px 5px 0 var(--lime); padding: 10px; }
 .card-context-menu p { overflow: hidden; margin: 0 0 8px; color: #587170; font: 500 10px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
@@ -72,7 +72,7 @@ html[data-theme="dark"] .event-group-toggle { color: #a8c1bd; }
 .source-card.source-row:hover { transform: none; box-shadow: inset 4px 0 0 var(--lime); }
 .source-row > div:first-child { display: flex; justify-content: space-between; font: 500 9px var(--mono); letter-spacing: .06em; }
 .source-row .source-provider img { width: 24px; height: 24px; border-radius: 6px; }.source-row h3 { margin: 0; font-size: 17px; }.source-row p { margin: 0; }.source-row .source-tags { margin: 0; }
-.source-pagination { display: flex; justify-content: end; align-items: center; gap: 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
+.source-pagination { display: flex; flex-wrap: wrap; justify-content: end; align-items: center; gap: 8px 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
 .source-pagination button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }.source-pagination button:hover { background: var(--lime); color: #10232e; }.source-pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .source-heading-actions { display: flex; align-items: center; gap: 22px; }
 .source-sort-label { display: flex; align-items: center; gap: 8px; color: #587170; font: 500 10px var(--mono); letter-spacing: .04em; white-space: nowrap; }

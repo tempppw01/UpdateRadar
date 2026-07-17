@@ -414,6 +414,11 @@ function openCardContextMenu(source, event) {
 function renderEventPagination(pageCount, groupCount) {
   elements.eventPagination.replaceChildren();
   if (pageCount <= 1) return;
+  const first = document.createElement("button");
+  first.type = "button";
+  first.textContent = "|← 第一页";
+  first.disabled = state.eventPage === 1;
+  first.addEventListener("click", () => { state.eventPage = 1; renderEvents(); });
   const previous = document.createElement("button");
   previous.type = "button";
   previous.textContent = "← 上一页";
@@ -426,7 +431,12 @@ function renderEventPagination(pageCount, groupCount) {
   next.textContent = "下一页 →";
   next.disabled = state.eventPage === pageCount;
   next.addEventListener("click", () => { state.eventPage += 1; renderEvents(); });
-  elements.eventPagination.append(previous, status, next);
+  const last = document.createElement("button");
+  last.type = "button";
+  last.textContent = "最后一页 →|";
+  last.disabled = state.eventPage === pageCount;
+  last.addEventListener("click", () => { state.eventPage = pageCount; renderEvents(); });
+  elements.eventPagination.append(first, previous, status, next, last);
 }
 
 function eventDisplayTags(event) {
@@ -605,6 +615,9 @@ function renderSources() {
   });
   elements.sourcePagination.replaceChildren();
   if (sources.length > pageSize) {
+    const first = document.createElement("button");
+    first.type = "button"; first.textContent = "|← 第一页"; first.disabled = state.sourcePage === 1;
+    first.addEventListener("click", () => { state.sourcePage = 1; renderSources(); });
     const previous = document.createElement("button");
     previous.type = "button"; previous.textContent = "← 上一页"; previous.disabled = state.sourcePage === 1;
     previous.addEventListener("click", () => { state.sourcePage -= 1; renderSources(); });
@@ -613,7 +626,10 @@ function renderSources() {
     const next = document.createElement("button");
     next.type = "button"; next.textContent = "下一页 →"; next.disabled = state.sourcePage === pageCount;
     next.addEventListener("click", () => { state.sourcePage += 1; renderSources(); });
-    elements.sourcePagination.append(previous, status, next);
+    const last = document.createElement("button");
+    last.type = "button"; last.textContent = "最后一页 →|"; last.disabled = state.sourcePage === pageCount;
+    last.addEventListener("click", () => { state.sourcePage = pageCount; renderSources(); });
+    elements.sourcePagination.append(first, previous, status, next, last);
   }
 }
 
