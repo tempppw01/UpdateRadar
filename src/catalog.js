@@ -20,3 +20,18 @@ export async function searchAppStore({ term, country = "us", limit = 10 }, depen
     country
   }));
 }
+
+export async function searchGithubRepositories({ query, limit = 10 }, dependencies = { fetchText }) {
+  const url = new URL("https://api.github.com/search/repositories");
+  url.searchParams.set("q", query);
+  url.searchParams.set("per_page", String(Math.min(Math.max(Number(limit) || 10, 1), 20)));
+  const payload = JSON.parse(await dependencies.fetchText(url, { headers: { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" } }));
+  return (payload.items ?? []).filter((repository) => repository.owner?.login && repository.name).map((repository) => ({
+    owner: repository.owner.login,
+    repo: repository.name,
+    name: repository.full_name,
+    description: repository.description || "",
+    url: repository.html_url,
+    stars: repository.stargazers_count || 0
+  }));
+}

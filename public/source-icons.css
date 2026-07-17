@@ -63,6 +63,15 @@
 .saved-source-button i { float: right; width: 7px; height: 7px; margin: 4px 3px; border-radius: 50%; background: #6caf69; }
 .saved-source-button i.paused { background: var(--coral); }
 .translation-settings { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 15px; }
+.github-search { margin: 1px 0 17px; padding: 16px; border: 1px solid var(--ink); background: linear-gradient(135deg, rgba(191,208,205,.42), rgba(255,255,255,.28)); }
+.github-search h4 { margin: 0; font-size: 16px; letter-spacing: -.03em; }
+.github-search-controls { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 12px; }
+.github-search-controls input { margin: 0!important; }
+.github-search-controls button,.github-repository-result button { border: 1px solid var(--ink); background: var(--lime); color: var(--ink); font: 500 10px var(--mono); }
+.github-repository-results { max-height: 255px; margin-top: 13px; overflow: auto; }
+.github-repository-result { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 9px 0; border-top: 1px solid rgba(16,35,46,.14); }
+.github-repository-result strong,.github-repository-result span { display: block; }.github-repository-result strong { font-size: 13px; }.github-repository-result span { margin-top: 3px; color: #587170; font: 9px var(--mono); line-height: 1.3; }
+@media (max-width: 720px) { .github-search-controls { grid-template-columns: 1fr; }.github-repository-result { grid-template-columns: 1fr; }.github-repository-result button { justify-self: start; } }
 .translation-settings summary { cursor: pointer; font: 500 11px var(--mono); }
 .translation-settings .form-grid { margin-top: 15px; }
 .event-dialog { width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }

@@ -28,6 +28,9 @@ const elements = {
   appStoreSearchCountry: document.querySelector("#app-store-search-country"),
   appStoreSearchButton: document.querySelector("#app-store-search-button"),
   appStoreResults: document.querySelector("#app-store-results"),
+  githubRepositoryInput: document.querySelector("#github-repository-input"),
+  githubRepositorySearch: document.querySelector("#github-repository-search"),
+  githubRepositoryResults: document.querySelector("#github-repository-results"),
   translationBaseUrl: document.querySelector("#translation-base-url"),
   translationModel: document.querySelector("#translation-model"),
   translationApiKey: document.querySelector("#translation-api-key"),
@@ -275,6 +278,7 @@ function startNewEditor() {
   elements.editorTitle.textContent = "开始监控新渠道";
   elements.deleteSource.hidden = true;
   elements.appStoreResults.replaceChildren();
+  elements.githubRepositoryResults.replaceChildren();
   showProviderFields();
 }
 
@@ -448,6 +452,67 @@ async function searchForAppStoreApps() {
   }
 }
 
+function useGithubRepository(repository) {
+  const form = elements.sourceForm.elements;
+  form.owner.value = repository.owner;
+  form.repo.value = repository.repo;
+  if (!form.name.value.trim()) form.name.value = repository.name || `${repository.owner}/${repository.repo}`;
+  if (!state.editingSourceId) form.name.dispatchEvent(new Event("input"));
+  elements.githubRepositoryResults.replaceChildren();
+  elements.githubRepositoryInput.value = `https://github.com/${repository.owner}/${repository.repo}`;
+  showToast(`已填入 ${repository.owner}/${repository.repo}`);
+}
+
+function renderGithubRepositoryResults(repositories) {
+  elements.githubRepositoryResults.replaceChildren();
+  if (!repositories.length) {
+    elements.githubRepositoryResults.innerHTML = '<p class="app-search-empty">没有找到匹配仓库，请检查链接或关键词。</p>';
+    return;
+  }
+  repositories.forEach((repository) => {
+    const result = document.createElement("article");
+    result.className = "github-repository-result";
+    const detail = document.createElement("div");
+    const name = document.createElement("strong");
+    name.textContent = repository.name;
+    const meta = document.createElement("span");
+    meta.textContent = `${repository.description || "无描述"} · ★ ${repository.stars}`;
+    detail.append(name, meta);
+    const use = document.createElement("button");
+    use.type = "button";
+    use.textContent = "使用此仓库";
+    use.addEventListener("click", () => useGithubRepository(repository));
+    result.append(detail, use);
+    elements.githubRepositoryResults.append(result);
+  });
+}
+
+async function searchGithubRepositories() {
+  const value = elements.githubRepositoryInput.value.trim();
+  const match = value.match(/^https?:\/\/(?:www\.)?github\.com\/([^/?#]+)\/([^/?#]+)\/?(?:[?#].*)?$/i) || value.match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (match) {
+    useGithubRepository({ owner: match[1], repo: match[2].replace(/\.git$/i, ""), name: `${match[1]}/${match[2].replace(/\.git$/i, "")}` });
+    return;
+  }
+  if (value.length < 2) {
+    showToast("请输入 GitHub 仓库链接或至少两个字符的关键词", "error");
+    elements.githubRepositoryInput.focus();
+    return;
+  }
+  elements.githubRepositorySearch.disabled = true;
+  elements.githubRepositorySearch.textContent = "搜索中";
+  elements.githubRepositoryResults.innerHTML = '<p class="app-search-empty">正在搜索 GitHub 官方目录…</p>';
+  try {
+    renderGithubRepositoryResults(await requestJson(`/v1/catalog/github?${new URLSearchParams({ query: value })}`));
+  } catch (error) {
+    elements.githubRepositoryResults.innerHTML = '<p class="app-search-empty">GitHub 搜索暂时不可用，请稍后重试。</p>';
+    showToast(`GitHub 搜索失败：${error.message}`, "error");
+  } finally {
+    elements.githubRepositorySearch.disabled = false;
+    elements.githubRepositorySearch.textContent = "搜索";
+  }
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const body = await response.json();
@@ -505,8 +570,12 @@ elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);
 elements.appStoreSearchButton.addEventListener("click", searchForAppStoreApps);
+elements.githubRepositorySearch.addEventListener("click", searchGithubRepositories);
 elements.appStoreSearchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") { event.preventDefault(); searchForAppStoreApps(); }
+});
+elements.githubRepositoryInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") { event.preventDefault(); searchGithubRepositories(); }
 });
 elements.sourceForm.elements.name.addEventListener("input", () => {
   const id = elements.sourceForm.elements.id;

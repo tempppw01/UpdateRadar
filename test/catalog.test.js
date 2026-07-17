@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { searchAppStore } from "../src/catalog.js";
+import { searchAppStore, searchGithubRepositories } from "../src/catalog.js";
 
 test("App Store search normalizes official catalog results", async () => {
   let requestedUrl;
@@ -19,4 +19,16 @@ test("App Store search normalizes official catalog results", async () => {
     appId: "904280696", name: "Things 3", version: "3.21", developer: "Cultured Code", genre: "Productivity",
     artworkUrl: "https://example.test/icon.png", url: "https://example.test/app", country: "us"
   }]);
+});
+
+test("GitHub repository search normalizes official repository results", async () => {
+  let requestedUrl;
+  const results = await searchGithubRepositories({ query: "node", limit: 5 }, {
+    fetchText: async (url) => {
+      requestedUrl = new URL(url);
+      return JSON.stringify({ items: [{ owner: { login: "nodejs" }, name: "node", full_name: "nodejs/node", description: "JavaScript runtime", html_url: "https://github.com/nodejs/node", stargazers_count: 123 }] });
+    }
+  });
+  assert.equal(requestedUrl.searchParams.get("q"), "node");
+  assert.deepEqual(results, [{ owner: "nodejs", repo: "node", name: "nodejs/node", description: "JavaScript runtime", url: "https://github.com/nodejs/node", stars: 123 }]);
 });
