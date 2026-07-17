@@ -65,6 +65,7 @@ const elements = {
   eventDialog: document.querySelector("#event-dialog"),
   eventDialogTitle: document.querySelector("#event-dialog-title"),
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
+  eventDialogDetails: document.querySelector("#event-dialog-details"),
   eventDialogLink: document.querySelector("#event-dialog-link"),
   eventDialogContent: document.querySelector("#event-dialog-content"),
   eventHighlights: document.querySelector("#event-highlights"),
@@ -104,8 +105,6 @@ function sourceIconUrl(kind) {
 
 const tagCategories = {
   "app-store": { label: "App Store", iconKind: "app-store" },
-  "in-app-purchase": { label: "App Store 内购", icon: "◎" },
-  pricing: { label: "价格", icon: "¥" },
   "github-releases": { label: "GitHub 发布", iconKind: "github-releases" },
   "github-commits": { label: "GitHub 提交", iconKind: "github-commits" },
   github: { label: "GitHub", iconKind: "github-releases" },
@@ -260,6 +259,14 @@ function openEventDetails(event) {
   elements.eventDialogTitle.textContent = eventHeading(event);
   const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
+  elements.eventDialogDetails.replaceChildren();
+  const purchase = event.metadata?.inAppPurchase;
+  if (purchase?.price) {
+    const price = document.createElement("span");
+    price.textContent = `App Store 内购 · ${purchase.name || "未命名套餐"} · ${purchase.price}${purchase.country ? ` · ${storeRegion(purchase.country)}` : ""}`;
+    elements.eventDialogDetails.append(price);
+  }
+  elements.eventDialogDetails.hidden = elements.eventDialogDetails.childElementCount === 0;
   elements.eventDialogLink.href = event.url;
   const highlights = releaseHighlights(event.summary);
   elements.eventHighlightsList.replaceChildren(...highlights.map((highlight) => {
@@ -292,12 +299,14 @@ function categoryLabel(category) {
   return tagCategories[category]?.label ?? category;
 }
 
+const detailOnlyTags = new Set(["in-app-purchase", "pricing"]);
+
 function eventCategories(event) {
-  return [...new Set([event.sourceKind, ...(event.tags ?? [])].filter(Boolean))];
+  return [...new Set([event.sourceKind, ...(event.tags ?? [])].filter((tag) => tag && !detailOnlyTags.has(tag)))];
 }
 
 function sourceCategories(source) {
-  return [...new Set([source.kind, ...(source.tags ?? [])].filter(Boolean))];
+  return [...new Set([source.kind, ...(source.tags ?? [])].filter((tag) => tag && !detailOnlyTags.has(tag)))];
 }
 
 function renderMetrics() {
