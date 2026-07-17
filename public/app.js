@@ -120,7 +120,10 @@ function renderMetrics() {
 }
 
 function renderFilters() {
-  const tags = [...new Set(state.sources.flatMap((source) => source.tags))];
+  const activeSourceIds = new Set(state.events.map((event) => event.sourceId));
+  const tags = [...new Set(state.events.flatMap((event) => event.tags))];
+  if (state.tag && !tags.includes(state.tag)) state.tag = "";
+  if (state.sourceId && !activeSourceIds.has(state.sourceId)) state.sourceId = "";
   elements.tagFilters.replaceChildren();
   [{ value: "", label: "全部" }, ...tags.map((tag) => ({ value: tag, label: `# ${tag}` }))].forEach(({ value, label }) => {
     const button = document.createElement("button");
@@ -132,7 +135,7 @@ function renderFilters() {
   });
 
   elements.sourceFilter.replaceChildren(new Option("所有来源", ""));
-  state.sources.forEach((source) => elements.sourceFilter.add(new Option(source.name, source.id)));
+  state.sources.filter((source) => activeSourceIds.has(source.id)).forEach((source) => elements.sourceFilter.add(new Option(source.name, source.id)));
   elements.sourceFilter.value = state.sourceId;
 }
 
@@ -222,6 +225,7 @@ function renderSources() {
   elements.sourceList.replaceChildren();
   state.sources.forEach((source) => {
     const eventTotal = state.events.filter((event) => event.sourceId === source.id).length;
+    if (!eventTotal) return;
     const card = document.createElement("article");
     card.className = `source-card ${source.enabled ? "" : "paused"}`;
     const header = document.createElement("div");

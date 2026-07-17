@@ -1,55 +1,5 @@
 [
   {
-    "id": "docker-engine",
-    "name": "Docker Engine",
-    "kind": "github-releases",
-    "enabled": true,
-    "owner": "moby",
-    "repo": "moby",
-    "includePrereleases": false,
-    "tags": [
-      "container",
-      "opensource"
-    ]
-  },
-  {
-    "id": "nginx",
-    "name": "NGINX",
-    "kind": "github-releases",
-    "enabled": true,
-    "owner": "nginx",
-    "repo": "nginx",
-    "includePrereleases": false,
-    "tags": [
-      "web-server",
-      "opensource"
-    ]
-  },
-  {
-    "id": "github-changelog",
-    "name": "GitHub Changelog",
-    "kind": "rss",
-    "enabled": true,
-    "feedUrl": "https://github.blog/changelog/feed/",
-    "tags": [
-      "saas",
-      "developer-tools"
-    ]
-  },
-  {
-    "id": "chrome-android",
-    "name": "Google Chrome for Android",
-    "kind": "google-play",
-    "enabled": false,
-    "packageId": "com.android.chrome",
-    "country": "US",
-    "language": "en",
-    "tags": [
-      "browser",
-      "google-play"
-    ]
-  },
-  {
     "id": "app-store-333206289",
     "name": "Alipay - Simplify Your Life",
     "kind": "app-store",
