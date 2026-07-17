@@ -66,6 +66,8 @@ const elements = {
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
   eventDialogLink: document.querySelector("#event-dialog-link"),
   eventDialogContent: document.querySelector("#event-dialog-content"),
+  eventHighlights: document.querySelector("#event-highlights"),
+  eventHighlightsList: document.querySelector("#event-highlights-list"),
   translateEvent: document.querySelector("#translate-event"),
   translationViewToggle: document.querySelector("#translation-view-toggle"),
   viewOriginal: document.querySelector("#view-original"),
@@ -163,6 +165,12 @@ function storeRegion(value) {
   return labels[country] || country;
 }
 
+function releaseHighlights(summary = "") {
+  const lines = String(summary).split(/\r?\n/).map((line) => line.replace(/^\s*[-*#]+\s*/, "").trim()).filter(Boolean);
+  const priority = /(security|critical|high|urgent|cve|bug fix|hotfix|漏洞|安全|高优先级|紧急|错误修复)/i;
+  return lines.filter((line) => priority.test(line)).slice(0, 3);
+}
+
 function formatBytes(value) {
   if (!Number.isFinite(value) || value < 1) return "";
   const units = ["B", "KB", "MB", "GB"];
@@ -208,6 +216,13 @@ function openEventDetails(event) {
   const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
   elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
   elements.eventDialogLink.href = event.url;
+  const highlights = releaseHighlights(event.summary);
+  elements.eventHighlightsList.replaceChildren(...highlights.map((highlight) => {
+    const item = document.createElement("li");
+    item.textContent = highlight;
+    return item;
+  }));
+  elements.eventHighlights.hidden = highlights.length === 0;
   renderEventDialogText("original");
   elements.translationViewToggle.hidden = true;
   elements.translateEvent.disabled = false;
@@ -217,6 +232,7 @@ function openEventDetails(event) {
   elements.eventAssets.hidden = !assets.length;
   assets.forEach((asset) => elements.eventAssetsList.append(assetLink(asset)));
   elements.eventDialog.showModal();
+  elements.eventDialog.scrollTop = 0;
 }
 
 function renderEventDialogText(view) {

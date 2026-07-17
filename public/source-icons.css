@@ -146,6 +146,7 @@ html[data-theme="dark"] .welcome-description { color: #c2d4d0; }
 .event-dialog-header h2 { margin: 0; font-size: 27px; letter-spacing: -.045em; }
 .event-dialog-meta { margin-top: 14px; color: #587170; font: 10px var(--mono); }
 .event-dialog-actions { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+.event-highlights { margin-top: 20px; border: 1px solid var(--coral); border-left: 4px solid var(--coral); padding: 12px 15px; background: rgba(255,118,93,.11); }.event-highlights p { margin: 0; color: var(--coral); font: 500 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }.event-highlights ul { display: grid; gap: 5px; margin: 9px 0 0; padding-left: 17px; }.event-highlights li { color: var(--ink); font-size: 13px; line-height: 1.45; }
 .translation-view-toggle { display: flex; border: 1px solid var(--ink); }
 .translation-view-toggle button { border: 0; border-right: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }
 .translation-view-toggle button:last-child { border-right: 0; }.translation-view-toggle button.active { background: var(--lime); color: #10232e; }
