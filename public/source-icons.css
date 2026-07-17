@@ -47,7 +47,10 @@
 .event-detail-button,.translate-button,.bulk-delete-button,.download-button { border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); text-decoration: none; }
 .theme-toggle { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); letter-spacing: .04em; }
 .signal-heading-title { display: flex; align-items: end; gap: 18px; }
+.signal-actions { display: flex; align-items: center; gap: 9px; }
 .signal-heading-title .sync-button { margin-bottom: 1px; }
+.quick-add-button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 11px 12px; font: 500 10px var(--mono); letter-spacing: .04em; }
+.quick-add-button:hover { background: var(--lime); color: #10232e; }
 .source-grid { display: block!important; border-top: 1px solid var(--ink); }
 .source-card.source-row { display: grid; grid-template-columns: 200px minmax(150px,1fr) 130px minmax(180px,1.4fr); gap: 18px; align-items: center; min-height: 0; padding: 15px 17px; border: 0; border-bottom: 1px solid var(--line); background: transparent; }
 .source-card.source-row:hover { transform: none; box-shadow: inset 4px 0 0 var(--lime); }
@@ -116,5 +119,5 @@ html[data-theme="dark"] .event-link:hover { color: var(--lime); border-color: va
 .event-assets { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
 .event-assets h3 { margin: 0; font-size: 16px; }
 @media (max-width: 720px) { .event-card-actions { grid-column: 2; align-items: start; flex-direction: row; } .event-card.event-with-app-icon .event-card-actions { grid-column: 3; } .event-dialog-shell { padding: 19px; } }
-@media (max-width: 720px) { .signal-heading-title { align-items: start; flex-direction: column; gap: 12px; } }
+@media (max-width: 720px) { .signal-heading-title { align-items: start; flex-direction: column; gap: 12px; }.signal-actions { flex-wrap: wrap; } }
 @media (max-width: 720px) { .source-card.source-row { grid-template-columns: 1fr auto; gap: 8px; }.source-row h3 { grid-column: 1; }.source-row p { grid-column: 2; grid-row: 2; }.source-row .source-tags { grid-column: 1 / -1; }.source-row > div:first-child { grid-column: 1 / -1; }.source-pagination { justify-content: center; } }

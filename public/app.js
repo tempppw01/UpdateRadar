@@ -11,6 +11,7 @@ const elements = {
   sourcePagination: document.querySelector("#source-pagination"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
+  quickAddSource: document.querySelector("#quick-add-source"),
   themeToggle: document.querySelector("#theme-toggle"),
   settingsButton: document.querySelector("#settings-button"),
   manageSources: document.querySelector("#manage-sources"),
@@ -619,6 +620,7 @@ async function load() {
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
+elements.quickAddSource.addEventListener("click", openSettings);
 elements.themeToggle.addEventListener("click", () => {
   const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   localStorage.setItem("update-radar-theme", theme);
