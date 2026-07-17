@@ -62,7 +62,6 @@ const elements = {
   translationTargetLanguage: document.querySelector("#translation-target-language"),
   saveTranslationSettings: document.querySelector("#save-translation-settings"),
   eventDialog: document.querySelector("#event-dialog"),
-  closeEventDialog: document.querySelector("#close-event-dialog"),
   eventDialogTitle: document.querySelector("#event-dialog-title"),
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
   eventDialogLink: document.querySelector("#event-dialog-link"),
@@ -903,7 +902,13 @@ elements.backupFile.addEventListener("change", async () => {
   if (file) await importBackup(file);
   elements.backupFile.value = "";
 });
-elements.closeEventDialog.addEventListener("click", () => elements.eventDialog.close());
+elements.eventDialog.addEventListener("click", (event) => {
+  const bounds = elements.eventDialog.getBoundingClientRect();
+  const clickedBackdrop = event.target === elements.eventDialog && (
+    event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom
+  );
+  if (clickedBackdrop) elements.eventDialog.close();
+});
 elements.selectAllSources.addEventListener("change", () => {
   state.selectedSourceIds = elements.selectAllSources.checked ? new Set(state.sources.map((source) => source.id)) : new Set();
   renderSettingsSources();
