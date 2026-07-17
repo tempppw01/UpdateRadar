@@ -108,6 +108,8 @@ const tagCategories = {
   pricing: { label: "价格", icon: "¥" },
   "github-releases": { label: "GitHub 发布", iconKind: "github-releases" },
   "github-commits": { label: "GitHub 提交", iconKind: "github-commits" },
+  github: { label: "GitHub", iconKind: "github-releases" },
+  commits: { label: "提交", icon: "↗" },
   "docker-hub": { label: "Docker Hub", iconKind: "docker-hub" },
   "qnap-app": { label: "QNAP App Center", iconKind: "qnap-app" },
   "nintendo-switch": { label: "Nintendo Switch", iconKind: "nintendo-switch" },
@@ -286,8 +288,20 @@ function renderEventDialogText(view) {
   elements.viewTranslated.classList.toggle("active", view === "translation");
 }
 
+function categoryLabel(category) {
+  return tagCategories[category]?.label ?? category;
+}
+
+function eventCategories(event) {
+  return [...new Set([event.sourceKind, ...(event.tags ?? [])].filter(Boolean))];
+}
+
+function sourceCategories(source) {
+  return [...new Set([source.kind, ...(source.tags ?? [])].filter(Boolean))];
+}
+
 function renderMetrics() {
-  const tags = new Set(state.sources.flatMap((source) => source.tags));
+  const tags = new Set(state.events.flatMap(eventCategories));
   const newest = state.events[0];
   elements.eventCount.textContent = state.events.length;
   elements.sourceCount.textContent = state.sources.filter((source) => source.enabled).length;
@@ -298,14 +312,14 @@ function renderMetrics() {
 function renderFilters() {
   const activeSourceIds = new Set(state.events.map((event) => event.sourceId));
   const tagCounts = new Map();
-  state.events.forEach((event) => event.tags.forEach((tag) => tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)));
+  state.events.forEach((event) => eventCategories(event).forEach((tag) => tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)));
   const tags = [...tagCounts.keys()];
   if (state.tag && !tags.includes(state.tag)) state.tag = "";
   if (state.sourceId && !activeSourceIds.has(state.sourceId)) state.sourceId = "";
   elements.tagFilters.replaceChildren();
   [{ value: "", label: "全部", icon: "◉", count: state.events.length }, ...tags.map((tag) => ({
     value: tag,
-    label: tagCategories[tag]?.label ?? tag,
+    label: categoryLabel(tag),
     icon: tagCategories[tag]?.icon ?? "#",
     iconUrl: sourceIconUrl(tagCategories[tag]?.iconKind),
     count: tagCounts.get(tag)
@@ -339,12 +353,12 @@ function renderFilters() {
 function matchesEventSearch(event) {
   const query = state.search.trim().toLocaleLowerCase();
   if (!query) return true;
-  return [event.sourceName, event.title, event.version, event.summary, ...(event.tags ?? [])]
+  return [event.sourceName, event.title, event.version, event.summary, ...eventCategories(event), ...eventCategories(event).map(categoryLabel)]
     .some((value) => String(value ?? "").toLocaleLowerCase().includes(query));
 }
 
 function renderEvents() {
-  const events = state.events.filter((event) => (!state.tag || event.tags.includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
+  const events = state.events.filter((event) => (!state.tag || eventCategories(event).includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
   elements.eventList.replaceChildren();
   if (!events.length) {
@@ -420,9 +434,9 @@ function renderEvents() {
     if (details.childElementCount) card.querySelector(".event-tags").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
-    event.tags.forEach((tag) => {
+    eventCategories(event).forEach((tag) => {
       const pill = document.createElement("span");
-      pill.textContent = tag;
+      pill.textContent = categoryLabel(tag);
       card.querySelector(".event-tags").append(pill);
     });
     const assets = releaseAssets(event);
@@ -504,7 +518,7 @@ function renderSources() {
     count.textContent = `${eventTotal} signals captured`;
     const tags = document.createElement("div");
     tags.className = "source-tags";
-    source.tags.forEach((tag) => { const item = document.createElement("span"); item.textContent = tag; tags.append(item); });
+    sourceCategories(source).forEach((tag) => { const item = document.createElement("span"); item.textContent = categoryLabel(tag); tags.append(item); });
     card.append(header, name, count, tags);
     elements.sourceList.append(card);
   });
