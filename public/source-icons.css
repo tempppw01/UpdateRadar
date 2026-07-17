@@ -44,6 +44,9 @@
 }
 
 .event-card-actions { align-self: center; display: flex; flex-direction: column; gap: 10px; align-items: end; }
+.event-card > *, .event-main { min-width: 0; }
+.event-title-button { width: 100%; overflow-wrap: anywhere; }
+.event-summary { overflow-wrap: anywhere; word-break: break-word; }
 .event-source-group { border-bottom: 1px solid var(--line); }
 .event-source-group .event-card:last-of-type { border-bottom: 0; }
 .event-group-toggle { display: block; width: 100%; border: 0; border-top: 1px dashed var(--line); background: transparent; color: #587170; padding: 12px 0 15px 50px; text-align: left; font: 500 10px var(--mono); letter-spacing: .03em; }

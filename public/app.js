@@ -82,32 +82,39 @@ const elements = {
 const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
 const sourceIcons = {
-  "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
-  "github-commits": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
-  "docker-hub": { name: "Docker Hub", url: "https://cdn.simpleicons.org/docker/10232e" },
-  rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
-  "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
-  "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" },
-  "qnap-app": { name: "QNAP", url: "https://cdn.simpleicons.org/qnap/10232e" },
-  "nintendo-switch": { name: "Nintendo Switch", url: "https://cdn.simpleicons.org/nintendoswitch/10232e" },
-  steam: { name: "Steam", url: "https://cdn.simpleicons.org/steam/10232e" },
-  playstation: { name: "PlayStation", url: "https://cdn.simpleicons.org/playstation/10232e" },
-  xbox: { name: "Xbox", url: "https://cdn.simpleicons.org/xbox/10232e" }
+  "github-releases": { name: "GitHub", slug: "github" },
+  "github-commits": { name: "GitHub", slug: "github" },
+  "docker-hub": { name: "Docker Hub", slug: "docker" },
+  rss: { name: "RSS", slug: "rss" },
+  "app-store": { name: "App Store", slug: "appstore" },
+  "google-play": { name: "Google Play", slug: "googleplay" },
+  "qnap-app": { name: "QNAP", slug: "qnap" },
+  "nintendo-switch": { name: "Nintendo Switch", slug: "nintendoswitch" },
+  steam: { name: "Steam", slug: "steam" },
+  playstation: { name: "PlayStation", slug: "playstation" },
+  xbox: { name: "Xbox", slug: "xbox" }
 };
 
+function sourceIconUrl(kind) {
+  const icon = sourceIcons[kind];
+  if (!icon) return "";
+  const color = document.documentElement.dataset.theme === "dark" ? "f0f7f5" : "10232e";
+  return `https://cdn.simpleicons.org/${icon.slug}/${color}`;
+}
+
 const tagCategories = {
-  "app-store": { label: "App Store", iconUrl: sourceIcons["app-store"].url },
+  "app-store": { label: "App Store", iconKind: "app-store" },
   "in-app-purchase": { label: "App Store 内购", icon: "◎" },
   pricing: { label: "价格", icon: "¥" },
-  "github-releases": { label: "GitHub 发布", iconUrl: sourceIcons["github-releases"].url },
-  "github-commits": { label: "GitHub 提交", iconUrl: sourceIcons["github-commits"].url },
-  "docker-hub": { label: "Docker Hub", iconUrl: sourceIcons["docker-hub"].url },
-  "qnap-app": { label: "QNAP App Center", iconUrl: sourceIcons["qnap-app"].url },
-  "nintendo-switch": { label: "Nintendo Switch", iconUrl: sourceIcons["nintendo-switch"].url },
-  rss: { label: "RSS", iconUrl: sourceIcons.rss.url },
-  steam: { label: "Steam", iconUrl: sourceIcons.steam.url },
-  playstation: { label: "PlayStation", iconUrl: sourceIcons.playstation.url },
-  xbox: { label: "Xbox", iconUrl: sourceIcons.xbox.url }
+  "github-releases": { label: "GitHub 发布", iconKind: "github-releases" },
+  "github-commits": { label: "GitHub 提交", iconKind: "github-commits" },
+  "docker-hub": { label: "Docker Hub", iconKind: "docker-hub" },
+  "qnap-app": { label: "QNAP App Center", iconKind: "qnap-app" },
+  "nintendo-switch": { label: "Nintendo Switch", iconKind: "nintendo-switch" },
+  rss: { label: "RSS", iconKind: "rss" },
+  steam: { label: "Steam", iconKind: "steam" },
+  playstation: { label: "PlayStation", iconKind: "playstation" },
+  xbox: { label: "Xbox", iconKind: "xbox" }
 };
 
 function applyTheme(theme) {
@@ -300,7 +307,7 @@ function renderFilters() {
     value: tag,
     label: tagCategories[tag]?.label ?? tag,
     icon: tagCategories[tag]?.icon ?? "#",
-    iconUrl: tagCategories[tag]?.iconUrl,
+    iconUrl: sourceIconUrl(tagCategories[tag]?.iconKind),
     count: tagCounts.get(tag)
   }))].forEach(({ value, label, icon, iconUrl, count }) => {
     const button = document.createElement("button");
@@ -377,7 +384,7 @@ function renderEvents() {
     if (sourceIcon) {
       eventSource.classList.add("event-source-with-icon");
       const image = document.createElement("img");
-      image.src = sourceIcon.url;
+      image.src = sourceIconUrl(event.sourceKind);
       image.alt = `${sourceIcon.name} 图标`;
       image.referrerPolicy = "no-referrer";
       image.addEventListener("error", () => image.remove());
@@ -477,7 +484,7 @@ function renderSources() {
     const icon = source.artworkUrl ? { name: source.name, url: source.artworkUrl } : sourceIcons[source.kind];
     if (icon) {
       const image = document.createElement("img");
-      image.src = icon.url;
+      image.src = source.artworkUrl || sourceIconUrl(source.kind);
       image.alt = `${icon.name} 图标`;
       image.referrerPolicy = "no-referrer";
       image.addEventListener("error", () => image.remove());
@@ -581,7 +588,7 @@ function renderSettingsSources() {
     const status = document.createElement("i");
     status.className = source.enabled ? "" : "paused";
     const provider = document.createElement("img");
-    const icon = source.artworkUrl || sourceIcons[source.kind]?.url;
+    const icon = source.artworkUrl || sourceIconUrl(source.kind);
     if (icon) { provider.src = icon; provider.alt = ""; provider.referrerPolicy = "no-referrer"; provider.addEventListener("error", () => provider.remove()); }
     const name = document.createElement("strong");
     name.textContent = source.name;
@@ -944,6 +951,8 @@ elements.themeToggle.addEventListener("click", () => {
   const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   localStorage.setItem("update-radar-theme", theme);
   applyTheme(theme);
+  renderFilters(); renderEvents(); renderSources();
+  if (elements.settingsDialog.open) renderSettingsSources();
 });
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
 elements.settingsDialog.addEventListener("click", (event) => {
