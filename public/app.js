@@ -83,6 +83,7 @@ const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "nume
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
 const sourceIcons = {
   "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
+  "github-commits": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
   "docker-hub": { name: "Docker Hub", url: "https://cdn.simpleicons.org/docker/10232e" },
   rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
@@ -466,7 +467,7 @@ function renderSources() {
 
 function showProviderFields() {
   const kind = elements.sourceKind.value;
-  document.querySelectorAll(".provider-fields").forEach((fields) => { fields.hidden = fields.dataset.kind !== kind; });
+  document.querySelectorAll(".provider-fields").forEach((fields) => { fields.hidden = !fields.dataset.kind.split(" ").includes(kind); });
 }
 
 function startNewEditor() {
@@ -499,7 +500,7 @@ function editSource(source) {
   }
   elements.sourceKind.value = source.kind;
   showProviderFields();
-  const activeFields = elements.sourceForm.querySelector(`.provider-fields[data-kind="${source.kind}"]`);
+  const activeFields = [...elements.sourceForm.querySelectorAll(".provider-fields")].find((fields) => fields.dataset.kind.split(" ").includes(source.kind));
   for (const [key, value] of Object.entries(source)) {
     const field = activeFields?.querySelector(`[name="${key}"]`);
     if (field && field.type !== "checkbox") field.value = value;
@@ -562,7 +563,7 @@ function openSettings() {
 
 function sourcePayload() {
   const kind = elements.sourceKind.value;
-  const provider = elements.sourceForm.querySelector(`.provider-fields[data-kind="${kind}"]`);
+  const provider = [...elements.sourceForm.querySelectorAll(".provider-fields")].find((fields) => fields.dataset.kind.split(" ").includes(kind));
   const value = (name) => provider?.querySelector(`[name="${name}"]`)?.value.trim() || elements.sourceForm.querySelector(`.form-grid [name="${name}"]`)?.value.trim() || "";
   return {
     id: elements.sourceForm.elements.id.value.trim(),
@@ -570,7 +571,7 @@ function sourcePayload() {
     kind,
     tags: elements.sourceForm.elements.tags.value.split(",").map((tag) => tag.trim()).filter(Boolean),
     enabled: elements.sourceForm.elements.enabled.checked,
-    owner: value("owner"), repo: value("repo"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
+    owner: value("owner"), repo: value("repo"), branch: value("branch"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
     qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),

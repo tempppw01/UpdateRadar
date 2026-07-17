@@ -168,5 +168,19 @@
     "planName": "",
     "storefrontId": "",
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ac/bc/ee/acbcee55-7331-cf33-ba52-03327971f9c5/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "new-api-commits",
+    "name": "new-api 提交",
+    "kind": "github-commits",
+    "enabled": true,
+    "tags": [
+      "github",
+      "commits"
+    ],
+    "owner": "tempppw01",
+    "repo": "new-api",
+    "branch": "dev",
+    "cooldownMinutes": 15
   }
 ]

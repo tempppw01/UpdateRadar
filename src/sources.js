@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch", "steam", "playstation", "xbox"]);
+const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 export class SourceValidationError extends Error {}
 
@@ -40,9 +40,12 @@ export function normalizeSource(input, { id } = {}) {
   const cooldownMinutes = Number(input.cooldownMinutes ?? 60);
   if (!Number.isInteger(cooldownMinutes) || cooldownMinutes < 0 || cooldownMinutes > 10_080) throw new SourceValidationError("更新后冷却时间应为 0 到 10080 分钟的整数");
   source.cooldownMinutes = cooldownMinutes;
-  if (kind === "github-releases") {
+  if (["github-releases", "github-commits"].includes(kind)) {
     source.owner = required(input.owner, "GitHub Owner");
     source.repo = required(input.repo, "GitHub Repository");
+    source.branch = String(input.branch || "").trim();
+  }
+  if (kind === "github-releases") {
     source.includePrereleases = input.includePrereleases === true;
   }
   if (kind === "docker-hub") {

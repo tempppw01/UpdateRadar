@@ -39,6 +39,12 @@ test("source store rejects unsupported and incomplete configurations", async () 
   );
 });
 
+test("source store supports GitHub commit monitoring with an optional branch", async () => {
+  const store = await makeStore();
+  const source = await store.create({ id: "new-api-commits", name: "new-api 提交", kind: "github-commits", owner: "tempppw01", repo: "new-api", branch: "dev" });
+  assert.equal(source.branch, "dev");
+});
+
 test("source store supports an Apple App Store source with an in-app purchase monitor", async () => {
   const store = await makeStore();
   const source = await store.create({

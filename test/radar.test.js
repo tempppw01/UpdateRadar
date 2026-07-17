@@ -4,6 +4,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
+import { collectGithubCommits } from "../src/adapters/github-commits.js";
 import { collectAppStore } from "../src/adapters/app-store.js";
 import { collectDockerHub } from "../src/adapters/docker-hub.js";
 import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
@@ -24,6 +25,14 @@ test("GitHub collector ignores draft and prerelease versions by default", async 
   assert.equal(updates.length, 1);
   assert.equal(updates[0].version, "v2.0.0");
   assert.deepEqual(updates[0].metadata.assets, [{ name: "tool.zip", size: 2048, url: "https://example.test/tool.zip", contentType: "application/zip" }]);
+});
+
+test("GitHub commit collector normalizes recent commits", async () => {
+  const [commit] = await collectGithubCommits({ owner: "acme", repo: "tool", branch: "dev" }, { fetchText: async () => JSON.stringify([{ sha: "abcdef0123456789", html_url: "https://example.test/commit", commit: { message: "Fix sync failure\n\nRetry transient errors.", author: { name: "Ada", date: "2026-01-02T00:00:00Z" } } }]) });
+  assert.equal(commit.externalId, "abcdef0123456789");
+  assert.equal(commit.title, "Fix sync failure");
+  assert.equal(commit.metadata.branch, "dev");
+  assert.equal(commit.summary, "Retry transient errors.");
 });
 
 test("Apple App Store collector adds official in-app purchase data to the application update", async () => {
