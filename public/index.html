@@ -46,7 +46,7 @@
 
       <section class="radar-board" aria-label="更新雷达">
         <div class="section-heading">
-          <div class="signal-heading-title"><div><p class="eyebrow">SIGNAL FEED / 02</p><h2>最新情报</h2></div><div class="signal-actions"><button class="quick-add-button" id="quick-add-source" type="button">＋ 快捷添加监控源</button><button class="sync-button" id="sync-button" type="button"><span aria-hidden="true">↻</span> 立即同步</button></div></div>
+          <div class="signal-heading-title"><div><p class="eyebrow">SIGNAL FEED / 02</p><h2>最新情报</h2></div><div class="signal-actions"><div class="event-view-toggle" aria-label="情报显示样式"><button type="button" data-event-view="compact">紧凑</button><button type="button" data-event-view="list">列表</button><button type="button" data-event-view="cards">卡片</button></div><button class="quick-add-button" id="quick-add-source" type="button">＋ 快捷添加监控源</button><button class="sync-button" id="sync-button" type="button"><span aria-hidden="true">↻</span> 立即同步</button></div></div>
           <p class="results-count" id="results-count"></p>
         </div>
 
@@ -125,10 +125,10 @@
         <div class="event-app-icon" aria-hidden="true"></div>
         <div class="event-main">
           <div class="event-meta"><span class="event-source"></span><time></time></div>
-          <h3></h3><p class="event-summary"></p>
+          <button class="event-title-button" type="button"></button><p class="event-summary"></p>
           <div class="event-tags"></div>
         </div>
-        <div class="event-card-actions"><button class="event-detail-button" type="button">发布详情</button><a class="event-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a></div>
+        <div class="event-card-actions"><a class="event-link" target="_blank" rel="noreferrer">查看原文 <span>↗</span></a></div>
       </article>
     </template>
     <script type="module" src="/app.js"></script>

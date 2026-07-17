@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
+const state = { events: [], sources: [], tag: "", sourceId: "", sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "" };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -10,6 +10,7 @@ const elements = {
   sourceList: document.querySelector("#source-list"),
   sourcePagination: document.querySelector("#source-pagination"),
   sourceSort: document.querySelector("#source-sort"),
+  eventViewButtons: [...document.querySelectorAll("[data-event-view]")],
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   quickAddSource: document.querySelector("#quick-add-source"),
@@ -101,6 +102,18 @@ function applyTheme(theme) {
 
 const savedTheme = localStorage.getItem("update-radar-theme");
 applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+
+function applyEventView(view) {
+  state.eventView = ["compact", "list", "cards"].includes(view) ? view : "list";
+  elements.eventList.dataset.view = state.eventView;
+  elements.eventViewButtons.forEach((button) => {
+    const active = button.dataset.eventView === state.eventView;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+applyEventView(state.eventView);
 
 function dismissWelcome() {
   localStorage.setItem("update-radar-welcome-dismissed", "true");
@@ -323,7 +336,9 @@ function renderEvents() {
     const time = card.querySelector("time");
     time.dateTime = event.publishedAt;
     time.textContent = `${relativeTime(event.publishedAt)} · ${dateFormat.format(new Date(event.publishedAt))}`;
-    card.querySelector("h3").textContent = eventHeading(event);
+    const title = card.querySelector(".event-title-button");
+    title.textContent = eventHeading(event);
+    title.addEventListener("click", () => openEventDetails(event));
     const summary = card.querySelector(".event-summary");
     summary.textContent = event.summary || "官方未提供本次更新说明。";
     summary.hidden = !event.summary;
@@ -347,8 +362,6 @@ function renderEvents() {
     if (details.childElementCount) card.querySelector(".event-tags").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
-    const detailButton = card.querySelector(".event-detail-button");
-    detailButton.addEventListener("click", () => openEventDetails(event));
     event.tags.forEach((tag) => {
       const pill = document.createElement("span");
       pill.textContent = tag;
@@ -851,6 +864,10 @@ async function load() {
 }
 
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; renderEvents(); });
+elements.eventViewButtons.forEach((button) => button.addEventListener("click", () => {
+  localStorage.setItem("update-radar-event-view", button.dataset.eventView);
+  applyEventView(button.dataset.eventView);
+}));
 elements.sourceSort.addEventListener("change", (event) => { state.sourceSort = event.target.value; state.sourcePage = 1; renderSources(); });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
