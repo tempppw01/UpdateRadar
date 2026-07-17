@@ -19,6 +19,7 @@ test("source store creates, updates, and removes a typed source", async () => {
     owner: "nodejs", repo: "node", includePrereleases: false, tags: ["runtime", "runtime"]
   });
   assert.deepEqual(created.tags, ["runtime"]);
+  assert.equal(created.cooldownMinutes, 60);
   const updated = await store.update("nodejs", { enabled: false, tags: ["runtime", "opensource"] });
   assert.equal(updated.enabled, false);
   assert.deepEqual(updated.tags, ["runtime", "opensource"]);

@@ -16,3 +16,17 @@ export async function pollAll(sources, dependencies) {
     ? { ok: true, ...result.value }
     : { ok: false, sourceId: enabledSources[index].id, error: result.reason.message });
 }
+
+export function sourcesDueForPolling(sources, latestDetectedAtBySource, now = Date.now()) {
+  const due = [];
+  const skipped = [];
+  sources.filter((source) => source.enabled).forEach((source) => {
+    const cooldownMinutes = Number(source.cooldownMinutes ?? 60);
+    const detectedAt = latestDetectedAtBySource[source.id];
+    const age = detectedAt ? now - new Date(detectedAt).getTime() : Infinity;
+    if (cooldownMinutes > 0 && Number.isFinite(age) && age >= 0 && age < cooldownMinutes * 60_000) {
+      skipped.push({ ok: true, sourceId: source.id, skipped: true, cooldownMinutes, nextPollAt: new Date(new Date(detectedAt).getTime() + cooldownMinutes * 60_000).toISOString() });
+    } else due.push(source);
+  });
+  return { due, skipped };
+}

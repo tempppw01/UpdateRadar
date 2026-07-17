@@ -10,7 +10,7 @@ import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
 import { collectQnapApp } from "../src/adapters/qnap-app.js";
 import { collectPlayStation, collectXbox } from "../src/adapters/game-news.js";
 import { collectSteam } from "../src/adapters/steam.js";
-import { pollAll } from "../src/radar.js";
+import { pollAll, sourcesDueForPolling } from "../src/radar.js";
 import { JsonEventStore } from "../src/store.js";
 
 test("GitHub collector ignores draft and prerelease versions by default", async () => {
@@ -90,6 +90,14 @@ test("polling records a new update only once", async () => {
   assert.deepEqual(await pollAll([source], { store, collectorResolver }), [{ ok: true, sourceId: "tool", fetched: 1, inserted: 1 }]);
   assert.deepEqual(await pollAll([source], { store, collectorResolver }), [{ ok: true, sourceId: "tool", fetched: 1, inserted: 0 }]);
   assert.equal((await store.list({ tag: "dev" })).length, 1);
+});
+
+test("recently updated sources respect their polling cooldown", () => {
+  const now = Date.parse("2026-01-01T01:00:00Z");
+  const { due, skipped } = sourcesDueForPolling([{ id: "recent", enabled: true, cooldownMinutes: 60 }, { id: "old", enabled: true, cooldownMinutes: 60 }, { id: "always", enabled: true, cooldownMinutes: 0 }], { recent: "2026-01-01T00:30:00Z", old: "2025-12-31T23:00:00Z", always: "2026-01-01T00:59:00Z" }, now);
+  assert.deepEqual(due.map((source) => source.id), ["old", "always"]);
+  assert.equal(skipped[0].sourceId, "recent");
+  assert.equal(skipped[0].nextPollAt, "2026-01-01T01:30:00.000Z");
 });
 
 test("event store removes events belonging to deleted sources", async () => {

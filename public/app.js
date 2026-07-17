@@ -544,7 +544,7 @@ function sourcePayload() {
     owner: value("owner"), repo: value("repo"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
-    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"),
+    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
     tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }
@@ -967,7 +967,7 @@ elements.syncButton.addEventListener("click", async () => {
   elements.syncButton.disabled = true;
   elements.syncButton.innerHTML = '<span class="spin" aria-hidden="true">↻</span> 同步中';
   try {
-    const results = await requestJson("/v1/poll", { method: "POST" });
+    const results = await requestJson("/v1/poll?force=true", { method: "POST" });
     const inserted = results.reduce((total, result) => total + (result.inserted || 0), 0);
     const failed = results.filter((result) => !result.ok).length;
     await load();

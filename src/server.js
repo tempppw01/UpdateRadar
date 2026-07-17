@@ -3,7 +3,7 @@ import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, isAbsolute, join, relative } from "node:path";
 import { searchAppStore, searchDockerHubRepositories, searchGithubRepositories, searchNintendoSwitchGames, searchQnapApps, searchSteamGames } from "./catalog.js";
-import { pollAll } from "./radar.js";
+import { pollAll, sourcesDueForPolling } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
 import { JsonSettingsStore } from "./settings.js";
@@ -181,7 +181,10 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         }));
       }
       if (request.method === "POST" && url.pathname === "/v1/poll") {
-        return send(response, 200, await pollAll(await getSources(), { store }));
+        const sourceList = await getSources();
+        if (url.searchParams.get("force") === "true") return send(response, 200, await pollAll(sourceList, { store }));
+        const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
+        return send(response, 200, [...await pollAll(due, { store }), ...skipped]);
       }
       if (["GET", "HEAD"].includes(request.method) && !url.pathname.startsWith("/v1/")) {
         try {

@@ -60,6 +60,15 @@ export class JsonEventStore {
       .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 200));
   }
 
+  async latestDetectedAtBySource() {
+    const state = await this.load();
+    return state.events.reduce((latest, event) => {
+      const detectedAt = new Date(event.detectedAt).getTime();
+      if (Number.isFinite(detectedAt) && (!latest[event.sourceId] || detectedAt > new Date(latest[event.sourceId]).getTime())) latest[event.sourceId] = event.detectedAt;
+      return latest;
+    }, {});
+  }
+
   async removeBySourceIds(ids) {
     const sourceIds = new Set(ids.map((id) => String(id)));
     if (!sourceIds.size) return 0;
