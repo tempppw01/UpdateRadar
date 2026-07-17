@@ -5,6 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
 import { collectAppStore } from "../src/adapters/app-store.js";
+import { collectDockerHub } from "../src/adapters/docker-hub.js";
+import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
+import { collectQnapApp } from "../src/adapters/qnap-app.js";
 import { pollAll } from "../src/radar.js";
 import { JsonEventStore } from "../src/store.js";
 
@@ -34,6 +37,31 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   assert.equal(update.version, "1.2.3");
   assert.equal(update.metadata.inAppPurchase.price, "$19.99");
   assert.equal(update.metadata.artworkUrl, "https://example.test/icon.jpg");
+});
+
+test("Docker Hub collector tracks tag digests and optional tag filters", async () => {
+  const [update] = await collectDockerHub({ name: "NGINX", repository: "library/nginx", tagsFilter: ["latest"] }, {
+    fetchText: async () => JSON.stringify({ results: [{ name: "latest", last_updated: "2026-01-02T00:00:00Z", full_size: 1048576, images: [{ os: "linux", architecture: "amd64", digest: "sha256:abc" }] }, { name: "edge", images: [] }] })
+  });
+  assert.equal(update.externalId, "library/nginx:latest:sha256:abc");
+  assert.equal(update.version, "latest");
+  assert.deepEqual(update.metadata.architectures, ["linux/amd64"]);
+});
+
+test("QNAP App Center collector reads the official app version and download", async () => {
+  const responses = [JSON.stringify({ results: { qts: { version: [{ version: "5.2.9" }] } } }), JSON.stringify({ code: 200, app_list: [{ app_name: "ContainerStation", display_name: "Container Station", version: "3.0.0", detail: "Containers", icon: { 100: "https://example.test/icon.png" }, release_notes_link: "https://example.test/notes", download_links: { "TS-X64": { link: "https://example.test/app.qpkg" } } }] })];
+  const [update] = await collectQnapApp({ qnapAppName: "Container Station", qnapOs: "qts" }, { fetchText: async () => responses.shift() });
+  assert.equal(update.version, "3.0.0");
+  assert.equal(update.metadata.appCenterVersion, "5.2.9");
+  assert.equal(update.metadata.assets[0].url, "https://example.test/app.qpkg");
+});
+
+test("Nintendo Switch collector filters official update announcements by game", async () => {
+  const state = { props: { pageProps: { initialApolloState: { one: { __typename: "NewsArticle", id: "update-1", title: "Mario Kart World update available now", body: { text: "A new patch is ready." }, publishDate: "2026-01-02T00:00:00Z", 'url({"relative":true})': "/us/whatsnew/mario-kart-world-update/" }, two: { __typename: "NewsArticle", id: "other-1", title: "Other game update", body: { text: "Patch notes" }, publishDate: "2026-01-03T00:00:00Z", 'url({"relative":true})': "/us/whatsnew/other/" } } } } };
+  const html = `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(state)}</script>`;
+  const [update] = await collectNintendoSwitch({ gameName: "Mario Kart World", nintendoRegion: "us" }, { fetchText: async () => html });
+  assert.equal(update.externalId, "update-1");
+  assert.equal(update.url, "https://www.nintendo.com/us/whatsnew/mario-kart-world-update/");
 });
 
 test("polling records a new update only once", async () => {

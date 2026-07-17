@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "rss", "app-store", "google-play"]);
+const kinds = new Set(["github-releases", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch"]);
 
 export class SourceValidationError extends Error {}
 
@@ -42,6 +42,13 @@ export function normalizeSource(input, { id } = {}) {
     source.repo = required(input.repo, "GitHub Repository");
     source.includePrereleases = input.includePrereleases === true;
   }
+  if (kind === "docker-hub") {
+    source.repository = required(input.repository, "Docker Hub 镜像仓库").replace(/^\/+|\/+$/g, "").toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)+$/.test(source.repository)) {
+      throw new SourceValidationError("Docker Hub 镜像仓库应为 namespace/image 格式");
+    }
+    source.tagsFilter = Array.isArray(input.tagsFilter) ? [...new Set(input.tagsFilter.map((tag) => String(tag).trim()).filter(Boolean))] : [];
+  }
   if (kind === "rss") source.feedUrl = validUrl(input.feedUrl, "RSS/Atom 地址");
   if (kind === "app-store") {
     source.appId = required(input.appId, "App Store 应用 ID");
@@ -55,6 +62,17 @@ export function normalizeSource(input, { id } = {}) {
     source.packageId = required(input.packageId, "Google Play 包名");
     source.country = String(input.country || "US").trim().toUpperCase();
     source.language = String(input.language || "en").trim().toLowerCase();
+  }
+  if (kind === "qnap-app") {
+    source.qnapAppName = required(input.qnapAppName, "QNAP App Center 应用名称");
+    source.qnapOs = String(input.qnapOs || "qts").trim().toLowerCase();
+    if (!new Set(["qts", "quts_hero", "qutscloud", "qvp"]).has(source.qnapOs)) throw new SourceValidationError("不支持的 QNAP 系统类型");
+    source.qnapVersion = String(input.qnapVersion || "").trim();
+  }
+  if (kind === "nintendo-switch") {
+    source.gameName = required(input.gameName, "Nintendo Switch 游戏名称");
+    source.nintendoRegion = String(input.nintendoRegion || "us").trim().toLowerCase();
+    if (!/^[a-z]{2}$/.test(source.nintendoRegion)) throw new SourceValidationError("Nintendo 地区代码应为两个小写字母");
   }
   return source;
 }

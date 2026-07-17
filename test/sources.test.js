@@ -48,6 +48,16 @@ test("source store supports an Apple App Store source with an in-app purchase mo
   assert.equal(source.country, "us");
 });
 
+test("source store supports Docker Hub, QNAP, and Nintendo Switch sources", async () => {
+  const store = await makeStore();
+  const docker = await store.create({ id: "nginx-image", name: "NGINX", kind: "docker-hub", repository: "library/nginx", tagsFilter: ["latest"] });
+  const qnap = await store.create({ id: "container-station", name: "Container Station", kind: "qnap-app", qnapAppName: "ContainerStation", qnapOs: "qts" });
+  const nintendo = await store.create({ id: "mario-kart-world", name: "Mario Kart World", kind: "nintendo-switch", gameName: "Mario Kart World" });
+  assert.deepEqual(docker.tagsFilter, ["latest"]);
+  assert.equal(qnap.qnapOs, "qts");
+  assert.equal(nintendo.nintendoRegion, "us");
+});
+
 test("source store removes multiple selected sources", async () => {
   const store = await makeStore();
   await store.create({ id: "one", name: "One", kind: "rss", feedUrl: "https://example.test/one.xml" });

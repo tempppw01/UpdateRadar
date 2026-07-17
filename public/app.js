@@ -68,9 +68,12 @@ const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "nume
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
 const sourceIcons = {
   "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
+  "docker-hub": { name: "Docker Hub", url: "https://cdn.simpleicons.org/docker/10232e" },
   rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
-  "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" }
+  "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" },
+  "qnap-app": { name: "QNAP", url: "https://cdn.simpleicons.org/qnap/10232e" },
+  "nintendo-switch": { name: "Nintendo Switch", url: "https://cdn.simpleicons.org/nintendoswitch/10232e" }
 };
 
 function applyTheme(theme) {
@@ -493,10 +496,11 @@ function sourcePayload() {
     kind,
     tags: elements.sourceForm.elements.tags.value.split(",").map((tag) => tag.trim()).filter(Boolean),
     enabled: elements.sourceForm.elements.enabled.checked,
-    owner: value("owner"), repo: value("repo"), feedUrl: value("feedUrl"), appId: value("appId"),
+    owner: value("owner"), repo: value("repo"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
-    includePrereleases: elements.sourceForm.elements.includePrereleases.checked
+    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"),
+    tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }
 
