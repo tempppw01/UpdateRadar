@@ -40,6 +40,34 @@ curl 'http://localhost:8787/v1/events?tag=opensource'
 
 在浏览器中打开 `http://localhost:8787` 即可使用监控控制台。首页包含数据源概览、标签/来源筛选、最新更新时间线和手动同步按钮。通过顶部“设置”或“管理数据源”可以在网页中新增、编辑、启停或删除数据源，配置会安全写入 `data/sources.json`。
 
+## Docker Compose 部署
+
+监控配置和事件数据都保存在 `data/` 目录：
+
+- `data/sources.json`：数据源配置。通过控制台新增、编辑、启停或删除数据源时会更新此文件。
+- `data/events.json`：已采集的更新事件。首次同步时自动创建；默认不纳入 Git。
+
+项目使用“写入临时文件后重命名”的方式保存这两个 JSON 文件，避免进程中断留下半写入的数据。使用 Docker Compose 时，`./data` 会挂载至容器中的 `/app/data`，因此重建或更新容器不会丢失监控配置和事件记录。
+
+```bash
+docker compose up --build -d
+```
+
+服务地址为 `http://localhost:8787`。查看运行状态可执行：
+
+```bash
+docker compose ps
+docker compose logs -f update-radar
+```
+
+停止服务但保留数据：
+
+```bash
+docker compose down
+```
+
+监控卡片中的 GitHub、RSS、App Store 与 Google Play 图标通过 [Simple Icons CDN](https://cdn.simpleicons.org/) 引用；其中 App Store 图标为 `https://cdn.simpleicons.org/appstore/10232e`。
+
 ## API
 
 | Method | Path | Purpose |

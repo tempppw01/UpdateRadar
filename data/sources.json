@@ -7,7 +7,10 @@
     "owner": "moby",
     "repo": "moby",
     "includePrereleases": false,
-    "tags": ["container", "opensource"]
+    "tags": [
+      "container",
+      "opensource"
+    ]
   },
   {
     "id": "nginx",
@@ -17,7 +20,10 @@
     "owner": "nginx",
     "repo": "nginx",
     "includePrereleases": false,
-    "tags": ["web-server", "opensource"]
+    "tags": [
+      "web-server",
+      "opensource"
+    ]
   },
   {
     "id": "github-changelog",
@@ -25,16 +31,10 @@
     "kind": "rss",
     "enabled": true,
     "feedUrl": "https://github.blog/changelog/feed/",
-    "tags": ["saas", "developer-tools"]
-  },
-  {
-    "id": "chrome-ios",
-    "name": "Google Chrome for iOS",
-    "kind": "app-store",
-    "enabled": false,
-    "appId": "535886823",
-    "country": "us",
-    "tags": ["browser", "app-store"]
+    "tags": [
+      "saas",
+      "developer-tools"
+    ]
   },
   {
     "id": "chrome-android",
@@ -44,6 +44,31 @@
     "packageId": "com.android.chrome",
     "country": "US",
     "language": "en",
-    "tags": ["browser", "google-play"]
+    "tags": [
+      "browser",
+      "google-play"
+    ]
+  },
+  {
+    "id": "app-store-333206289",
+    "name": "Alipay - Simplify Your Life",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "333206289",
+    "country": "us"
+  },
+  {
+    "id": "app-store-1210638245",
+    "name": "AlipayHK",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "appId": "1210638245",
+    "country": "us"
   }
 ]

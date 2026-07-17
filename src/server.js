@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, isAbsolute, join, relative } from "node:path";
 import { searchAppStore } from "./catalog.js";
 import { pollAll } from "./radar.js";
 import { JsonSourceStore, SourceValidationError } from "./sources.js";
@@ -44,7 +44,8 @@ const contentTypes = {
 async function sendPublicFile(response, path, method) {
   const requested = path === "/" ? "index.html" : path.slice(1);
   const file = join(publicPath, requested);
-  if (!file.startsWith(`${publicPath}/`) || !(await stat(file)).isFile()) return false;
+  const relativePath = relative(publicPath, file);
+  if (relativePath.startsWith("..") || isAbsolute(relativePath) || !(await stat(file)).isFile()) return false;
   const extension = file.slice(file.lastIndexOf("."));
   response.writeHead(200, { "Content-Type": contentTypes[extension] ?? "application/octet-stream" });
   response.end(method === "HEAD" ? undefined : await readFile(file));

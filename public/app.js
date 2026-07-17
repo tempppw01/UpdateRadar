@@ -32,6 +32,12 @@ const elements = {
 
 const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
+const sourceIcons = {
+  "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
+  rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
+  "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
+  "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" }
+};
 
 function relativeTime(value) {
   const minutes = Math.round((new Date(value) - Date.now()) / 60_000);
@@ -111,13 +117,25 @@ function renderSources() {
     const card = document.createElement("article");
     card.className = `source-card ${source.enabled ? "" : "paused"}`;
     const header = document.createElement("div");
+    const provider = document.createElement("span");
+    provider.className = "source-provider";
+    const icon = sourceIcons[source.kind];
+    if (icon) {
+      const image = document.createElement("img");
+      image.src = icon.url;
+      image.alt = `${icon.name} 图标`;
+      image.referrerPolicy = "no-referrer";
+      image.addEventListener("error", () => image.remove());
+      provider.append(image);
+    }
     const kind = document.createElement("span");
     kind.className = "source-kind";
     kind.textContent = source.kind.replace("-", " ");
     const status = document.createElement("span");
     status.className = "source-status";
     status.textContent = source.enabled ? "ACTIVE" : "PAUSED";
-    header.append(kind, status);
+    provider.append(kind);
+    header.append(provider, status);
     const name = document.createElement("h3");
     name.textContent = source.name;
     const count = document.createElement("p");
