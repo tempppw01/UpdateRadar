@@ -72,6 +72,11 @@ const elements = {
   eventDialogDetails: document.querySelector("#event-dialog-details"),
   eventDialogLink: document.querySelector("#event-dialog-link"),
   eventDialogContent: document.querySelector("#event-dialog-content"),
+  eventHistory: document.querySelector("#event-history"),
+  eventHistoryToggle: document.querySelector("#event-history-toggle"),
+  eventHistoryCount: document.querySelector("#event-history-count"),
+  eventHistoryIndicator: document.querySelector("#event-history-indicator"),
+  eventHistoryList: document.querySelector("#event-history-list"),
   eventHighlights: document.querySelector("#event-highlights"),
   eventHighlightsList: document.querySelector("#event-highlights-list"),
   translateEvent: document.querySelector("#translate-event"),
@@ -299,8 +304,60 @@ function openEventDetails(event) {
   const assets = releaseAssets(event);
   elements.eventAssets.hidden = !assets.length;
   assets.forEach((asset) => elements.eventAssetsList.append(assetLink(asset)));
-  elements.eventDialog.showModal();
+  loadEventHistory(event);
+  if (!elements.eventDialog.open) elements.eventDialog.showModal();
   elements.eventDialog.scrollTop = 0;
+}
+
+function setEventHistoryExpanded(expanded) {
+  elements.eventHistoryToggle.setAttribute("aria-expanded", String(expanded));
+  elements.eventHistoryList.hidden = !expanded;
+  elements.eventHistoryIndicator.textContent = expanded ? "收起 ↑" : "展开 ↓";
+}
+
+function historySummary(event) {
+  const summary = String(event.summary || "官方未提供更新说明。").replace(/\s+/g, " ").trim();
+  return summary.length > 96 ? `${summary.slice(0, 96)}…` : summary;
+}
+
+function renderEventHistory(events, activeEventId) {
+  const history = events.filter((event) => event.id !== activeEventId);
+  elements.eventHistoryList.replaceChildren();
+  elements.eventHistory.hidden = history.length === 0;
+  if (!history.length) return;
+  elements.eventHistoryCount.textContent = `${history.length} 个历史版本`;
+  history.forEach((event) => {
+    const item = document.createElement("li");
+    const select = document.createElement("button");
+    select.type = "button";
+    select.className = "event-history-item";
+    const version = document.createElement("strong");
+    version.textContent = event.version || event.title || "未提供版本";
+    const time = document.createElement("time");
+    time.dateTime = event.publishedAt;
+    time.textContent = dateFormat.format(new Date(event.publishedAt));
+    const summary = document.createElement("span");
+    summary.textContent = historySummary(event);
+    select.append(version, time, summary);
+    select.addEventListener("click", () => openEventDetails(event));
+    item.append(select);
+    elements.eventHistoryList.append(item);
+  });
+  setEventHistoryExpanded(false);
+}
+
+async function loadEventHistory(event) {
+  elements.eventHistory.hidden = true;
+  elements.eventHistoryList.replaceChildren();
+  setEventHistoryExpanded(false);
+  if (!event.sourceId) return;
+  try {
+    const events = await requestJson(`/v1/events?${new URLSearchParams({ sourceId: event.sourceId, limit: "200" })}`);
+    if (state.activeEvent?.id !== event.id) return;
+    renderEventHistory(events, event.id);
+  } catch {
+    elements.eventHistory.hidden = true;
+  }
 }
 
 function renderEventDialogText(view) {
@@ -1265,6 +1322,7 @@ elements.translateEvent.addEventListener("click", async () => {
 });
 elements.viewOriginal.addEventListener("click", () => renderEventDialogText("original"));
 elements.viewTranslated.addEventListener("click", () => renderEventDialogText("translation"));
+elements.eventHistoryToggle.addEventListener("click", () => setEventHistoryExpanded(elements.eventHistoryList.hidden));
 elements.cancelEdit.addEventListener("click", startNewEditor);
 elements.resetEditor.addEventListener("click", startNewEditor);
 elements.sourceKind.addEventListener("change", showProviderFields);

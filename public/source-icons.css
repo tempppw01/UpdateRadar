@@ -183,6 +183,13 @@ html[data-theme="dark"] .event-dialog-meta { color: var(--text-muted); }
 .event-dialog-content,.event-translation { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 20px; color: #365152; font-size: 14px; line-height: 1.65; }
 html[data-theme="dark"] .event-dialog-content { color: var(--text-body); }
 .event-translation { border-left: 3px solid var(--lime); padding: 14px 16px; background: #edf2df; color: var(--ink); }
+.event-history { margin-top: 24px; border-top: 1px solid var(--line); }
+.event-history-toggle { display: flex; width: 100%; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--ink); padding: 16px 0 13px; text-align: left; font: 500 11px var(--mono); letter-spacing: .04em; }
+.event-history-toggle small { color: #587170; font: 500 10px var(--mono); }.event-history-toggle span:last-child { margin-left: auto; color: #587170; }
+.event-history-list { position: relative; display: grid; gap: 0; margin: 0 0 5px 6px; padding: 0 0 0 22px; border-left: 1px solid var(--line); list-style: none; }
+.event-history-list li { position: relative; }.event-history-list li::before { position: absolute; z-index: 1; top: 17px; left: -27px; width: 9px; height: 9px; border: 2px solid var(--paper); outline: 1px solid var(--ink); background: var(--lime); content: ""; }
+.event-history-item { display: grid; width: 100%; grid-template-columns: 1fr auto; gap: 4px 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); padding: 12px 0; text-align: left; }.event-history-item:hover strong { color: var(--coral); text-decoration: underline; text-underline-offset: 3px; }.event-history-item strong { font-size: 14px; }.event-history-item time { color: #587170; font: 10px var(--mono); }.event-history-item span { grid-column: 1 / -1; overflow: hidden; color: #587170; font: 11px/1.45 var(--sans); text-overflow: ellipsis; white-space: nowrap; }
+html[data-theme="dark"] .event-history-toggle small,html[data-theme="dark"] .event-history-toggle span:last-child,html[data-theme="dark"] .event-history-item time,html[data-theme="dark"] .event-history-item span { color: var(--text-muted); }
 .event-assets { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px; }
 .event-assets h3 { margin: 0; font-size: 16px; }
 @media (max-width: 720px) { .event-dialog-shell { padding: 19px; } }
