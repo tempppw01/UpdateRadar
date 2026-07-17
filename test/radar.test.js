@@ -4,6 +4,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
+import { collectAppStorePrice } from "../src/adapters/app-store-price.js";
 import { pollAll } from "../src/radar.js";
 import { JsonEventStore } from "../src/store.js";
 
@@ -17,6 +18,16 @@ test("GitHub collector ignores draft and prerelease versions by default", async 
   });
   assert.equal(updates.length, 1);
   assert.equal(updates[0].version, "v2.0.0");
+});
+
+test("App Store Price collector fingerprints subscription prices in their native currencies", async () => {
+  const flight = '{"name":"ChatGPT Plus","subscriptionId":"chatgpt-plus","prices":[{"region":"PH","regionName":"菲律宾","currency":"PHP","price":999,"priceCny":109.74},{"region":"US","regionName":"美国","currency":"USD","price":19.99,"priceCny":135.5}]}';
+  const html = `<script>self.__next_f.push([1,"${JSON.stringify(flight).slice(1, -1)}"])</script>`;
+  const source = { id: "chatgpt-plus", name: "ChatGPT Plus 全球订阅价格", appId: "6448311069", subscriptionId: "chatgpt-plus", locale: "zh" };
+  const [update] = await collectAppStorePrice(source, { fetchText: async () => html });
+  assert.match(update.externalId, /^chatgpt-plus:[a-f0-9]{16}$/);
+  assert.equal(update.metadata.prices.length, 2);
+  assert.match(update.summary, /菲律宾 PHP 999/);
 });
 
 test("polling records a new update only once", async () => {

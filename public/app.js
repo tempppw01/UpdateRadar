@@ -36,6 +36,7 @@ const sourceIcons = {
   "github-releases": { name: "GitHub", url: "https://cdn.simpleicons.org/github/10232e" },
   rss: { name: "RSS", url: "https://cdn.simpleicons.org/rss/10232e" },
   "app-store": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
+  "app-store-price": { name: "App Store", url: "https://cdn.simpleicons.org/appstore/10232e" },
   "google-play": { name: "Google Play", url: "https://cdn.simpleicons.org/googleplay/10232e" }
 };
 
@@ -141,7 +142,7 @@ function renderSources() {
     }
     const kind = document.createElement("span");
     kind.className = "source-kind";
-    kind.textContent = source.kind.replace("-", " ");
+    kind.textContent = source.kind.replaceAll("-", " ");
     const status = document.createElement("span");
     status.className = "source-status";
     status.textContent = source.enabled ? "ACTIVE" : "PAUSED";
@@ -236,6 +237,7 @@ function sourcePayload() {
     enabled: elements.sourceForm.elements.enabled.checked,
     owner: value("owner"), repo: value("repo"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
+    subscriptionId: value("subscriptionId"), planName: value("planName"), locale: value("locale"),
     includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }
