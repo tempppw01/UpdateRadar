@@ -94,6 +94,19 @@ const sourceIcons = {
   xbox: { name: "Xbox", url: "https://cdn.simpleicons.org/xbox/10232e" }
 };
 
+const tagCategories = {
+  "app-store": { label: "App Store", iconUrl: sourceIcons["app-store"].url },
+  "in-app-purchase": { label: "App Store 内购", icon: "◎" },
+  pricing: { label: "价格", icon: "¥" },
+  "github-releases": { label: "GitHub 发布", iconUrl: sourceIcons["github-releases"].url },
+  "github-commits": { label: "GitHub 提交", iconUrl: sourceIcons["github-commits"].url },
+  "docker-hub": { label: "Docker Hub", iconUrl: sourceIcons["docker-hub"].url },
+  rss: { label: "RSS", iconUrl: sourceIcons.rss.url },
+  steam: { label: "Steam", iconUrl: sourceIcons.steam.url },
+  playstation: { label: "PlayStation", iconUrl: sourceIcons.playstation.url },
+  xbox: { label: "Xbox", iconUrl: sourceIcons.xbox.url }
+};
+
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   elements.themeToggle.setAttribute("aria-pressed", String(theme === "dark"));
@@ -274,15 +287,36 @@ function renderMetrics() {
 
 function renderFilters() {
   const activeSourceIds = new Set(state.events.map((event) => event.sourceId));
-  const tags = [...new Set(state.events.flatMap((event) => event.tags))];
+  const tagCounts = new Map();
+  state.events.forEach((event) => event.tags.forEach((tag) => tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1)));
+  const tags = [...tagCounts.keys()];
   if (state.tag && !tags.includes(state.tag)) state.tag = "";
   if (state.sourceId && !activeSourceIds.has(state.sourceId)) state.sourceId = "";
   elements.tagFilters.replaceChildren();
-  [{ value: "", label: "全部" }, ...tags.map((tag) => ({ value: tag, label: `# ${tag}` }))].forEach(({ value, label }) => {
+  [{ value: "", label: "全部", icon: "◉", count: state.events.length }, ...tags.map((tag) => ({
+    value: tag,
+    label: tagCategories[tag]?.label ?? tag,
+    icon: tagCategories[tag]?.icon ?? "#",
+    iconUrl: tagCategories[tag]?.iconUrl,
+    count: tagCounts.get(tag)
+  }))].forEach(({ value, label, icon, iconUrl, count }) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = label;
     button.className = value === state.tag ? "active" : "";
+    button.title = value ? `筛选 ${label}` : "显示全部更新";
+    const categoryIcon = document.createElement(iconUrl ? "img" : "span");
+    categoryIcon.className = "tag-filter-icon";
+    if (iconUrl) {
+      categoryIcon.src = iconUrl;
+      categoryIcon.alt = "";
+      categoryIcon.referrerPolicy = "no-referrer";
+      categoryIcon.addEventListener("error", () => { categoryIcon.replaceWith(Object.assign(document.createElement("span"), { className: "tag-filter-icon", textContent: "#" })); });
+    } else categoryIcon.textContent = icon;
+    const categoryLabel = document.createElement("span");
+    categoryLabel.textContent = label;
+    const categoryCount = document.createElement("small");
+    categoryCount.textContent = String(count);
+    button.append(categoryIcon, categoryLabel, categoryCount);
     button.addEventListener("click", () => { state.tag = value; renderFilters(); renderEvents(); });
     elements.tagFilters.append(button);
   });

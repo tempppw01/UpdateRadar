@@ -132,6 +132,9 @@ html[data-theme="dark"] .catalog-search { background: linear-gradient(135deg,rgb
 .event-dialog { width: min(900px, calc(100% - 32px)); max-height: calc(100vh - 32px); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .event-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
 dialog .toast { z-index: 10; }
+.tag-filters button { display: inline-flex; align-items: center; gap: 5px; }
+.tag-filter-icon { width: 13px; height: 13px; display: inline-grid; place-items: center; flex: 0 0 13px; object-fit: contain; font: 700 12px/1 var(--mono); }
+.tag-filters button small { margin-left: 1px; color: currentColor; opacity: .65; font: 500 9px var(--mono); }
 .welcome-dialog { width: min(590px, calc(100% - 32px)); padding: 0; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 9px 9px 0 var(--lime); }
 .welcome-dialog::backdrop { background: rgba(16,35,46,.68); backdrop-filter: blur(3px); }
 .welcome-shell { padding: 28px; }
