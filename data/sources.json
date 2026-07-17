@@ -1,14 +1,18 @@
 [
   {
     "id": "app-store-333206289",
-    "name": "支付宝-你的AI生活伙伴",
+    "name": "Alipay - Simplify Your Life",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "333206289",
-    "country": "cn",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/43/97/bd/4397bdf2-1e8b-ee87-56b5-5ef4b0bf52f9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg"
   },
   {
@@ -19,8 +23,12 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "1210638245",
     "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/ff/e1/56ffe1e1-05ec-1058-858b-5bd004e01fc7/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg"
   },
   {
@@ -28,16 +36,18 @@
     "name": "ChatGPT",
     "kind": "app-store",
     "enabled": true,
-    "appId": "6448311069",
-    "subscriptionId": "oai_chatgpt_plus_1999_1m",
-    "planName": "ChatGPT Plus",
-    "country": "us",
-    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1b/b8/66/1bb86608-721f-bc92-5c02-1f2ddf30b055/AppIcon-0-0-1x_U007epad-0-0-0-1-0-P3-85-220.png/512x512bb.jpg",
     "tags": [
       "app-store",
       "in-app-purchase",
       "pricing"
-    ]
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6448311069",
+    "country": "us",
+    "subscriptionId": "oai_chatgpt_plus_1999_1m",
+    "planName": "ChatGPT Plus",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1b/b8/66/1bb86608-721f-bc92-5c02-1f2ddf30b055/AppIcon-0-0-1x_U007epad-0-0-0-1-0-P3-85-220.png/512x512bb.jpg"
   },
   {
     "id": "redis-redis",
@@ -45,8 +55,10 @@
     "kind": "github-releases",
     "enabled": true,
     "tags": [],
+    "cooldownMinutes": 60,
     "owner": "redis",
     "repo": "redis",
+    "branch": "",
     "includePrereleases": false
   },
   {
@@ -57,8 +69,9 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "444934666",
-    "country": "cn",
+    "country": "us",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
@@ -72,6 +85,7 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "473225145",
     "country": "us",
     "subscriptionId": "",
@@ -87,6 +101,7 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "370139302",
     "country": "us",
     "subscriptionId": "",
@@ -96,14 +111,15 @@
   },
   {
     "id": "app-store-414478124",
-    "name": "微信",
+    "name": "WeChat",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "414478124",
-    "country": "cn",
+    "country": "us",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
@@ -117,6 +133,7 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "741292507",
     "country": "us",
     "subscriptionId": "",
@@ -132,6 +149,7 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "1175213887",
     "country": "us",
     "subscriptionId": "",
@@ -147,6 +165,7 @@
     "tags": [
       "app-store"
     ],
+    "cooldownMinutes": 60,
     "appId": "461703208",
     "country": "us",
     "subscriptionId": "",
@@ -155,54 +174,1283 @@
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bb/97/cf/bb97cff5-1654-c30f-0b06-404bf67c0b66/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
   },
   {
-    "id": "app-store-387682726",
-    "name": "淘宝-万能的淘宝！",
+    "id": "app-store-1232780281",
+    "name": "Notion: Notes, Tasks, AI",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
-    "appId": "387682726",
+    "cooldownMinutes": 60,
+    "appId": "1232780281",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/7b/84/77/7b847718-5032-440a-ab6c-d79932b5eb6d/AppIconProd-0-0-1x_U007epad-0-0-0-1-0-0-P3-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1607562761",
+    "name": "Notion Calendar",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1607562761",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/6a/ce/29/6ace295b-4f5c-b0c7-c2d4-4be0aff35778/notion-calendar-0-0-1x_U007ephone-0-1-P3-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6473753684",
+    "name": "Claude by Anthropic",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6473753684",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e7/03/7c/e7037c06-1470-8849-44a2-252eb3be612e/AppIcon-0-0-1x_U007epad-0-1-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1557175442",
+    "name": "Obsidian - Connected Notes",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1557175442",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/31/58/75/31587532-04dc-bfbe-247b-74ebfb8766d9/AppIcon-0-0-1x_U007epad-0-1-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-284815942",
+    "name": "Google",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "284815942",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/08/c3/f2/08c3f254-e6d3-b4f8-809a-fe44a5e5d1ac/SuperG_ios26-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-535886823",
+    "name": "Google Chrome",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "535886823",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/aa/f3/73/aaf37329-4990-6c49-dfb7-94e1ed785d2f/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-422689480",
+    "name": "Gmail - Email by Google",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "422689480",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bb/f2/62/bbf2623e-c118-233b-0e5f-eec91af48194/gmail_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-585027354",
+    "name": "Google Maps",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "585027354",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5c/92/76/5c9276ad-36f4-4df7-bbf5-b80b818b75ef/maps_2025-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-962194608",
+    "name": "Google Photos: Backup & Edit",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "962194608",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/96/fc/2d/96fc2d2c-5f61-8c7f-3663-a7439fd6c70f/Photos-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-507874739",
+    "name": "Google Drive",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "507874739",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/e2/d4/fb/e2d4fb0d-4a8b-4b06-9daa-d2e9af27255b/drive_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-842842640",
+    "name": "Google Docs",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "842842640",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9f/01/48/9f01484f-4153-6d85-0760-db3836c2f55b/docs_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-414706506",
+    "name": "Google Translate",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "414706506",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/00/ab/99/00ab9941-679d-8a5b-65e6-6df82bc75b6a/TranslateApp-0-0-1x_U007epad-0-0-0-1-0-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6477489729",
+    "name": "Google Gemini",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6477489729",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/46/a7/53/46a75369-61ed-b52a-0913-8b9b9a486a26/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1601450243",
+    "name": "MyQNAP",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1601450243",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1c/c4/a3/1cc4a3a1-8a86-6ce9-bc49-9c420d71faaa/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-526330408",
+    "name": "Qfile Pro",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "526330408",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6e/7e/dc/6e7edcff-905e-88da-91b7-dc892bf6849d/AppIcon-0-0-1x_U007epad-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-526337312",
+    "name": "Qmanager",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "526337312",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f2/b7/84/f2b78429-cda9-8f8c-60c3-e2084eced0df/AppIcon-0-0-1x_U007emarketing-0-9-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1453939594",
+    "name": "QuMagie",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1453939594",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b2/0c/d9/b20cd930-4470-9d8c-2d65-6985445487c2/AppIcon-0-0-1x_U007epad-0-9-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1482733931",
+    "name": "Qsync Pro",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1482733931",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/34/6f/e8/346fe807-bcdb-98f4-e8e5-0724f3f508ab/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1120050996",
+    "name": "Happy Ranch : Qlton's forest",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1120050996",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/37/f2/5c/37f25c1c-79ce-f129-b22a-6eec417e23cc/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1620302345",
+    "name": "QNAP Authenticator",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1620302345",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ae/de/b3/aedeb321-7124-6f59-2daa-ec39fc4acd08/QNAP_Authenticator-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1182636054",
+    "name": "Photos Backup for QNAP",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1182636054",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/56/30/27/5630271d-45ff-3b2b-8bff-6c8372f4be1b/Qnap_Icon-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-596677182",
+    "name": "QNAP Qmusic",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "596677182",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/3d/8c/3e/3d8c3e1e-78e0-dfe6-87e6-6aabf13b8c3d/Qmusic-0-0-1x_U007epad-0-1-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-458318329",
+    "name": "腾讯视频-《地球2》必看爆综",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "458318329",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/b6/0b/ab/b60bab10-c256-142c-27c9-089931f1846a/AppIcon-0-0-1x_U007epad-0-1-0-0-P3-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1492898204",
+    "name": "Tencent Video",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1492898204",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/a3/71/74/a3717447-92cf-2415-b09c-492a338d5001/AppIcon-0-1x_U007emarketing-0-8-0-0-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-399363156",
+    "name": "腾讯新闻 Tencent News",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "399363156",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bc/7c/c6/bc7cc601-79a9-e0b7-24be-2d7575ea8488/AppIconNew-0-0-1x_U007epad-0-9-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1497685373",
+    "name": "VooV Meeting",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1497685373",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8e/84/74/8e847466-051e-86d5-5d2e-1c7add72c074/AppIcon-Release-0-0-1x_U007emarketing-0-8-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-570608623",
+    "name": "腾讯体育",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "570608623",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/d7/ba/d9/d7bad949-08fa-b5c4-090b-db525f0fe1e3/AppIcon-0-1x_U007epad-0-7-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-569387346",
+    "name": "腾讯动漫",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "569387346",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fc/34/ae/fc34ae63-f400-0129-1428-49513136ccdd/AppIcon-0-1x_U007emarketing-0-8-0-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-952059546",
+    "name": "微信读书",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "952059546",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/30/a1/01/30a10106-9bde-dd61-8f3b-7f4ba6bb0ba9/AppIcon-0-1x_U007epad-0-11-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-364709193",
+    "name": "Apple Books",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "364709193",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fc/29/87/fc29870e-93f7-1c92-9805-c21f1679f245/books-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6772972358",
+    "name": "Yuedu",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6772972358",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/7d/c3/6a/7dc36a43-31fa-0b99-af99-8bdbc6a375a5/AppIcon-0-1x_U007epad-0-1-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1660751056",
+    "name": "ZenReader - Read ebooks easily",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1660751056",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e0/03/e7/e003e7fd-b5c3-230e-0787-72961946c760/AppIcon-0-0-1x_U007emarketing-0-8-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-544635195",
+    "name": "Anyview阅读",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "544635195",
+    "country": "us",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple126/v4/ff/b4/49/ffb449da-42dc-65f9-659f-c171acb9492a/AppIcon-1x_U007emarketing-0-5-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6737597349",
+    "name": "DeepSeek - AI 智能助手",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6737597349",
     "country": "cn",
     "subscriptionId": "",
     "planName": "",
     "storefrontId": "",
-    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ac/bc/ee/acbcee55-7331-cf33-ba52-03327971f9c5/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/100x100bb.jpg"
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/49/c2/86/49c286c3-6b3e-c900-9fde-94cb06fa4c33/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
   },
   {
-    "id": "new-api-commits",
-    "name": "new-api 提交",
-    "kind": "github-commits",
+    "id": "app-store-6459478672",
+    "name": "豆包 - 随时帮忙的 AI 助手",
+    "kind": "app-store",
     "enabled": true,
     "tags": [
-      "github",
-      "commits"
+      "app-store"
     ],
-    "owner": "tempppw01",
+    "cooldownMinutes": 60,
+    "appId": "6459478672",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/26/b1/eb/26b1ebbc-487d-11b0-b42c-050fad43bc93/AppIcon-0-0-1x_U007epad-0-8-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6466733523",
+    "name": "千问 - 阿里AI助手",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6466733523",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/80/9f/95/809f9521-f341-0eda-98d4-52600d091711/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6503676563",
+    "name": "即梦AI - 抖音旗下AI图片和视频工具",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6503676563",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/db/41/92/db4192b7-1ec0-f9a6-8e6b-d2a705aafd52/AppIcon-0-0-1x_U007ephone-0-1-P3-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6475072892",
+    "name": "星绘 - 豆包旗下 AI 分身写真图片视频",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6475072892",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/22/e5/ed/22e5edfb-2cc9-167c-48aa-8f04a06d633a/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6480446430",
+    "name": "元宝-腾讯全能AI助手",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6480446430",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2d/17/71/2d177116-e6e2-0400-4bf3-b558edaadc7a/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6474233312",
+    "name": "Kimi",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6474233312",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/64/4a/0b/644a0b79-c4bb-40fe-7de8-aef5038f5bfe/AppIcon26-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6670396916",
+    "name": "可灵AI - AI图片&视频创作工具",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6670396916",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/37/c7/ab/37c7abd0-ab37-5aa7-3375-aa9687d0438b/AppIconKlingapp-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6630366542",
+    "name": "AI Mate - 让每个人享受AI的乐趣",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6630366542",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4c/7e/5e/4c7e5e72-eb61-f733-e02c-1c0b08b2e3aa/AppIcon-0-0-1x_U007ephone-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6670324846",
+    "name": "Grok 生成AI",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6670324846",
+    "country": "jp",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/0b/73/16/0b731652-b290-a8f0-37eb-e6bf38eadef8/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-P3-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1619030760",
+    "name": "zeta - AIキャラ・あなたの推しとロールプレイチャット",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1619030760",
+    "country": "jp",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/09/ab/f2/09abf27d-4374-396e-84fb-b76a8cdde100/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1668000334",
+    "name": "Perplexity - 自由に尋ねる",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1668000334",
+    "country": "jp",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/bd/27/42/bd2742d9-ee97-4c03-d791-5ce576c306c6/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-791532221",
+    "name": "开心消消乐",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "791532221",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4d/bf/20/4dbf20b3-ac53-7265-9cce-d4dc58e42d02/AppIcon-1x_U007epad-0-1-0-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1120536875",
+    "name": "贪吃蛇大作战®",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1120536875",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/5a/79/99/5a799924-37ac-74a5-60c5-5d0ffe2f8389/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6466411875",
+    "name": "开放世界游戏grand黑帮黑手党罪恶都市",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6466411875",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/80/25/97/80259735-9b55-6fb1-dcbc-08dc9068247e/AppIcon-1x_U007emarketing-0-7-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1512355786",
+    "name": "楼下的早餐店：美食烹饪游戏",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1512355786",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/84/bb/56/84bb560c-395e-de01-128e-8bd5c1e6806b/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1544884479",
+    "name": "蛋仔派对",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1544884479",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/02/af/d3/02afd3ef-5acd-1f36-660c-87aa199d0726/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1089336971",
+    "name": "汤姆猫跑酷-10周年狂欢庆典",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1089336971",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/27/b8/68/27b8687d-610f-a222-5d77-1e3cd138133c/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6717577824",
+    "name": "蜡笔小新之小帮手大作战！- 烹饪,跑酷,益智,32+游戏",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6717577824",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/93/19/db/9319dbdf-9854-a5b2-3edb-fa4db8398b10/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-639516529",
+    "name": "植物大战僵尸2",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "639516529",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bd/c8/ea/bdc8eac5-e154-8d66-7c5e-e680c1dba757/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-989673964",
+    "name": "王者荣耀",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "989673964",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f8/cb/c3/f8cbc3ea-678d-e931-7020-59bd87625eb0/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1497477307",
+    "name": "智慧中小学-国家中小学智慧教育平台",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1497477307",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/2a/9d/22/2a9d223d-d4c5-0d7d-b9cf-b8a4fdadafd8/AppIcon-0-0-1x_U007epad-0-9-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6469102455",
+    "name": "豆包爱学-豆包旗下AI教育产品",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6469102455",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6e/50/99/6e509936-b8f3-0677-7a1f-4eb78f0b4fb4/AppIcon-0-0-1x_U007epad-0-11-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-977883304",
+    "name": "中国大学MOOC（慕课）",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "977883304",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/c1/7d/4e/c17d4ec8-6c90-7362-3c12-0eff5aa3138e/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-415424368",
+    "name": "网易公开课 - 名校网课在线学习App",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "415424368",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bc/b3/b1/bcb3b195-9edf-1923-2c3b-03f011181702/AppIcon-0-0-1x_U007emarketing-0-7-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-896405406",
+    "name": "学而思网校",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "896405406",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f8/66/b7/f866b712-fb94-be90-c86d-d084d5600ece/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-803781859",
+    "name": "作业帮-中小学家长作业检查和AI伴学辅导工具",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "803781859",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c4/d1/af/c4d1af9c-1d50-4881-799a-83dbf62e3821/AppIcon-0-0-1x_U007epad-0-1-0-0-GLES2_U002c0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-570060128",
+    "name": "多邻国Duolingo英语日语法语",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "570060128",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f2/bd/55/f2bd5505-6aa2-f843-2b2c-61374fe6f178/AppIcon-0-0-1x_U007epad-0-1-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-557545298",
+    "name": "百词斩-学外语、背单词必备",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "557545298",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/94/8a/12/948a1251-9d0e-bb6b-80a5-ffedf485088f/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1212220023",
+    "name": "安全教育平台",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1212220023",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple122/v4/31/0c/0d/310c0d9e-1b43-0a1b-c5dd-bb8424e9e2fb/AppIcon-1x_U007emarketing-0-4-0-0-85-220.jpeg/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-597364850",
+    "name": "流利说·英语-学英语口语地道发音",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "597364850",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/3c/e7/9c/3ce79c18-01c5-f384-eca8-2147f7f8aa44/AppIcon-1x_U007emarketing-0-6-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-570118289",
+    "name": "每日英语听力-每天更新的英语泛听资源库",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "570118289",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/9f/9c/53/9f9c53ba-a633-4ab1-56d5-f83686a127e9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "github-releases-quantumnous-new-api",
+    "name": "QuantumNous/new-api",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "QuantumNous",
     "repo": "new-api",
-    "branch": "dev",
-    "cooldownMinutes": 15
+    "branch": "",
+    "includePrereleases": false
   },
   {
-    "id": "app-store-1142110895",
-    "name": "抖音",
+    "id": "github-releases-xtekky-gpt4free",
+    "name": "xtekky/gpt4free",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "xtekky",
+    "repo": "gpt4free",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-karpathy-nanogpt",
+    "name": "karpathy/nanoGPT",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "karpathy",
+    "repo": "nanoGPT",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-microsoft-vscode",
+    "name": "microsoft/vscode",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "microsoft",
+    "repo": "vscode",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-langgptai-awesome-doubao-prompts",
+    "name": "langgptai/awesome-doubao-prompts",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "langgptai",
+    "repo": "awesome-doubao-prompts",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-gdz-web-gemini-doubao-remove-watermark",
+    "name": "gdz-web/Gemini_Doubao_remove_watermark",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "gdz-web",
+    "repo": "Gemini_Doubao_remove_watermark",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-idootop-mi-gpt",
+    "name": "idootop/mi-gpt",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "idootop",
+    "repo": "mi-gpt",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "github-releases-qieguo2016-spiders",
+    "name": "qieguo2016/spiders",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "qieguo2016",
+    "repo": "spiders",
+    "branch": "",
+    "includePrereleases": false
+  },
+  {
+    "id": "app-store-1595603316",
+    "name": "部落冲突（Clash of Clans）",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
-    "appId": "1142110895",
-    "country": "cn"
+    "cooldownMinutes": 60,
+    "appId": "1595603316",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/2a/5e/be/2a5ebeaa-839e-78ed-0891-1cdee34b0455/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/100x100bb.jpg"
   },
   {
-    "id": "app-store-440948110",
-    "name": "快手",
+    "id": "app-store-1595603720",
+    "name": "部落冲突：皇室战争（CR）",
     "kind": "app-store",
     "enabled": true,
     "tags": [
       "app-store"
     ],
-    "appId": "440948110",
-    "country": "cn"
+    "cooldownMinutes": 60,
+    "appId": "1595603720",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/aa/b2/f1/aab2f151-4145-bc91-2ddc-3644ae52c1ca/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-6444450556",
+    "name": "部落冲突助手 - 阵型复制&升级数据",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "6444450556",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8c/09/56/8c0956a0-5bc0-0db2-3cc3-22f175d43d87/AppIcon-0-0-1x_U007epad-0-10-0-0-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1634177358",
+    "name": "海岛奇兵 (Boom Beach)",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1634177358",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e0/4d/ce/e04dcec6-80f2-cc25-1841-b01e4b4bb191/AppIcon-0-1x_U007epad-0-1-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1478101301",
+    "name": "金铲铲之战",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1478101301",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/51/57/e7/5157e7d2-34c7-b826-7ea1-13f5d7cb8fd0/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1504236603",
+    "name": "荒野乱斗",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1504236603",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/6b/b0/3d/6bb03d9b-283b-b165-6846-43a5be68e444/AppIcon-0-0-1x_U007epad-0-1-85-220.png/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1159435157",
+    "name": "Clash Fanatic - 复制【部落冲突】的地图和基地",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1159435157",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/1c/d7/b4/1cd7b42a-e422-d1c7-01be-229f0226fd87/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.jpeg/100x100bb.jpg"
+  },
+  {
+    "id": "app-store-1235504705",
+    "name": "QQ飞车",
+    "kind": "app-store",
+    "enabled": true,
+    "tags": [
+      "app-store"
+    ],
+    "cooldownMinutes": 60,
+    "appId": "1235504705",
+    "country": "cn",
+    "subscriptionId": "",
+    "planName": "",
+    "storefrontId": "",
+    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/64/e4/16/64e41658-e297-ebd2-f1a1-f45ba9ada086/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
   }
 ]

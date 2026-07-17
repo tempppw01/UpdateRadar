@@ -721,7 +721,7 @@ function sourcePayload() {
     owner: value("owner"), repo: value("repo"), branch: value("branch"), repository: value("repository"), feedUrl: value("feedUrl"), appId: value("appId"),
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
-    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
+    qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), qqPlatform: value("qqPlatform"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
     tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
   };
 }

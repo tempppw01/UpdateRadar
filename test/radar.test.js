@@ -9,6 +9,7 @@ import { collectAppStore } from "../src/adapters/app-store.js";
 import { collectDockerHub } from "../src/adapters/docker-hub.js";
 import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
 import { collectQnapApp } from "../src/adapters/qnap-app.js";
+import { collectQqOfficial } from "../src/adapters/qq-official.js";
 import { collectPlayStation, collectXbox } from "../src/adapters/game-news.js";
 import { collectSteam } from "../src/adapters/steam.js";
 import { pollAll, sourcesDueForPolling } from "../src/radar.js";
@@ -66,6 +67,14 @@ test("QNAP App Center collector reads the official app version and download", as
   assert.equal(update.version, "3.0.0");
   assert.equal(update.metadata.appCenterVersion, "5.2.9");
   assert.equal(update.metadata.assets[0].url, "https://example.test/app.qpkg");
+});
+
+test("QQ official collector reads the configured platform version and downloads", async () => {
+  const fixture = { Windows: { version: "9.9.32", updateDate: "2026-07-16", ntDownloadX64Url: "https://example.test/QQ.exe", ntDownloadARMUrl: "https://example.test/QQ-arm.exe" } };
+  const [update] = await collectQqOfficial({ qqPlatform: "windows" }, { fetchText: async () => JSON.stringify(fixture) });
+  assert.equal(update.externalId, "windows:9.9.32");
+  assert.equal(update.publishedAt, "2026-07-16T00:00:00.000Z");
+  assert.deepEqual(update.metadata.assets, [{ name: "ntDownloadX64Url", url: "https://example.test/QQ.exe" }, { name: "ntDownloadARMUrl", url: "https://example.test/QQ-arm.exe" }]);
 });
 
 test("Nintendo Switch collector filters official update announcements by game", async () => {

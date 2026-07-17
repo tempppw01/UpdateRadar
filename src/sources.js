@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "nintendo-switch", "steam", "playstation", "xbox"]);
+const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "qq-official", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 export class SourceValidationError extends Error {}
 
@@ -74,6 +74,10 @@ export function normalizeSource(input, { id } = {}) {
     source.qnapOs = String(input.qnapOs || "qts").trim().toLowerCase();
     if (!new Set(["qts", "quts_hero", "qutscloud", "qvp"]).has(source.qnapOs)) throw new SourceValidationError("不支持的 QNAP 系统类型");
     source.qnapVersion = String(input.qnapVersion || "").trim();
+  }
+  if (kind === "qq-official") {
+    source.qqPlatform = String(input.qqPlatform || "windows").trim().toLowerCase();
+    if (!new Set(["windows", "macos", "linux"]).has(source.qqPlatform)) throw new SourceValidationError("不支持的 QQ 平台");
   }
   if (["nintendo-switch", "playstation", "xbox"].includes(kind)) {
     source.gameName = required(input.gameName, "游戏官方名称或关键词");
