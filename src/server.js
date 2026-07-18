@@ -180,11 +180,19 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
           limit: url.searchParams.get("limit") ?? undefined
         }));
       }
+      if (request.method === "GET" && url.pathname === "/v1/sync-status") {
+        return send(response, 200, { lastSyncedAt: await store.lastSyncedAt() });
+      }
       if (request.method === "POST" && url.pathname === "/v1/poll") {
         const sourceList = await getSources();
-        if (url.searchParams.get("force") === "true") return send(response, 200, await pollAll(sourceList, { store }));
-        const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
-        return send(response, 200, [...await pollAll(due, { store }), ...skipped]);
+        let results;
+        if (url.searchParams.get("force") === "true") results = await pollAll(sourceList, { store });
+        else {
+          const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
+          results = [...await pollAll(due, { store }), ...skipped];
+        }
+        await store.markSyncedAt();
+        return send(response, 200, results);
       }
       if (["GET", "HEAD"].includes(request.method) && !url.pathname.startsWith("/v1/")) {
         try {

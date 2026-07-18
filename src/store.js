@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const emptyState = () => ({ events: [] });
+const emptyState = () => ({ events: [], lastSyncedAt: null });
 
 export class JsonEventStore {
   constructor(path) {
@@ -67,6 +67,17 @@ export class JsonEventStore {
       if (Number.isFinite(detectedAt) && (!latest[event.sourceId] || detectedAt > new Date(latest[event.sourceId]).getTime())) latest[event.sourceId] = event.detectedAt;
       return latest;
     }, {});
+  }
+
+  async lastSyncedAt() {
+    return (await this.load()).lastSyncedAt ?? null;
+  }
+
+  async markSyncedAt(value = new Date().toISOString()) {
+    const state = await this.load();
+    state.lastSyncedAt = value;
+    await this.save();
+    return state.lastSyncedAt;
   }
 
   async removeBySourceIds(ids) {

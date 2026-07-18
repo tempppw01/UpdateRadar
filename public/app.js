@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -499,7 +499,7 @@ function renderMetrics() {
   elements.eventCount.textContent = state.events.length;
   elements.sourceCount.textContent = state.sources.filter((source) => source.enabled).length;
   elements.tagCount.textContent = tags.size;
-  elements.lastSync.textContent = newest ? relativeTime(newest.detectedAt) : "尚未同步";
+  elements.lastSync.textContent = state.lastSyncedAt ? relativeTime(state.lastSyncedAt) : (newest ? relativeTime(newest.detectedAt) : "尚未同步");
 }
 
 function renderFilters() {
@@ -1318,7 +1318,10 @@ async function requestJson(url, options) {
 }
 
 async function load() {
-  [state.sources, state.events] = await Promise.all([requestJson("/v1/sources"), requestJson("/v1/events?limit=200")]);
+  const [sources, events, syncStatus] = await Promise.all([requestJson("/v1/sources"), requestJson("/v1/events?limit=200"), requestJson("/v1/sync-status")]);
+  state.sources = sources;
+  state.events = events;
+  state.lastSyncedAt = syncStatus.lastSyncedAt ?? null;
   state.selectedSourceIds = new Set([...state.selectedSourceIds].filter((id) => state.sources.some((source) => source.id === id)));
   if (state.sourceId && !state.sources.some((source) => source.id === state.sourceId)) state.sourceId = "";
   renderMetrics(); renderFilters(); renderEvents(); renderSources();

@@ -121,6 +121,13 @@ test("polling records a new update only once", async () => {
   assert.equal((await store.list({ tag: "dev" })).length, 1);
 });
 
+test("event store persists the most recent completed sync time", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-sync-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  await store.markSyncedAt("2026-01-02T03:04:05.000Z");
+  assert.equal(await store.lastSyncedAt(), "2026-01-02T03:04:05.000Z");
+});
+
 test("recently updated sources respect their polling cooldown", () => {
   const now = Date.parse("2026-01-01T01:00:00Z");
   const { due, skipped } = sourcesDueForPolling([{ id: "recent", enabled: true, cooldownMinutes: 60 }, { id: "old", enabled: true, cooldownMinutes: 60 }, { id: "always", enabled: true, cooldownMinutes: 0 }], { recent: "2026-01-01T00:30:00Z", old: "2025-12-31T23:00:00Z", always: "2026-01-01T00:59:00Z" }, now);
