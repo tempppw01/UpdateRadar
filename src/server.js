@@ -17,10 +17,15 @@ const eventStore = new JsonEventStore(process.env.EVENTS_PATH ?? join(root, "dat
 const sourceStore = new JsonSourceStore(sourcesPath);
 const settingsStore = new JsonSettingsStore(process.env.SETTINGS_PATH ?? join(root, "data/settings.json"));
 
-function pollingIntervalMs(value = process.env.POLL_INTERVAL_MINUTES ?? "30") {
-  const minutes = Number(value);
-  if (!Number.isFinite(minutes) || minutes <= 0) return 0;
-  return Math.min(Math.max(Math.round(minutes * 60_000), 60_000), 24 * 60 * 60_000);
+function pollingTickMs(value = process.env.POLL_TICK_SECONDS ?? "60") {
+  const seconds = Number(value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return 0;
+  return Math.min(Math.max(Math.round(seconds * 1_000), 15_000), 60 * 60_000);
+}
+
+function pollingBatchSize(value = process.env.POLL_BATCH_SIZE ?? "12") {
+  const size = Number(value);
+  return Math.min(Math.max(Number.isFinite(size) ? Math.floor(size) : 12, 1), 100);
 }
 
 async function sources() {
@@ -84,9 +89,10 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       let results;
       if (force) results = await pollAll(selectedSources, { store });
       else {
-        const { due, skipped } = sourcesDueForPolling(selectedSources, await store.latestDetectedAtBySource());
-        results = [...await pollAll(due, { store }), ...skipped];
+        const { due } = sourcesDueForPolling(selectedSources, await store.sourcePollStates());
+        results = await pollAll(due.slice(0, pollingBatchSize()), { store });
       }
+      await store.recordPollResults(results, selectedSources);
       await store.markSyncedAt();
       return results;
     })().finally(() => { activePoll = null; });
@@ -233,7 +239,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     .then(() => {
       const app = createApp();
       app.listen(port, () => console.log(`UpdateRadar listening on http://localhost:${port}`));
-      const interval = pollingIntervalMs();
+      const interval = pollingTickMs();
       if (!interval) return;
       const scheduledPoll = () => app.runPoll().then((results) => {
         const failed = results.filter((result) => !result.ok).length;

@@ -144,12 +144,23 @@ test("event store persists the most recent completed sync time", async () => {
   assert.equal(await store.lastSyncedAt(), "2026-01-02T03:04:05.000Z");
 });
 
-test("recently updated sources respect their polling cooldown", () => {
+test("scheduled source queue respects each source next-check time", () => {
   const now = Date.parse("2026-01-01T01:00:00Z");
-  const { due, skipped } = sourcesDueForPolling([{ id: "recent", enabled: true, cooldownMinutes: 60 }, { id: "old", enabled: true, cooldownMinutes: 60 }, { id: "always", enabled: true, cooldownMinutes: 0 }], { recent: "2026-01-01T00:30:00Z", old: "2025-12-31T23:00:00Z", always: "2026-01-01T00:59:00Z" }, now);
+  const { due, skipped } = sourcesDueForPolling([{ id: "recent", enabled: true }, { id: "old", enabled: true }, { id: "always", enabled: true }], { recent: { nextCheckAt: "2026-01-01T01:30:00Z" }, old: { nextCheckAt: "2025-12-31T23:00:00Z" } }, now);
   assert.deepEqual(due.map((source) => source.id), ["old", "always"]);
   assert.equal(skipped[0].sourceId, "recent");
-  assert.equal(skipped[0].nextPollAt, "2026-01-01T01:30:00.000Z");
+  assert.equal(skipped[0].nextPollAt, "2026-01-01T01:30:00Z");
+});
+
+test("event store applies success and failure backoff per source", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-poll-state-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const now = Date.parse("2026-01-01T00:00:00Z");
+  await store.recordPollResults([{ ok: true, sourceId: "stable", inserted: 0 }, { ok: false, sourceId: "flaky", error: "rate limited" }], [{ id: "stable", cooldownMinutes: 60 }, { id: "flaky", cooldownMinutes: 60 }], { now, idleIntervalMinutes: 30 });
+  const states = await store.sourcePollStates();
+  assert.equal(states.stable.nextCheckAt, "2026-01-01T00:30:00.000Z");
+  assert.equal(states.flaky.nextCheckAt, "2026-01-01T00:05:00.000Z");
+  assert.equal(states.flaky.failureCount, 1);
 });
 
 test("event store removes events belonging to deleted sources", async () => {

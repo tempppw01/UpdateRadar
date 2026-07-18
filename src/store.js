@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const emptyState = () => ({ events: [], lastSyncedAt: null });
+const emptyState = () => ({ events: [], lastSyncedAt: null, sourcePollState: {} });
 
 export class JsonEventStore {
   constructor(path) {
@@ -80,14 +80,61 @@ export class JsonEventStore {
     return state.lastSyncedAt;
   }
 
+  async sourcePollStates() {
+    return { ...((await this.load()).sourcePollState ?? {}) };
+  }
+
+  async recordPollResults(results, sources, { now = Date.now(), idleIntervalMinutes = Number(process.env.POLL_INTERVAL_MINUTES ?? 30) } = {}) {
+    const state = await this.load();
+    state.sourcePollState ??= {};
+    const sourceById = new Map(sources.map((source) => [source.id, source]));
+    const checkedAt = new Date(now).toISOString();
+    results.filter((result) => !result.skipped).forEach((result) => {
+      const source = sourceById.get(result.sourceId);
+      if (!source) return;
+      const previous = state.sourcePollState[result.sourceId] ?? {};
+      const idleDelay = Math.max(1, Number(idleIntervalMinutes) || 30);
+      if (result.ok) {
+        const updatedDelay = Math.max(0, Number(source.cooldownMinutes ?? 60));
+        const delay = result.inserted > 0 ? updatedDelay : idleDelay;
+        state.sourcePollState[result.sourceId] = {
+          ...previous,
+          lastCheckedAt: checkedAt,
+          lastSuccessAt: checkedAt,
+          failureCount: 0,
+          nextCheckAt: new Date(now + delay * 60_000).toISOString()
+        };
+      } else {
+        const failureCount = Number(previous.failureCount ?? 0) + 1;
+        const delay = Math.min(5 * 2 ** (failureCount - 1), 360);
+        state.sourcePollState[result.sourceId] = {
+          ...previous,
+          lastCheckedAt: checkedAt,
+          failureCount,
+          lastError: result.error || "Unknown polling error",
+          nextCheckAt: new Date(now + delay * 60_000).toISOString()
+        };
+      }
+    });
+    await this.save();
+    return this.sourcePollStates();
+  }
+
   async removeBySourceIds(ids) {
     const sourceIds = new Set(ids.map((id) => String(id)));
     if (!sourceIds.size) return 0;
     const state = await this.load();
     const before = state.events.length;
     state.events = state.events.filter((event) => !sourceIds.has(event.sourceId));
+    state.sourcePollState ??= {};
+    let pollStatesRemoved = 0;
+    sourceIds.forEach((id) => {
+      if (!(id in state.sourcePollState)) return;
+      delete state.sourcePollState[id];
+      pollStatesRemoved += 1;
+    });
     const removed = before - state.events.length;
-    if (removed) await this.save();
+    if (removed || pollStatesRemoved) await this.save();
     return removed;
   }
 
@@ -96,8 +143,11 @@ export class JsonEventStore {
     const state = await this.load();
     const before = state.events.length;
     state.events = state.events.filter((event) => sourceIds.has(event.sourceId));
+    state.sourcePollState ??= {};
+    const stalePollStateIds = Object.keys(state.sourcePollState).filter((id) => !sourceIds.has(id));
+    stalePollStateIds.forEach((id) => delete state.sourcePollState[id]);
     const removed = before - state.events.length;
-    if (removed) await this.save();
+    if (removed || stalePollStateIds.length) await this.save();
     return removed;
   }
 }

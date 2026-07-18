@@ -30,16 +30,30 @@ export async function pollAll(sources, dependencies) {
   return results;
 }
 
-export function sourcesDueForPolling(sources, latestDetectedAtBySource, now = Date.now()) {
+function interleaveByKind(sources) {
+  const queues = new Map();
+  sources.forEach((source) => {
+    if (!queues.has(source.kind)) queues.set(source.kind, []);
+    queues.get(source.kind).push(source);
+  });
+  const result = [];
+  while (queues.size) {
+    for (const [kind, queue] of queues) {
+      result.push(queue.shift());
+      if (!queue.length) queues.delete(kind);
+    }
+  }
+  return result;
+}
+
+export function sourcesDueForPolling(sources, sourcePollStates, now = Date.now()) {
   const due = [];
   const skipped = [];
   sources.filter((source) => source.enabled).forEach((source) => {
-    const cooldownMinutes = Number(source.cooldownMinutes ?? 60);
-    const detectedAt = latestDetectedAtBySource[source.id];
-    const age = detectedAt ? now - new Date(detectedAt).getTime() : Infinity;
-    if (cooldownMinutes > 0 && Number.isFinite(age) && age >= 0 && age < cooldownMinutes * 60_000) {
-      skipped.push({ ok: true, sourceId: source.id, skipped: true, cooldownMinutes, nextPollAt: new Date(new Date(detectedAt).getTime() + cooldownMinutes * 60_000).toISOString() });
-    } else due.push(source);
+    const nextCheckAt = sourcePollStates[source.id]?.nextCheckAt;
+    if (nextCheckAt && new Date(nextCheckAt).getTime() > now) skipped.push({ ok: true, sourceId: source.id, skipped: true, nextPollAt: nextCheckAt });
+    else due.push(source);
   });
-  return { due, skipped };
+  due.sort((left, right) => Number(right.priority ?? 0) - Number(left.priority ?? 0));
+  return { due: interleaveByKind(due), skipped };
 }
