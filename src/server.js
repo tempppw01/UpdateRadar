@@ -17,6 +17,12 @@ const eventStore = new JsonEventStore(process.env.EVENTS_PATH ?? join(root, "dat
 const sourceStore = new JsonSourceStore(sourcesPath);
 const settingsStore = new JsonSettingsStore(process.env.SETTINGS_PATH ?? join(root, "data/settings.json"));
 
+function pollingIntervalMs(value = process.env.POLL_INTERVAL_MINUTES ?? "30") {
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes <= 0) return 0;
+  return Math.min(Math.max(Math.round(minutes * 60_000), 60_000), 24 * 60 * 60_000);
+}
+
 async function sources() {
   return sourceStore.list();
 }
@@ -68,7 +74,23 @@ async function sendPublicFile(response, path, method) {
 }
 
 export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, steamSearch = searchSteamGames, translator = translateText, modelLister = listModels } = {}) {
-  return createServer(async (request, response) => {
+  let activePoll = null;
+  const runPoll = async (force = false) => {
+    if (activePoll) return activePoll;
+    activePoll = (async () => {
+      const sourceList = await getSources();
+      let results;
+      if (force) results = await pollAll(sourceList, { store });
+      else {
+        const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
+        results = [...await pollAll(due, { store }), ...skipped];
+      }
+      await store.markSyncedAt();
+      return results;
+    })().finally(() => { activePoll = null; });
+    return activePoll;
+  };
+  const app = createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
     try {
       if (request.method === "GET" && url.pathname === "/health") {
@@ -184,15 +206,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         return send(response, 200, { lastSyncedAt: await store.lastSyncedAt() });
       }
       if (request.method === "POST" && url.pathname === "/v1/poll") {
-        const sourceList = await getSources();
-        let results;
-        if (url.searchParams.get("force") === "true") results = await pollAll(sourceList, { store });
-        else {
-          const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
-          results = [...await pollAll(due, { store }), ...skipped];
-        }
-        await store.markSyncedAt();
-        return send(response, 200, results);
+        return send(response, 200, await runPoll(url.searchParams.get("force") === "true"));
       }
       if (["GET", "HEAD"].includes(request.method) && !url.pathname.startsWith("/v1/")) {
         try {
@@ -207,11 +221,26 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       return send(response, status, { error: status === 400 ? "Validation error" : "Internal error", message: error.message });
     }
   });
+  app.runPoll = runPoll;
+  return app;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT ?? 8787);
   initializeSources()
-    .then(() => createApp().listen(port, () => console.log(`UpdateRadar listening on http://localhost:${port}`)))
+    .then(() => {
+      const app = createApp();
+      app.listen(port, () => console.log(`UpdateRadar listening on http://localhost:${port}`));
+      const interval = pollingIntervalMs();
+      if (!interval) return;
+      const scheduledPoll = () => app.runPoll().then((results) => {
+        const failed = results.filter((result) => !result.ok).length;
+        console.log(`Scheduled sync completed: ${results.length - failed} checked, ${failed} unavailable`);
+      }).catch((error) => console.error("Scheduled sync failed", error));
+      const initialPoll = setTimeout(scheduledPoll, 5_000);
+      const timer = setInterval(scheduledPoll, interval);
+      initialPoll.unref();
+      timer.unref();
+    })
     .catch((error) => { console.error("Unable to initialize data directory", error); process.exitCode = 1; });
 }

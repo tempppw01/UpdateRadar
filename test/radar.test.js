@@ -121,6 +121,22 @@ test("polling records a new update only once", async () => {
   assert.equal((await store.list({ tag: "dev" })).length, 1);
 });
 
+test("polling limits concurrent source requests", async () => {
+  let active = 0;
+  let maximum = 0;
+  const sources = Array.from({ length: 5 }, (_, index) => ({ id: `source-${index}`, name: `Source ${index}`, kind: "test", enabled: true, tags: [] }));
+  const collectorResolver = () => async (source) => {
+    active += 1;
+    maximum = Math.max(maximum, active);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    active -= 1;
+    return [{ externalId: "v1", title: source.name, url: "https://example.test", publishedAt: "2026-01-01T00:00:00Z" }];
+  };
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-concurrency-"));
+  await pollAll(sources, { store: new JsonEventStore(join(directory, "events.json")), collectorResolver, concurrency: 2 });
+  assert.equal(maximum, 2);
+});
+
 test("event store persists the most recent completed sync time", async () => {
   const directory = await mkdtemp(join(tmpdir(), "update-radar-sync-"));
   const store = new JsonEventStore(join(directory, "events.json"));

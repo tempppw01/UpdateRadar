@@ -78,7 +78,11 @@ docker compose down
 SOURCES_PATH=/app/data/sources.json
 EVENTS_PATH=/app/data/events.json
 SETTINGS_PATH=/app/data/settings.json
+POLL_INTERVAL_MINUTES=30
+POLL_CONCURRENCY=4
 ```
+
+服务器启动后会在 5 秒内执行一次后台同步，随后每 30 分钟轮询一次。`POLL_INTERVAL_MINUTES` 可调整为 1 到 1440 分钟，设为 `0` 可关闭服务器定时轮询；`POLL_CONCURRENCY` 控制同时请求外部渠道的数量，默认 `4`，建议保持在 `2` 到 `6`，以降低 GitHub、Apple 等站点的限流风险。
 
 首次挂载空 Volume 时，服务会自动将镜像内置的默认 `sources.json` 复制到 Volume；以后始终使用 Volume 中的数据，不会在重新构建或重新部署时覆盖已添加的数据源。若需迁移已有配置，请先使用“导出设置”，部署后再通过“导入设置”恢复。
 
