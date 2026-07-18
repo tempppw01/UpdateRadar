@@ -75,14 +75,16 @@ async function sendPublicFile(response, path, method) {
 
 export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, steamSearch = searchSteamGames, translator = translateText, modelLister = listModels } = {}) {
   let activePoll = null;
-  const runPoll = async (force = false) => {
+  const runPoll = async (force = false, requestedSourceIds = []) => {
     if (activePoll) return activePoll;
     activePoll = (async () => {
       const sourceList = await getSources();
+      const requested = new Set(requestedSourceIds.filter(Boolean));
+      const selectedSources = requested.size ? sourceList.filter((source) => requested.has(source.id)) : sourceList;
       let results;
-      if (force) results = await pollAll(sourceList, { store });
+      if (force) results = await pollAll(selectedSources, { store });
       else {
-        const { due, skipped } = sourcesDueForPolling(sourceList, await store.latestDetectedAtBySource());
+        const { due, skipped } = sourcesDueForPolling(selectedSources, await store.latestDetectedAtBySource());
         results = [...await pollAll(due, { store }), ...skipped];
       }
       await store.markSyncedAt();
@@ -206,7 +208,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         return send(response, 200, { lastSyncedAt: await store.lastSyncedAt() });
       }
       if (request.method === "POST" && url.pathname === "/v1/poll") {
-        return send(response, 200, await runPoll(url.searchParams.get("force") === "true"));
+        return send(response, 200, await runPoll(url.searchParams.get("force") === "true", url.searchParams.getAll("sourceId")));
       }
       if (["GET", "HEAD"].includes(request.method) && !url.pathname.startsWith("/v1/")) {
         try {

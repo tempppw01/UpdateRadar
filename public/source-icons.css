@@ -46,6 +46,9 @@
 .event-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
 .event-footer .event-tags { margin-top: 0; }
 .event-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.event-sync-button,.sync-page-button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }
+.event-sync-button { position: absolute; top: 14px; right: 0; }.event-sync-button:hover,.sync-page-button:hover { background: var(--lime); color: #10232e; }.event-sync-button:disabled,.sync-page-button:disabled { opacity: .65; cursor: wait; }
+.event-card-has-sync .event-main { padding-right: 58px; }
 .event-pagination { display: flex; flex-wrap: wrap; justify-content: end; align-items: center; gap: 8px 12px; padding-top: 15px; color: #587170; font: 10px var(--mono); }
 .event-pagination button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); }.event-pagination button:hover { background: var(--lime); color: #10232e; }.event-pagination button:disabled { opacity: .4; cursor: not-allowed; }
 .card-context-menu { position: fixed; z-index: 20; min-width: 190px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); box-shadow: 5px 5px 0 var(--lime); padding: 10px; }

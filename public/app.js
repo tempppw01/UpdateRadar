@@ -1,4 +1,4 @@
-const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -15,6 +15,7 @@ const elements = {
   eventViewButtons: [...document.querySelectorAll("[data-event-view]")],
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
+  syncPageButton: document.querySelector("#sync-page-button"),
   quickAddSource: document.querySelector("#quick-add-source"),
   welcomeDialog: document.querySelector("#welcome-dialog"),
   closeWelcome: document.querySelector("#close-welcome"),
@@ -618,6 +619,7 @@ function renderEvents() {
   elements.eventList.replaceChildren();
   elements.eventPagination.replaceChildren();
   if (!events.length) {
+    state.visibleEventSourceIds = [];
     elements.eventList.innerHTML = '<div class="empty">这个筛选条件下尚未发现更新。尝试切换来源或标签。</div>';
     return;
   }
@@ -632,6 +634,7 @@ function renderEvents() {
   const pageCount = Math.max(1, Math.ceil(groupEntries.length / pageSize));
   state.eventPage = Math.min(state.eventPage, pageCount);
   const pageGroups = groupEntries.slice((state.eventPage - 1) * pageSize, state.eventPage * pageSize);
+  state.visibleEventSourceIds = pageGroups.map(([sourceId]) => sourceId);
   if (pageCount > 1) elements.resultsCount.textContent += ` · PAGE ${state.eventPage}/${pageCount}`;
   pageGroups.forEach(([sourceId, sourceEvents]) => {
     const expanded = state.expandedEventSourceIds.has(sourceId);
@@ -644,6 +647,16 @@ function renderEvents() {
     const appIcon = card.querySelector(".event-app-icon");
     const source = state.sources.find((candidate) => candidate.id === event.sourceId);
     if (source) article.addEventListener("contextmenu", (clickEvent) => openCardContextMenu(source, clickEvent));
+    if (source && index === 0) {
+      article.classList.add("event-card-has-sync");
+      const syncSource = document.createElement("button");
+      syncSource.type = "button";
+      syncSource.className = "event-sync-button";
+      syncSource.textContent = "↻ 同步";
+      syncSource.title = `同步 ${source.name}`;
+      syncSource.addEventListener("click", () => syncSources([source.id], syncSource));
+      article.append(syncSource);
+    }
     const artworkUrl = event.metadata?.artworkUrl || source?.artworkUrl || "";
     if (artworkUrl) {
       article.classList.add("event-with-app-icon");
@@ -1506,11 +1519,14 @@ elements.deleteSource.addEventListener("click", async () => {
     await load(); startNewEditor(); renderSettingsSources(); showToast(`数据源及 ${result.eventsRemoved} 条历史更新已删除`);
   } catch (error) { showToast(`无法删除：${error.message}`, "error"); }
 });
-elements.syncButton.addEventListener("click", async () => {
-  elements.syncButton.disabled = true;
-  elements.syncButton.innerHTML = '<span class="spin" aria-hidden="true">↻</span> 同步中';
+async function syncSources(sourceIds, button) {
+  const originalContent = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<span class="spin" aria-hidden="true">↻</span> 同步中';
   try {
-    const results = await requestJson("/v1/poll?force=true", { method: "POST" });
+    const query = new URLSearchParams({ force: "true" });
+    (sourceIds ?? []).forEach((sourceId) => query.append("sourceId", sourceId));
+    const results = await requestJson(`/v1/poll?${query}`, { method: "POST" });
     const inserted = results.reduce((total, result) => total + (result.inserted || 0), 0);
     const failed = results.filter((result) => !result.ok).length;
     await load();
@@ -1518,9 +1534,15 @@ elements.syncButton.addEventListener("click", async () => {
   } catch (error) {
     showToast(`同步失败：${error.message}`, "error");
   } finally {
-    elements.syncButton.disabled = false;
-    elements.syncButton.innerHTML = '<span aria-hidden="true">↻</span> 立即同步';
+    button.disabled = false;
+    button.innerHTML = originalContent;
   }
+}
+
+elements.syncButton.addEventListener("click", () => syncSources(null, elements.syncButton));
+elements.syncPageButton.addEventListener("click", () => {
+  if (!state.visibleEventSourceIds.length) return showToast("当前页没有可同步的监控源", "error");
+  return syncSources(state.visibleEventSourceIds, elements.syncPageButton);
 });
 
 showWelcomeOnFirstVisit();
