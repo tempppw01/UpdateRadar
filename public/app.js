@@ -1,4 +1,5 @@
-const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const savedCardColumns = Number(localStorage.getItem("update-radar-card-columns"));
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -13,6 +14,8 @@ const elements = {
   sourcePagination: document.querySelector("#source-pagination"),
   sourceSort: document.querySelector("#source-sort"),
   eventViewButtons: [...document.querySelectorAll("[data-event-view]")],
+  cardColumnsControl: document.querySelector("#card-columns-control"),
+  cardColumns: document.querySelector("#card-columns"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   syncPageButton: document.querySelector("#sync-page-button"),
@@ -185,6 +188,9 @@ applyTheme(savedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matc
 function applyEventView(view) {
   state.eventView = ["compact", "list", "cards"].includes(view) ? view : "list";
   elements.eventList.dataset.view = state.eventView;
+  elements.eventList.dataset.cardColumns = String(state.eventCardColumns);
+  elements.cardColumnsControl.hidden = state.eventView !== "cards";
+  elements.cardColumns.value = String(state.eventCardColumns);
   elements.eventViewButtons.forEach((button) => {
     const active = button.dataset.eventView === state.eventView;
     button.classList.toggle("active", active);
@@ -630,7 +636,7 @@ function renderEvents() {
     groups.get(key).push(event);
   });
   const groupEntries = [...groups.entries()];
-  const pageSize = 10;
+  const pageSize = state.eventView === "cards" ? 9 : 10;
   const pageCount = Math.max(1, Math.ceil(groupEntries.length / pageSize));
   state.eventPage = Math.min(state.eventPage, pageCount);
   const pageGroups = groupEntries.slice((state.eventPage - 1) * pageSize, state.eventPage * pageSize);
@@ -1365,8 +1371,15 @@ elements.cardContextDelete.addEventListener("click", async () => {
 });
 elements.eventViewButtons.forEach((button) => button.addEventListener("click", () => {
   localStorage.setItem("update-radar-event-view", button.dataset.eventView);
+  state.eventPage = 1;
   applyEventView(button.dataset.eventView);
+  renderEvents();
 }));
+elements.cardColumns.addEventListener("change", (event) => {
+  state.eventCardColumns = Number(event.target.value);
+  localStorage.setItem("update-radar-card-columns", String(state.eventCardColumns));
+  applyEventView(state.eventView);
+});
 elements.sourceSort.addEventListener("change", (event) => { state.sourceSort = event.target.value; state.sourcePage = 1; renderSources(); });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.manageSources.addEventListener("click", openSettings);
