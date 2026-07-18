@@ -53,6 +53,29 @@ curl 'http://localhost:8787/v1/events?tag=opensource'
 
 项目使用“写入临时文件后重命名”的方式保存这两个 JSON 文件，避免进程中断留下半写入的数据。使用 Docker Compose 时，`./data` 会挂载至容器中的 `/app/data`，因此重建或更新容器不会丢失监控配置和事件记录。
 
+仓库已提供一键编排文件 [docker-compose.yml](docker-compose.yml)。完整配置如下，可直接复制到云服务器目录：
+
+```yaml
+services:
+  update-radar:
+    build: .
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./data:/app/data
+    environment:
+      SOURCES_PATH: /app/data/sources.json
+      EVENTS_PATH: /app/data/events.json
+      SETTINGS_PATH: /app/data/settings.json
+      POLL_INTERVAL_MINUTES: "30"
+      POLL_TICK_SECONDS: "60"
+      POLL_BATCH_SIZE: "12"
+      POLL_CONCURRENCY: "4"
+    restart: unless-stopped
+```
+
+在项目根目录执行一次即可构建、后台启动并自动重启：
+
 ```bash
 docker compose up --build -d
 ```

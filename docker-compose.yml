@@ -5,4 +5,12 @@ services:
       - "8787:8787"
     volumes:
       - ./data:/app/data
+    environment:
+      SOURCES_PATH: /app/data/sources.json
+      EVENTS_PATH: /app/data/events.json
+      SETTINGS_PATH: /app/data/settings.json
+      POLL_INTERVAL_MINUTES: "30"
+      POLL_TICK_SECONDS: "60"
+      POLL_BATCH_SIZE: "12"
+      POLL_CONCURRENCY: "4"
     restart: unless-stopped
