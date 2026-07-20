@@ -65,12 +65,14 @@ test("Docker Hub collector tracks tag digests and optional tag filters", async (
   assert.deepEqual(update.metadata.architectures, ["linux/amd64"]);
 });
 
-test("QNAP App Center collector reads the official app version and download", async () => {
-  const responses = [JSON.stringify({ results: { qts: { version: [{ version: "5.2.9" }] } } }), JSON.stringify({ code: 200, app_list: [{ app_name: "ContainerStation", display_name: "Container Station", version: "3.0.0", detail: "Containers", icon: { 100: "https://example.test/icon.png" }, release_notes_link: "https://example.test/notes", download_links: { "TS-X64": { link: "https://example.test/app.qpkg" } } }] })];
+test("QNAP App Center collector uses the official release-note publication date", async () => {
+  const responses = [JSON.stringify({ results: { qts: { version: [{ version: "5.2.9" }] } } }), JSON.stringify({ code: 200, app_list: [{ app_name: "ContainerStation", display_name: "Container Station", version: "3.0.0", detail: "Containers", icon: { 100: "https://example.test/icon.png" }, release_notes_link: "https://example.test/notes", download_links: { "TS-X64": { link: "https://example.test/app.qpkg" } } }] }), JSON.stringify({ code: 200, release_note_list: [{ version: "3.0.0", publish_date: "2026/01/28" }] })];
   const [update] = await collectQnapApp({ qnapAppName: "Container Station", qnapOs: "qts" }, { fetchText: async () => responses.shift() });
   assert.equal(update.version, "3.0.0");
   assert.equal(update.metadata.appCenterVersion, "5.2.9");
   assert.equal(update.metadata.assets[0].url, "https://example.test/app.qpkg");
+  assert.equal(update.publishedAt, "2026-01-28T00:00:00.000Z");
+  assert.equal(update.metadata.releaseDateAvailable, true);
 });
 
 test("official website collector reads configured JSON fields and downloads", async () => {
@@ -161,6 +163,15 @@ test("event store applies success and failure backoff per source", async () => {
   assert.equal(states.stable.nextCheckAt, "2026-01-01T00:30:00.000Z");
   assert.equal(states.flaky.nextCheckAt, "2026-01-01T00:05:00.000Z");
   assert.equal(states.flaky.failureCount, 1);
+});
+
+test("event store checks QNAP sources no more often than their configured interval", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-qnap-poll-state-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const now = Date.parse("2026-01-01T00:00:00Z");
+  await store.recordPollResults([{ ok: true, sourceId: "qnap", inserted: 0 }], [{ id: "qnap", kind: "qnap-app", cooldownMinutes: 1440 }], { now, idleIntervalMinutes: 30 });
+  const states = await store.sourcePollStates();
+  assert.equal(states.qnap.nextCheckAt, "2026-01-02T00:00:00.000Z");
 });
 
 test("event store removes events belonging to deleted sources", async () => {

@@ -37,7 +37,7 @@ export function normalizeSource(input, { id } = {}) {
     enabled: input.enabled !== false,
     tags: Array.isArray(input.tags) ? [...new Set(input.tags.map((tag) => String(tag).trim()).filter(Boolean))] : []
   };
-  const cooldownMinutes = Number(input.cooldownMinutes ?? 60);
+  const cooldownMinutes = Number(input.cooldownMinutes ?? (kind === "qnap-app" ? 1440 : 60));
   if (!Number.isInteger(cooldownMinutes) || cooldownMinutes < 0 || cooldownMinutes > 10_080) throw new SourceValidationError("更新后冷却时间应为 0 到 10080 分钟的整数");
   source.cooldownMinutes = cooldownMinutes;
   if (["github-releases", "github-commits"].includes(kind)) {

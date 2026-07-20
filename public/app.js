@@ -1,5 +1,5 @@
 const savedCardColumns = Number(localStorage.getItem("update-radar-card-columns"));
-const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], sourcePage: 1, sourceSort: "newest", eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -10,9 +10,6 @@ const elements = {
   sourceFilter: document.querySelector("#source-filter"),
   eventList: document.querySelector("#event-list"),
   eventPagination: document.querySelector("#event-pagination"),
-  sourceList: document.querySelector("#source-list"),
-  sourcePagination: document.querySelector("#source-pagination"),
-  sourceSort: document.querySelector("#source-sort"),
   eventViewButtons: [...document.querySelectorAll("[data-event-view]")],
   cardColumnsControl: document.querySelector("#card-columns-control"),
   cardColumns: document.querySelector("#card-columns"),
@@ -26,7 +23,6 @@ const elements = {
   welcomeAddSource: document.querySelector("#welcome-add-source"),
   themeToggle: document.querySelector("#theme-toggle"),
   settingsButton: document.querySelector("#settings-button"),
-  manageSources: document.querySelector("#manage-sources"),
   settingsDialog: document.querySelector("#settings-dialog"),
   closeSettings: document.querySelector("#close-settings"),
   exportBackup: document.querySelector("#export-backup"),
@@ -217,6 +213,13 @@ function relativeTime(value) {
   return relativeFormat.format(Math.round(hours / 24), "day");
 }
 
+function publishedDateLabel(event) {
+  const unavailableLabel = event.sourceKind === "qnap-app" ? "QNAP 官方尚未公布发布日期" : "官方未提供发布日期";
+  if (!event.publishedAt) return unavailableLabel;
+  const date = new Date(event.publishedAt);
+  return Number.isNaN(date.getTime()) ? unavailableLabel : dateFormat.format(date);
+}
+
 function showToast(message, type = "success") {
   const activeDialog = [elements.eventDialog, elements.settingsDialog, elements.welcomeDialog].find((dialog) => dialog.open);
   const container = activeDialog ?? document.body;
@@ -338,7 +341,7 @@ function openEventDetails(event) {
   state.translating = false;
   elements.eventDialogTitle.textContent = eventHeading(event);
   const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
-  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${dateFormat.format(new Date(event.publishedAt))}`;
+  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${publishedDateLabel(event)}`;
   elements.eventDialogDetails.replaceChildren();
   const purchase = event.metadata?.inAppPurchase;
   const storePrice = event.metadata?.storePrice;
@@ -400,8 +403,8 @@ function renderEventHistory(events, activeEventId) {
     const version = document.createElement("strong");
     version.textContent = event.version || event.title || "未提供版本";
     const time = document.createElement("time");
-    time.dateTime = event.publishedAt;
-    time.textContent = dateFormat.format(new Date(event.publishedAt));
+    time.dateTime = event.publishedAt || "";
+    time.textContent = publishedDateLabel(event);
     const summary = document.createElement("span");
     summary.textContent = historySummary(event);
     select.append(version, time, summary);
@@ -689,8 +692,8 @@ function renderEvents() {
     eventSource.title = event.sourceName;
     eventSource.append(document.createTextNode(sourceIcon ? categoryLabel(event.sourceKind) : event.sourceName));
     const time = card.querySelector("time");
-    time.dateTime = event.publishedAt;
-    time.textContent = `${relativeTime(event.publishedAt)} · ${dateFormat.format(new Date(event.publishedAt))}`;
+    time.dateTime = event.publishedAt || "";
+    time.textContent = !event.publishedAt || Number.isNaN(new Date(event.publishedAt).getTime()) ? publishedDateLabel(event) : `${relativeTime(event.publishedAt)} · ${publishedDateLabel(event)}`;
     const title = card.querySelector(".event-title-button");
     title.textContent = eventHeading(event);
     title.addEventListener("click", () => openEventDetails(event));
@@ -749,81 +752,10 @@ function renderEvents() {
   renderEventPagination(pageCount, groupEntries.length);
 }
 
-function renderSources() {
-  elements.sourceList.replaceChildren();
-  const sources = state.sources.map((source) => {
-    const events = state.events.filter((event) => event.sourceId === source.id);
-    return {
-      source,
-      eventTotal: events.length,
-      latestUpdateAt: events.reduce((latest, event) => Math.max(latest, new Date(event.detectedAt || event.publishedAt || 0).getTime()), 0)
-    };
-  }).filter(({ eventTotal }) => eventTotal);
-  sources.sort((left, right) => {
-    if (state.sourceSort === "oldest") return left.latestUpdateAt - right.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
-    if (state.sourceSort === "popular") return right.eventTotal - left.eventTotal || right.latestUpdateAt - left.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
-    return right.latestUpdateAt - left.latestUpdateAt || left.source.name.localeCompare(right.source.name, "zh-CN");
-  });
-  const pageSize = 5;
-  const pageCount = Math.max(1, Math.ceil(sources.length / pageSize));
-  state.sourcePage = Math.min(state.sourcePage, pageCount);
-  const start = (state.sourcePage - 1) * pageSize;
-  sources.slice(start, start + pageSize).forEach(({ source, eventTotal }) => {
-    const card = document.createElement("article");
-    card.className = `source-card source-row ${source.enabled ? "" : "paused"}`;
-    const header = document.createElement("div");
-    const provider = document.createElement("span");
-    provider.className = "source-provider";
-    const icon = source.artworkUrl ? { name: source.name, url: source.artworkUrl } : sourceIcons[source.kind];
-    if (icon) {
-      const image = document.createElement("img");
-      image.src = source.artworkUrl || sourceIconUrl(source.kind);
-      image.alt = `${icon.name} 图标`;
-      image.referrerPolicy = "no-referrer";
-      image.addEventListener("error", () => image.remove());
-      provider.append(image);
-    }
-    const kind = document.createElement("span");
-    kind.className = "source-kind";
-    kind.textContent = source.kind.replaceAll("-", " ");
-    const status = document.createElement("span");
-    status.className = "source-status";
-    status.textContent = source.enabled ? "ACTIVE" : "PAUSED";
-    provider.append(kind);
-    header.append(provider, status);
-    const name = document.createElement("h3");
-    name.textContent = source.name;
-    const count = document.createElement("p");
-    count.textContent = `${eventTotal} signals captured`;
-    const tags = document.createElement("div");
-    tags.className = "source-tags";
-    sourceCategories(source).forEach((tag) => { const item = document.createElement("span"); item.textContent = categoryLabel(tag); tags.append(item); });
-    card.append(header, name, count, tags);
-    elements.sourceList.append(card);
-  });
-  elements.sourcePagination.replaceChildren();
-  if (sources.length > pageSize) {
-    const first = document.createElement("button");
-    first.type = "button"; first.textContent = "|← 第一页"; first.disabled = state.sourcePage === 1;
-    first.addEventListener("click", () => { state.sourcePage = 1; renderSources(); });
-    const previous = document.createElement("button");
-    previous.type = "button"; previous.textContent = "← 上一页"; previous.disabled = state.sourcePage === 1;
-    previous.addEventListener("click", () => { state.sourcePage -= 1; renderSources(); });
-    const status = document.createElement("span");
-    status.textContent = `第 ${state.sourcePage} / ${pageCount} 页`;
-    const next = document.createElement("button");
-    next.type = "button"; next.textContent = "下一页 →"; next.disabled = state.sourcePage === pageCount;
-    next.addEventListener("click", () => { state.sourcePage += 1; renderSources(); });
-    const last = document.createElement("button");
-    last.type = "button"; last.textContent = "最后一页 →|"; last.disabled = state.sourcePage === pageCount;
-    last.addEventListener("click", () => { state.sourcePage = pageCount; renderSources(); });
-    elements.sourcePagination.append(first, previous, status, next, last);
-  }
-}
-
 function showProviderFields() {
   const kind = elements.sourceKind.value;
   document.querySelectorAll(".provider-fields").forEach((fields) => { fields.hidden = !fields.dataset.kind.split(" ").includes(kind); });
+  if (!state.editingSourceId && kind === "qnap-app" && !elements.sourceForm.elements.cooldownMinutes.dataset.touched) elements.sourceForm.elements.cooldownMinutes.value = "1440";
 }
 
 function setSourceSaveStatus(message, stateName = "") {
@@ -886,6 +818,7 @@ function startNewEditor() {
   state.sourceChangeVersion = 0;
   elements.sourceForm.reset();
   elements.sourceForm.elements.enabled.checked = true;
+  elements.sourceForm.elements.cooldownMinutes.dataset.touched = "";
   elements.sourceForm.elements.id.readOnly = false;
   elements.sourceForm.elements.id.dataset.touched = "";
   elements.editorMode.textContent = "新增数据源";
@@ -1343,7 +1276,7 @@ async function load() {
   state.lastSyncedAt = syncStatus.lastSyncedAt ?? null;
   state.selectedSourceIds = new Set([...state.selectedSourceIds].filter((id) => state.sources.some((source) => source.id === id)));
   if (state.sourceId && !state.sources.some((source) => source.id === state.sourceId)) state.sourceId = "";
-  renderMetrics(); renderFilters(); renderEvents(); renderSources();
+  renderMetrics(); renderFilters(); renderEvents();
 }
 
 elements.sourceFilter.addEventListener("change", (event) => { state.sourceId = event.target.value; state.eventPage = 1; renderEvents(); });
@@ -1380,9 +1313,7 @@ elements.cardColumns.addEventListener("change", (event) => {
   localStorage.setItem("update-radar-card-columns", String(state.eventCardColumns));
   applyEventView(state.eventView);
 });
-elements.sourceSort.addEventListener("change", (event) => { state.sourceSort = event.target.value; state.sourcePage = 1; renderSources(); });
 elements.settingsButton.addEventListener("click", openSettings);
-elements.manageSources.addEventListener("click", openSettings);
 elements.quickAddSource.addEventListener("click", openSettings);
 elements.closeWelcome.addEventListener("click", dismissWelcome);
 elements.dismissWelcome.addEventListener("click", dismissWelcome);
@@ -1398,7 +1329,7 @@ elements.themeToggle.addEventListener("click", () => {
   const theme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
   localStorage.setItem("update-radar-theme", theme);
   applyTheme(theme);
-  renderFilters(); renderEvents(); renderSources();
+  renderFilters(); renderEvents();
   if (elements.settingsDialog.open) renderSettingsSources();
 });
 elements.closeSettings.addEventListener("click", () => elements.settingsDialog.close());
@@ -1494,6 +1425,7 @@ elements.sourceForm.elements.name.addEventListener("input", () => {
   if (!state.editingSourceId && !id.dataset.touched) id.value = elements.sourceForm.elements.name.value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 });
 elements.sourceForm.elements.id.addEventListener("input", () => { elements.sourceForm.elements.id.dataset.touched = "true"; });
+elements.sourceForm.elements.cooldownMinutes.addEventListener("input", () => { elements.sourceForm.elements.cooldownMinutes.dataset.touched = "true"; });
 elements.sourceForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const isEditing = Boolean(state.editingSourceId);

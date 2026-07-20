@@ -63,6 +63,7 @@ test("source store supports Docker Hub, QNAP, official websites, and Nintendo Sw
   const nintendo = await store.create({ id: "mario-kart-world", name: "Mario Kart World", kind: "nintendo-switch", gameName: "Mario Kart World" });
   assert.deepEqual(docker.tagsFilter, ["latest"]);
   assert.equal(qnap.qnapOs, "qts");
+  assert.equal(qnap.cooldownMinutes, 1440);
   assert.equal(website.versionPath, "macOS.version");
   assert.equal(nintendo.nintendoRegion, "us");
 });

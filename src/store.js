@@ -93,7 +93,10 @@ export class JsonEventStore {
       const source = sourceById.get(result.sourceId);
       if (!source) return;
       const previous = state.sourcePollState[result.sourceId] ?? {};
-      const idleDelay = Math.max(1, Number(idleIntervalMinutes) || 30);
+      const configuredIdleDelay = Math.max(1, Number(idleIntervalMinutes) || 30);
+      const idleDelay = source.kind === "qnap-app"
+        ? Math.max(configuredIdleDelay, Number(source.cooldownMinutes) || 1440)
+        : configuredIdleDelay;
       if (result.ok) {
         const updatedDelay = Math.max(0, Number(source.cooldownMinutes ?? 60));
         const delay = result.inserted > 0 ? updatedDelay : idleDelay;
