@@ -78,6 +78,32 @@ test("QNAP App Center collector uses the official release-note publication date"
   assert.equal(update.metadata.releaseDateAvailable, true);
 });
 
+test("QNAP App Center collector imports historical release notes", async () => {
+  const responses = [
+    JSON.stringify({ results: { qts: { version: [{ version: "5.2.9" }] } } }),
+    JSON.stringify({ code: 200, app_list: [{ app_name: "HybridBackup", display_name: "HBS 3 Hybrid Backup Sync", version: "26.4.3.647", detail: "Current app detail", icon: { 100: "https://example.test/hbs.png" }, release_notes_link: "https://example.test/hbs", download_links: { "TS-X64": { link: "https://example.test/hbs.qpkg" } } }] }),
+    JSON.stringify({
+      code: 200,
+      release_note_list: [
+        { version: "26.4.3.647", title: "HBS 3 Hybrid Backup Sync 26.4.3.647", text: "<p>Security fixes</p>", publish_date: "2026/07/20" },
+        { version: "26.4.2.617", title: "HBS 3 Hybrid Backup Sync 26.4.2.617", text: "Fixed Rsync issue<br />Another line", publish_date: "2026/07/15" },
+        { version: "26.4.1.563", title: "HBS 3 Hybrid Backup Sync 26.4.1.563", text: "Older release", publish_date: "2026/07/02" }
+      ]
+    })
+  ];
+  const updates = await collectQnapApp({ qnapAppName: "HBS 3 Hybrid Backup Sync", qnapOs: "qts" }, { fetchText: async () => responses.shift() });
+  assert.equal(updates.length, 3);
+  assert.equal(updates[0].version, "26.4.3.647");
+  assert.equal(updates[0].metadata.historical, false);
+  assert.equal(updates[0].metadata.assets[0].url, "https://example.test/hbs.qpkg");
+  assert.equal(updates[0].summary, "Security fixes");
+  assert.equal(updates[1].version, "26.4.2.617");
+  assert.equal(updates[1].metadata.historical, true);
+  assert.deepEqual(updates[1].metadata.assets, []);
+  assert.equal(updates[1].summary, "Fixed Rsync issue\nAnother line");
+  assert.equal(updates[1].publishedAt, "2026-07-15T00:00:00.000Z");
+  assert.equal(updates[2].externalId, "qts:5.2.9:HybridBackup:26.4.1.563");
+});
 test("official website collector reads configured JSON fields and downloads", async () => {
   const fixture = { Windows: { version: "9.9.32", updateDate: "2026-07-16", ntDownloadX64Url: "https://example.test/QQ.exe", ntDownloadARMUrl: "https://example.test/QQ-arm.exe" } };
   const [update] = await collectOfficialWebsite({ name: "QQ Windows", officialUrl: "https://example.test/qq.json", officialFormat: "json", versionPath: "Windows.version", publishedAtPath: "Windows.updateDate", downloadPath: "Windows" }, { fetchText: async () => JSON.stringify(fixture) });
