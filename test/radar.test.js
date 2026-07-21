@@ -33,6 +33,9 @@ test("GitHub commit collector normalizes recent commits", async () => {
   assert.equal(commit.externalId, "abcdef0123456789");
   assert.equal(commit.title, "Fix sync failure");
   assert.equal(commit.metadata.branch, "dev");
+  assert.equal(commit.metadata.repository, "acme/tool");
+  assert.equal(commit.metadata.owner, "acme");
+  assert.equal(commit.metadata.repo, "tool");
   assert.equal(commit.summary, "Retry transient errors.");
 });
 

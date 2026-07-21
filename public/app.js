@@ -263,8 +263,26 @@ function releaseAssets(event) {
   return Array.isArray(event.metadata?.assets) ? event.metadata.assets.filter((asset) => asset?.url && asset?.name) : [];
 }
 
+function eventRepositoryLabel(event, source) {
+  if (event.metadata?.repository) return event.metadata.repository;
+  if (event.metadata?.owner && event.metadata?.repo) return `${event.metadata.owner}/${event.metadata.repo}`;
+  if (source?.owner && source?.repo) return `${source.owner}/${source.repo}`;
+  if (event.sourceName && event.sourceName.includes("/")) return event.sourceName;
+  return event.sourceName || "";
+}
+
 function eventHeading(event) {
-  return event.version ? `${event.sourceName} / ${event.version}` : event.title;
+  if (event.version) return `${event.sourceName} / ${event.version}`;
+  if (event.sourceKind === "github-commits") {
+    const source = state.sources.find((candidate) => candidate.id === event.sourceId);
+    const repo = eventRepositoryLabel(event, source);
+    const title = event.title || "";
+    if (repo && title && !title.startsWith(`${repo} `) && !title.startsWith(`${repo}·`) && !title.startsWith(`${repo} ·`)) {
+      return `${repo} · ${title}`;
+    }
+    return title || repo;
+  }
+  return event.title;
 }
 
 function storeRegion(value) {
@@ -341,7 +359,12 @@ function openEventDetails(event) {
   state.translating = false;
   elements.eventDialogTitle.textContent = eventHeading(event);
   const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
-  elements.eventDialogMeta.textContent = `${event.sourceName} · ${event.version || "未提供版本"}${region} · ${publishedDateLabel(event)}`;
+  const versionOrCommit = event.version
+    || (event.sourceKind === "github-commits" && event.metadata?.commit
+      ? `提交 ${event.metadata.commit}${event.metadata.branch && event.metadata.branch !== "default" ? ` · ${event.metadata.branch}` : ""}`
+      : "")
+    || "未提供版本";
+  elements.eventDialogMeta.textContent = `${event.sourceName} · ${versionOrCommit}${region} · ${publishedDateLabel(event)}`;
   elements.eventDialogDetails.replaceChildren();
   const purchase = event.metadata?.inAppPurchase;
   const storePrice = event.metadata?.storePrice;
@@ -689,8 +712,19 @@ function renderEvents() {
       image.addEventListener("error", () => image.remove());
       eventSource.append(image);
     }
-    eventSource.title = event.sourceName;
-    eventSource.append(document.createTextNode(sourceIcon ? categoryLabel(event.sourceKind) : event.sourceName));
+    const repositoryLabel = eventRepositoryLabel(event, source);
+    eventSource.title = repositoryLabel || event.sourceName;
+    if (sourceIcon) {
+      eventSource.append(document.createTextNode(categoryLabel(event.sourceKind)));
+      if (event.sourceKind === "github-commits" && repositoryLabel) {
+        const repoBadge = document.createElement("span");
+        repoBadge.className = "event-source-repo";
+        repoBadge.textContent = repositoryLabel;
+        eventSource.append(repoBadge);
+      }
+    } else {
+      eventSource.append(document.createTextNode(event.sourceName));
+    }
     const time = card.querySelector("time");
     time.dateTime = event.publishedAt || "";
     time.textContent = !event.publishedAt || Number.isNaN(new Date(event.publishedAt).getTime()) ? publishedDateLabel(event) : `${relativeTime(event.publishedAt)} · ${publishedDateLabel(event)}`;

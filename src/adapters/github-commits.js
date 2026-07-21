@@ -16,7 +16,7 @@ export async function collectGithubCommits(source, dependencies = { fetchText })
       url: commit.html_url,
       publishedAt: commit.commit?.author?.date || commit.commit?.committer?.date || new Date().toISOString(),
       summary: body.join("\n").trim(),
-      metadata: { commit: commit.sha.slice(0, 7), branch: source.branch || "default", author: commit.commit?.author?.name || commit.author?.login || "" }
+      metadata: { repository: `${source.owner}/${source.repo}`, owner: source.owner, repo: source.repo, commit: commit.sha.slice(0, 7), branch: source.branch || "default", author: commit.commit?.author?.name || commit.author?.login || "" }
     };
   });
 }
