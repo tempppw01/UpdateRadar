@@ -1452,5 +1452,19 @@
     "planName": "",
     "storefrontId": "",
     "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/64/e4/16/64e41658-e297-ebd2-f1a1-f45ba9ada086/AppIcon-1x_U007emarketing-0-8-0-85-220-0.png/100x100bb.jpg"
+  },
+  {
+    "id": "github-releases-huangjindi996-dev-454545",
+    "name": "huangjindi996-dev/454545",
+    "kind": "github-releases",
+    "enabled": true,
+    "tags": [
+      "github-releases"
+    ],
+    "cooldownMinutes": 60,
+    "owner": "huangjindi996-dev",
+    "repo": "454545",
+    "branch": "",
+    "includePrereleases": false
   }
 ]
