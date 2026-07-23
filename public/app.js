@@ -96,9 +96,6 @@ const elements = {
 
 const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
-const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-let smoothScrollTarget = window.scrollY;
-let smoothScrollFrame = 0;
 const sourceIcons = {
   "github-releases": { name: "GitHub", slug: "github" },
   "github-commits": { name: "GitHub", slug: "github" },
@@ -124,36 +121,6 @@ function sourceIconUrl(kind) {
 
 function updateTopbarState() {
   document.querySelector(".topbar").classList.toggle("is-pinned", window.scrollY > 12);
-}
-
-function canDampenWheel(event) {
-  if (prefersReducedMotion.matches || event.ctrlKey || event.shiftKey || Math.abs(event.deltaY) < Math.abs(event.deltaX)) return false;
-  if (document.querySelector("dialog[open]")) return false;
-  if (!(event.target instanceof Element)) return false;
-  if (event.target.closest("input, textarea, select, [contenteditable], .event-screenshots-list, .saved-sources, .app-store-results, .catalog-results")) return false;
-  return event.deltaMode === WheelEvent.DOM_DELTA_LINE || Math.abs(event.deltaY) >= 48;
-}
-
-function finishSmoothScroll() {
-  const current = window.scrollY;
-  const distance = smoothScrollTarget - current;
-  if (Math.abs(distance) < 0.5) {
-    window.scrollTo(0, smoothScrollTarget);
-    smoothScrollFrame = 0;
-    return;
-  }
-  window.scrollTo(0, current + distance * 0.16);
-  smoothScrollFrame = requestAnimationFrame(finishSmoothScroll);
-}
-
-function dampenWheelScroll(event) {
-  if (!canDampenWheel(event)) return;
-  const maximumScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
-  const scale = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 24 : 0.82;
-  const startingPoint = smoothScrollFrame ? smoothScrollTarget : window.scrollY;
-  smoothScrollTarget = Math.min(Math.max(startingPoint + event.deltaY * scale, 0), maximumScroll);
-  event.preventDefault();
-  if (!smoothScrollFrame && smoothScrollTarget !== window.scrollY) smoothScrollFrame = requestAnimationFrame(finishSmoothScroll);
 }
 
 const tagCategories = {
@@ -1323,7 +1290,6 @@ document.addEventListener("keydown", (event) => {
 });
 window.addEventListener("scroll", closeCardContextMenu, true);
 window.addEventListener("scroll", updateTopbarState, { passive: true });
-window.addEventListener("wheel", dampenWheelScroll, { passive: false });
 updateTopbarState();
 elements.cardContextDelete.addEventListener("click", async () => {
   const source = state.sources.find((item) => item.id === state.contextSourceId);
