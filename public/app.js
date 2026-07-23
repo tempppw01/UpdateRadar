@@ -96,6 +96,9 @@ const elements = {
 
 const dateFormat = new Intl.DateTimeFormat("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 const relativeFormat = new Intl.RelativeTimeFormat("zh-CN", { numeric: "auto" });
+const topbar = document.querySelector(".topbar");
+let topbarPinned = false;
+let topbarStateFrame = 0;
 const sourceIcons = {
   "github-releases": { name: "GitHub", slug: "github" },
   "github-commits": { name: "GitHub", slug: "github" },
@@ -120,7 +123,18 @@ function sourceIconUrl(kind) {
 }
 
 function updateTopbarState() {
-  document.querySelector(".topbar").classList.toggle("is-pinned", window.scrollY > 12);
+  const pinned = window.scrollY > 12;
+  if (pinned === topbarPinned) return;
+  topbarPinned = pinned;
+  topbar.classList.toggle("is-pinned", pinned);
+}
+
+function scheduleTopbarStateUpdate() {
+  if (topbarStateFrame) return;
+  topbarStateFrame = requestAnimationFrame(() => {
+    topbarStateFrame = 0;
+    updateTopbarState();
+  });
 }
 
 const tagCategories = {
@@ -1289,7 +1303,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeCardContextMenu();
 });
 window.addEventListener("scroll", closeCardContextMenu, true);
-window.addEventListener("scroll", updateTopbarState, { passive: true });
+window.addEventListener("scroll", scheduleTopbarStateUpdate, { passive: true });
 updateTopbarState();
 elements.cardContextDelete.addEventListener("click", async () => {
   const source = state.sources.find((item) => item.id === state.contextSourceId);
