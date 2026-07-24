@@ -57,7 +57,7 @@ export class JsonEventStore {
       .filter((event) => !sourceId || event.sourceId === sourceId)
       .filter((event) => !tag || event.tags.includes(tag))
       .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
-      .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 200));
+      .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 10000));
   }
 
   async latestDetectedAtBySource() {

@@ -112,6 +112,16 @@
               <label class="check-field enabled-field"><input name="enabled" type="checkbox" checked> 立即启用此数据源</label>
               <div class="form-actions"><button class="delete-button" id="delete-source" type="button" hidden>删除来源</button><span class="source-save-status" id="source-save-status" aria-live="polite"></span><button class="text-button" id="cancel-edit" type="button">取消</button><button class="save-button" type="submit">保存数据源</button></div>
             </form>
+            <section class="dashboard-settings">
+              <div>
+                <p class="settings-label">情报加载</p>
+                <h3>首页总量上限</h3>
+                <p>最少 1000 条。修改后会自动保存，并重新加载首页和历史版本时间轴。</p>
+              </div>
+              <label class="dashboard-limit-field">加载条数
+                <input id="event-limit" type="number" min="1000" max="10000" step="100" inputmode="numeric" value="1000">
+              </label>
+            </section>
             <details class="translation-settings"><summary>翻译服务（OpenAI 兼容接口）</summary><div class="form-grid"><label>接口地址<input id="translation-base-url" type="url" value="https://ai.shuaihong.fun/v1"></label><label>模型<div class="model-select-control"><select id="translation-model"><option value="">点击加载模型列表</option></select><button id="load-translation-models" type="button">加载模型</button></div></label><label>API Key<input id="translation-api-key" type="password" autocomplete="off" placeholder="仅在更新时填写"></label><label>目标语言<select id="translation-target-language"><option value="简体中文">简体中文</option><option value="繁體中文">繁體中文</option><option value="English">English</option><option value="日本語">日本語</option><option value="한국어">한국어</option><option value="Français">Français</option><option value="Deutsch">Deutsch</option><option value="Español">Español</option><option value="Русский">Русский</option></select></label></div><button class="save-button" id="save-translation-settings" type="button">保存翻译设置</button></details>
           </section>
         </div>
