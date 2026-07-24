@@ -1,5 +1,5 @@
 const savedCardColumns = Number(localStorage.getItem("update-radar-card-columns"));
-const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false };
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false, syncInFlight: null };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -548,13 +548,31 @@ function renderFilters() {
     const categoryCount = document.createElement("small");
     categoryCount.textContent = String(count);
     button.append(categoryIcon, categoryLabel, categoryCount);
-    button.addEventListener("click", () => { state.tag = value; state.eventPage = 1; renderFilters(); renderEvents(); });
+    button.addEventListener("click", () => selectTagFilter(value));
     elements.tagFilters.append(button);
   });
 
   elements.sourceFilter.replaceChildren(new Option("所有来源", ""));
   state.sources.filter((source) => activeSourceIds.has(source.id)).forEach((source) => elements.sourceFilter.add(new Option(source.name, source.id)));
   elements.sourceFilter.value = state.sourceId;
+}
+
+function selectTagFilter(tag) {
+  state.tag = tag;
+  state.eventPage = 1;
+  renderFilters();
+  renderEvents();
+  if (!tag) return;
+  void refreshTagSources(tag);
+}
+
+function refreshTagSources(tag) {
+  const sourceIds = state.sources.filter((source) => source.enabled && sourceCategories(source).includes(tag)).map((source) => source.id);
+  if (!sourceIds.length) {
+    showToast("当前分类下没有可同步的数据源", "error");
+    return Promise.resolve(false);
+  }
+  return syncSources(sourceIds, null);
 }
 
 function matchesEventSearch(event) {
@@ -1237,7 +1255,10 @@ function searchQnapApps() {
 const officialWebsiteTemplates = {
   "qq-windows": { name: "QQ Windows 官网版", id: "qq-windows-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "Windows.version", publishedAtPath: "Windows.updateDate", downloadPath: "Windows" },
   "qq-macos": { name: "QQ macOS 官网版", id: "qq-macos-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "macOS.version", publishedAtPath: "macOS.updateDate", downloadPath: "macOS" },
-  "qq-linux": { name: "QQ Linux 官网版", id: "qq-linux-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "Linux.version", publishedAtPath: "Linux.updateDate", downloadPath: "Linux" }
+  "qq-linux": { name: "QQ Linux 官网版", id: "qq-linux-official", officialUrl: "https://qq-web.cdn-go.cn/im.qq.com_new/latest/rainbow/pcConfig.json", homepageUrl: "https://im.qq.com/index/", officialFormat: "json", versionPath: "Linux.version", publishedAtPath: "Linux.updateDate", downloadPath: "Linux" },
+  "adobe-photoshop": { name: "Adobe Photoshop", id: "adobe-photoshop-official", officialUrl: "https://helpx.adobe.com/photoshop/desktop/whats-new/photoshop-on-desktop-release-notes.html", homepageUrl: "https://www.adobe.com/products/photoshop.html", officialFormat: "html", versionPath: "Adobe Photoshop on desktop release notes[\\s\\S]*?##\\s+[A-Za-z]+\\s+\\d{4}\\s+\\(version\\s+([\\d.]+)\\)", publishedAtPath: "Last updated on\\s*([A-Za-z]{3}\\s+\\d{1,2},\\s+\\d{4})" },
+  "adobe-illustrator": { name: "Adobe Illustrator", id: "adobe-illustrator-official", officialUrl: "https://helpx.adobe.com/illustrator/desktop/new-features/release-notes.html", homepageUrl: "https://www.adobe.com/products/illustrator.html", officialFormat: "html", versionPath: "Adobe Illustrator on desktop release notes[\\s\\S]*?##\\s+[A-Za-z]+\\s+\\d{4}\\s+\\(Illustrator\\s+([\\d.]+)\\)", publishedAtPath: "Last updated on\\s*([A-Za-z]{3}\\s+\\d{1,2},\\s+\\d{4})" },
+  "adobe-acrobat": { name: "Adobe Acrobat", id: "adobe-acrobat-official", officialUrl: "https://helpx.adobe.com/acrobat/release-note/release-notes-acrobat-reader.html", homepageUrl: "https://www.adobe.com/acrobat.html", officialFormat: "html", versionPath: "Continuous Track Installers[\\s\\S]*?\\b(\\d{2}\\.\\d{3}\\.\\d{5})\\b", publishedAtPath: "Continuous Track Installers[\\s\\S]*?\\b(?:Planned update|Optional update),\\s*([A-Za-z]{3,9}\\s+\\d{1,2},\\s+\\d{4})" }
 };
 
 function applyOfficialWebsiteTemplate() {
@@ -1479,10 +1500,13 @@ elements.deleteSource.addEventListener("click", async () => {
   } catch (error) { showToast(`无法删除：${error.message}`, "error"); }
 });
 async function syncSources(sourceIds, button) {
-  const originalContent = button.innerHTML;
-  button.disabled = true;
-  button.innerHTML = '<span class="spin" aria-hidden="true">↻</span> 同步中';
-  try {
+  if (state.syncInFlight) return state.syncInFlight;
+  const originalContent = button?.innerHTML ?? "";
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<span class="spin" aria-hidden="true">↻</span> 同步中';
+  }
+  const request = (async () => {
     const query = new URLSearchParams({ force: "true" });
     (sourceIds ?? []).forEach((sourceId) => query.append("sourceId", sourceId));
     const results = await requestJson(`/v1/poll?${query}`, { method: "POST" });
@@ -1490,11 +1514,19 @@ async function syncSources(sourceIds, button) {
     const failed = results.filter((result) => !result.ok).length;
     await load();
     showToast(failed ? `同步完成，新增 ${inserted} 条；${failed} 个渠道暂不可用` : `同步完成，新增 ${inserted} 条更新`);
+  })();
+  state.syncInFlight = request;
+  try {
+    return await request;
   } catch (error) {
     showToast(`同步失败：${error.message}`, "error");
+    return null;
   } finally {
-    button.disabled = false;
-    button.innerHTML = originalContent;
+    state.syncInFlight = null;
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = originalContent;
+    }
   }
 }
 
