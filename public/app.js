@@ -112,6 +112,7 @@ const sourceIcons = {
   "docker-hub": { name: "Docker Hub", slug: "docker" },
   rss: { name: "RSS", slug: "rss" },
   "app-store": { name: "App Store", slug: "appstore" },
+  "mac-app-store": { name: "Mac App Store", slug: "appstore" },
   "google-play": { name: "Google Play", slug: "googleplay" },
   "qnap-app": { name: "QNAP", slug: "qnap" },
   "official-website": { name: "官网自定义监控", assetUrl: "/icons/official-website.svg" },
@@ -120,6 +121,16 @@ const sourceIcons = {
   playstation: { name: "PlayStation", slug: "playstation" },
   xbox: { name: "Xbox", slug: "xbox" }
 };
+
+const appleStoreKinds = new Set(["app-store", "mac-app-store"]);
+
+function isAppleStore(kind) {
+  return appleStoreKinds.has(kind);
+}
+
+function appleStoreLabel(kind) {
+  return kind === "mac-app-store" ? "Mac App Store" : "App Store";
+}
 
 function sourceIconUrl(kind) {
   const icon = sourceIcons[kind];
@@ -146,6 +157,7 @@ function scheduleTopbarStateUpdate() {
 
 const tagCategories = {
   "app-store": { label: "App Store", iconKind: "app-store" },
+  "mac-app-store": { label: "Mac App Store", iconKind: "mac-app-store" },
   "github-releases": { label: "GitHub 发布", iconKind: "github-releases" },
   "github-commits": { label: "GitHub 提交", iconKind: "github-commits" },
   github: { label: "GitHub", iconKind: "github-releases" },
@@ -347,7 +359,7 @@ function openEventDetails(event) {
   state.translationRequestVersion += 1;
   state.translating = false;
   elements.eventDialogTitle.textContent = eventHeading(event);
-  const region = event.sourceKind === "app-store" && event.metadata?.store ? ` · App Store ${storeRegion(event.metadata.store)}` : "";
+  const region = isAppleStore(event.sourceKind) && event.metadata?.store ? ` · ${appleStoreLabel(event.sourceKind)} ${storeRegion(event.metadata.store)}` : "";
   const versionOrCommit = event.version
     || (event.sourceKind === "github-commits" && event.metadata?.commit
       ? `提交 ${event.metadata.commit}${event.metadata.branch && event.metadata.branch !== "default" ? ` · ${event.metadata.branch}` : ""}`
@@ -359,7 +371,7 @@ function openEventDetails(event) {
   const storePrice = event.metadata?.storePrice;
   if (storePrice?.price) {
     const price = document.createElement("span");
-    price.textContent = `App Store 售价 · ${storePrice.price}${storePrice.country ? ` · ${storeRegion(storePrice.country)}` : ""}`;
+    price.textContent = `${appleStoreLabel(event.sourceKind)} 售价 · ${storePrice.price}${storePrice.country ? ` · ${storeRegion(storePrice.country)}` : ""}`;
     elements.eventDialogDetails.append(price);
   }
   if (purchase?.price) {
@@ -378,7 +390,7 @@ function openEventDetails(event) {
   elements.eventHighlights.hidden = highlights.length === 0;
   renderEventDialogText("original");
   setTranslationLoading(false);
-  const screenshots = event.sourceKind === "app-store" ? event.metadata?.screenshots ?? [] : [];
+  const screenshots = isAppleStore(event.sourceKind) ? event.metadata?.screenshots ?? [] : [];
   elements.eventScreenshotsList.replaceChildren(...screenshots.map((url, index) => screenshotCard(url, event.sourceName, index)));
   elements.eventScreenshots.hidden = screenshots.length === 0;
   elements.eventAssetsList.replaceChildren();
@@ -749,9 +761,9 @@ function renderEvents() {
       version.textContent = `版本 ${event.version}`;
       details.append(version);
     }
-    if (event.sourceKind === "app-store" && event.metadata?.store) {
+    if (isAppleStore(event.sourceKind) && event.metadata?.store) {
       const region = document.createElement("span");
-      region.textContent = `App Store ${storeRegion(event.metadata.store)}`;
+      region.textContent = `${appleStoreLabel(event.sourceKind)} ${storeRegion(event.metadata.store)}`;
       details.append(region);
     }
     if (event.metadata?.storePrice?.price) {
@@ -797,6 +809,13 @@ function renderEvents() {
 function showProviderFields() {
   const kind = elements.sourceKind.value;
   document.querySelectorAll(".provider-fields").forEach((fields) => { fields.hidden = !fields.dataset.kind.split(" ").includes(kind); });
+  if (isAppleStore(kind)) {
+    const isMac = kind === "mac-app-store";
+    document.querySelectorAll("[data-apple-store-label]").forEach((element) => { element.textContent = isMac ? "Mac App Store 官方目录" : "Apple 官方目录"; });
+    document.querySelectorAll("[data-apple-store-title]").forEach((element) => { element.textContent = isMac ? "搜索 Mac 应用并一键加入监控" : "搜索 iPhone / iPad 应用并一键加入监控"; });
+    document.querySelectorAll("[data-apple-store-id-label]").forEach((element) => { element.textContent = isMac ? "Mac App Store 应用 ID" : "App Store 应用 ID"; });
+    document.querySelectorAll("[data-apple-store-note]").forEach((element) => { element.textContent = isMac ? "从 Mac App Store 官方目录读取 macOS 应用版本、发布说明、价格与官方截图。" : "填写内购套餐 ID 后，会在同一应用监控中显示 Apple 官方 App Store 内购价格。"; });
+  }
   if (!state.editingSourceId && kind === "qnap-app" && !elements.sourceForm.elements.cooldownMinutes.dataset.touched) elements.sourceForm.elements.cooldownMinutes.value = "1440";
 }
 
@@ -1007,7 +1026,8 @@ function renderAppStoreResults(apps) {
 }
 
 function appStoreSource(app) {
-  return { id: `app-store-${app.appId}`, name: app.name, kind: "app-store", enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: ["app-store"] };
+  const kind = app.platform === "mac" ? "mac-app-store" : "app-store";
+  return { id: `${kind}-${app.appId}`, name: app.name, kind, enabled: true, appId: app.appId, country: app.country, artworkUrl: app.artworkUrl, tags: [kind] };
 }
 
 async function addAppStoreSource(app, button) {
@@ -1056,7 +1076,8 @@ async function searchForAppStoreApps() {
   elements.appStoreSearchButton.textContent = "搜索中";
   elements.appStoreResults.innerHTML = '<p class="app-search-empty">正在搜索 Apple 官方目录…</p>';
   try {
-    const query = new URLSearchParams({ term, country: elements.appStoreSearchCountry.value });
+    const platform = elements.sourceKind.value === "mac-app-store" ? "mac" : "ios";
+    const query = new URLSearchParams({ term, country: elements.appStoreSearchCountry.value, platform });
     renderAppStoreResults(await requestJson(`/v1/catalog/app-store?${query}`));
   } catch (error) {
     elements.appStoreResults.innerHTML = '<p class="app-search-empty">搜索暂时不可用，请稍后重试。</p>';
@@ -1309,7 +1330,14 @@ function searchSteam() {
 
 async function requestJson(url, options) {
   const response = await fetch(url, options);
-  const body = await response.json();
+  const text = await response.text();
+  let body;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    throw new Error(response.ok ? "服务返回的数据不完整，请稍后重试" : `请求失败（HTTP ${response.status}）`);
+  }
+  if (!body || typeof body !== "object") throw new Error(response.ok ? "服务返回的数据格式不正确，请稍后重试" : `请求失败（HTTP ${response.status}）`);
   if (!response.ok) throw new Error(body.message || body.error || "请求失败");
   return body;
 }

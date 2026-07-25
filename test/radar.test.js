@@ -59,6 +59,18 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   assert.deepEqual(update.metadata.screenshots, ["https://example.test/iphone-1.jpg", "https://example.test/shared.jpg", "https://example.test/ipad-1.jpg", "https://example.test/tv-1.jpg"]);
 });
 
+test("Mac App Store collector requests Apple's macOS lookup entity", async () => {
+  let requestedUrl;
+  const [update] = await collectAppStore({ id: "pixelmator-pro", name: "Pixelmator Pro", kind: "mac-app-store", appId: "1289583905", country: "us" }, {
+    fetchText: async (url) => {
+      requestedUrl = new URL(url);
+      return JSON.stringify({ results: [{ trackId: 1289583905, trackName: "Pixelmator Pro", version: "4.0", trackViewUrl: "https://apps.apple.com/us/app/pixelmator-pro/id1289583905", currentVersionReleaseDate: "2026-07-25T00:00:00Z" }] });
+    }
+  });
+  assert.equal(requestedUrl.searchParams.get("entity"), "macSoftware");
+  assert.equal(update.version, "4.0");
+});
+
 test("Docker Hub collector tracks tag digests and optional tag filters", async () => {
   const [update] = await collectDockerHub({ name: "NGINX", repository: "library/nginx", tagsFilter: ["latest"] }, {
     fetchText: async () => JSON.stringify({ results: [{ name: "latest", last_updated: "2026-01-02T00:00:00Z", full_size: 1048576, images: [{ os: "linux", architecture: "amd64", digest: "sha256:abc" }] }, { name: "edge", images: [] }] })

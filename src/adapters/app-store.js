@@ -20,7 +20,8 @@ function appScreenshots(app) {
 
 export async function collectAppStore(source, dependencies = { fetchText }) {
   const country = source.country ?? "us";
-  const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(source.appId)}&country=${encodeURIComponent(country)}`;
+  const entity = source.kind === "mac-app-store" ? "&entity=macSoftware" : "";
+  const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(source.appId)}&country=${encodeURIComponent(country)}${entity}`;
   const payload = JSON.parse(await dependencies.fetchText(url));
   const app = payload.results?.[0];
   if (!app) return [];

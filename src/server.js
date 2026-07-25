@@ -112,7 +112,9 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         if (term.length < 2) throw new SourceValidationError("请至少输入两个字符来搜索 App Store");
         const country = (url.searchParams.get("country") ?? "us").trim().toLowerCase();
         if (!/^[a-z]{2}$/.test(country)) throw new SourceValidationError("App Store 国家/地区代码应为两个字母");
-        return send(response, 200, await appStoreSearch({ term, country, limit: url.searchParams.get("limit") }));
+        const platform = (url.searchParams.get("platform") ?? "ios").trim().toLowerCase();
+        if (!new Set(["ios", "mac"]).has(platform)) throw new SourceValidationError("App Store 平台仅支持 iOS 或 macOS");
+        return send(response, 200, await appStoreSearch({ term, country, platform, limit: url.searchParams.get("limit") }));
       }
       if (request.method === "GET" && url.pathname === "/v1/catalog/github") {
         const query = url.searchParams.get("query")?.trim() ?? "";

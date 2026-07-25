@@ -17,8 +17,20 @@ test("App Store search normalizes official catalog results", async () => {
   assert.equal(requestedUrl.searchParams.get("media"), "software");
   assert.deepEqual(results, [{
     appId: "904280696", name: "Things 3", version: "3.21", developer: "Cultured Code", genre: "Productivity",
-    artworkUrl: "https://example.test/icon.png", url: "https://example.test/app", country: "us"
+    artworkUrl: "https://example.test/icon.png", url: "https://example.test/app", country: "us", platform: "ios"
   }]);
+});
+
+test("Mac App Store search uses Apple's macOS catalog entity", async () => {
+  let requestedUrl;
+  const results = await searchAppStore({ term: "Pixelmator", country: "us", platform: "mac" }, {
+    fetchText: async (url) => {
+      requestedUrl = new URL(url);
+      return JSON.stringify({ results: [{ trackId: 1289583905, trackName: "Pixelmator Pro", version: "4.0" }] });
+    }
+  });
+  assert.equal(requestedUrl.searchParams.get("entity"), "macSoftware");
+  assert.equal(results[0].platform, "mac");
 });
 
 test("GitHub repository search normalizes official repository results", async () => {

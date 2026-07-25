@@ -7,6 +7,7 @@ export class JsonEventStore {
   constructor(path) {
     this.path = path;
     this.state = null;
+    this.saveQueue = Promise.resolve();
   }
 
   async load() {
@@ -21,8 +22,14 @@ export class JsonEventStore {
   }
 
   async save() {
+    const task = this.saveQueue.then(() => this.writeState(), () => this.writeState());
+    this.saveQueue = task.catch(() => undefined);
+    return task;
+  }
+
+  async writeState() {
     await mkdir(dirname(this.path), { recursive: true });
-    const temporaryPath = `${this.path}.tmp`;
+    const temporaryPath = `${this.path}.${process.pid}.${crypto.randomUUID()}.tmp`;
     await writeFile(temporaryPath, `${JSON.stringify(this.state, null, 2)}\n`, "utf8");
     await rename(temporaryPath, this.path);
   }

@@ -1,7 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
+const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "mac-app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 export class SourceValidationError extends Error {}
 
@@ -56,7 +56,7 @@ export function normalizeSource(input, { id } = {}) {
     source.tagsFilter = Array.isArray(input.tagsFilter) ? [...new Set(input.tagsFilter.map((tag) => String(tag).trim()).filter(Boolean))] : [];
   }
   if (kind === "rss") source.feedUrl = validUrl(input.feedUrl, "RSS/Atom 地址");
-  if (kind === "app-store") {
+  if (["app-store", "mac-app-store"].includes(kind)) {
     source.appId = required(input.appId, "App Store 应用 ID");
     source.country = String(input.country || "us").trim().toLowerCase();
     source.subscriptionId = String(input.subscriptionId || "").trim();
@@ -112,61 +112,82 @@ export function normalizeSource(input, { id } = {}) {
 }
 
 export class JsonSourceStore {
-  constructor(path) { this.path = path; }
+  constructor(path) {
+    this.path = path;
+    this.writeQueue = Promise.resolve();
+  }
 
   async list() { return JSON.parse(await readFile(this.path, "utf8")); }
 
   async save(sources) {
     await mkdir(dirname(this.path), { recursive: true });
-    const temporaryPath = `${this.path}.tmp`;
+    const temporaryPath = `${this.path}.${process.pid}.${crypto.randomUUID()}.tmp`;
     await writeFile(temporaryPath, `${JSON.stringify(sources, null, 2)}\n`, "utf8");
     await rename(temporaryPath, this.path);
   }
 
+  // Source mutations may arrive from manual saves and one-click catalog adds together.
+  // Serializing read-modify-write prevents lost updates and shared temporary-file races.
+  async mutate(callback) {
+    const task = this.writeQueue.then(callback, callback);
+    this.writeQueue = task.catch(() => undefined);
+    return task;
+  }
+
   async create(input) {
-    const sources = await this.list();
-    const source = normalizeSource(input);
-    if (sources.some((candidate) => candidate.id === source.id)) throw new SourceValidationError("唯一 ID 已存在");
-    sources.push(source);
-    await this.save(sources);
-    return source;
+    return this.mutate(async () => {
+      const sources = await this.list();
+      const source = normalizeSource(input);
+      if (sources.some((candidate) => candidate.id === source.id)) throw new SourceValidationError("唯一 ID 已存在");
+      sources.push(source);
+      await this.save(sources);
+      return source;
+    });
   }
 
   async update(id, input) {
-    const sources = await this.list();
-    const index = sources.findIndex((source) => source.id === id);
-    if (index === -1) return null;
-    const source = normalizeSource({ ...sources[index], ...input }, { id });
-    sources[index] = source;
-    await this.save(sources);
-    return source;
+    return this.mutate(async () => {
+      const sources = await this.list();
+      const index = sources.findIndex((source) => source.id === id);
+      if (index === -1) return null;
+      const source = normalizeSource({ ...sources[index], ...input }, { id });
+      sources[index] = source;
+      await this.save(sources);
+      return source;
+    });
   }
 
   async remove(id) {
-    const sources = await this.list();
-    const remaining = sources.filter((source) => source.id !== id);
-    if (remaining.length === sources.length) return false;
-    await this.save(remaining);
-    return true;
+    return this.mutate(async () => {
+      const sources = await this.list();
+      const remaining = sources.filter((source) => source.id !== id);
+      if (remaining.length === sources.length) return false;
+      await this.save(remaining);
+      return true;
+    });
   }
 
   async removeMany(ids) {
-    const selected = new Set(ids.map((id) => String(id)));
-    if (!selected.size) return 0;
-    const sources = await this.list();
-    const remaining = sources.filter((source) => !selected.has(source.id));
-    const removed = sources.length - remaining.length;
-    if (removed) await this.save(remaining);
-    return removed;
+    return this.mutate(async () => {
+      const selected = new Set(ids.map((id) => String(id)));
+      if (!selected.size) return 0;
+      const sources = await this.list();
+      const remaining = sources.filter((source) => !selected.has(source.id));
+      const removed = sources.length - remaining.length;
+      if (removed) await this.save(remaining);
+      return removed;
+    });
   }
 
   async replaceAll(inputs) {
-    if (!Array.isArray(inputs)) throw new SourceValidationError("sources must be an array");
-    const sources = inputs.map((input) => normalizeSource(input));
-    if (new Set(sources.map((source) => source.id)).size !== sources.length) {
-      throw new SourceValidationError("Source IDs must be unique");
-    }
-    await this.save(sources);
-    return sources;
+    return this.mutate(async () => {
+      if (!Array.isArray(inputs)) throw new SourceValidationError("sources must be an array");
+      const sources = inputs.map((input) => normalizeSource(input));
+      if (new Set(sources.map((source) => source.id)).size !== sources.length) {
+        throw new SourceValidationError("Source IDs must be unique");
+      }
+      await this.save(sources);
+      return sources;
+    });
   }
 }

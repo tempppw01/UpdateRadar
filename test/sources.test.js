@@ -55,6 +55,17 @@ test("source store supports an Apple App Store source with an in-app purchase mo
   assert.equal(source.country, "us");
 });
 
+test("source store supports Mac App Store sources and serializes concurrent additions", async () => {
+  const store = await makeStore();
+  const [macApp, iosApp] = await Promise.all([
+    store.create({ id: "pixelmator-pro", name: "Pixelmator Pro", kind: "mac-app-store", appId: "1289583905", country: "us" }),
+    store.create({ id: "things-3", name: "Things 3", kind: "app-store", appId: "904280696", country: "us" })
+  ]);
+  assert.equal(macApp.kind, "mac-app-store");
+  assert.equal(iosApp.kind, "app-store");
+  assert.deepEqual((await store.list()).map((source) => source.id).sort(), ["pixelmator-pro", "things-3"]);
+});
+
 test("source store supports Docker Hub, QNAP, official websites, and Nintendo Switch sources", async () => {
   const store = await makeStore();
   const docker = await store.create({ id: "nginx-image", name: "NGINX", kind: "docker-hub", repository: "library/nginx", tagsFilter: ["latest"] });

@@ -15,6 +15,7 @@ const collectors = {
   "github-commits": collectGithubCommits,
   "docker-hub": collectDockerHub,
   "app-store": collectAppStore,
+  "mac-app-store": collectAppStore,
   "google-play": collectGooglePlay,
   "qnap-app": collectQnapApp,
   "official-website": collectOfficialWebsite,

@@ -8,7 +8,7 @@ UpdateRadar 将 GitHub Releases、应用商店、开源组件和 SaaS 官方更�
 
 ## 核心能力
 
-- **多渠道采集**：开箱即用支持 GitHub Releases、RSS/Atom、App Store 和 Google Play。
+- **多渠道采集**：开箱即用支持 GitHub Releases、RSS/Atom、App Store、Mac App Store 和 Google Play。
 - **统一更新流**：将版本、发布时间、原始链接、摘要和标签规范为同一种事件记录，并自动去重。
 - **网页控制台**：查看更新总览、来源状态和最新情报，可按标签或来源快速筛选。
 - **前端配置**：直接在“设置”中新增、编辑、启停或删除数据源，不需要手动改配置文件。
@@ -18,6 +18,7 @@ UpdateRadar 将 GitHub Releases、应用商店、开源组件和 SaaS 官方更�
 
 - **GitHub Releases**：Docker Engine、NGINX 或任意 GitHub 项目的正式版发布。
 - **App Store**：通过 Apple iTunes Lookup API 读取当前版本与发布说明。
+- **Mac App Store**：在网页设置中搜索 macOS 应用，并从 Apple 官方目录监控版本、价格、发布说明与截图。
 - **App Store 与内购价格**：通过 Apple 官方数据同时读取应用版本、发布说明，以及可选的订阅或其他内购套餐价格。
 - **Google Play**：从公开应用详情页的结构化数据读取版本信息。
 - **Docker Hub**：通过 Docker Hub 官方 Tags API 监控镜像标签、摘要和多架构镜像变更。
@@ -148,7 +149,7 @@ GitHub Releases 会保存每个发布包的名称、大小和官方下载地址�
 }
 ```
 
-`rss` 使用 `feedUrl`；`app-store` 使用 `appId`、可选的 `country`，并可填写 `subscriptionId`、`planName` 与 `storefrontId` 来监控同一应用的内购套餐；`google-play` 使用 `packageId`、可选的 `language`/`country`。版本号和内购价格会显示在同一应用的更新卡片中，价格变更也会生成该应用的更新事件。
+`rss` 使用 `feedUrl`；`app-store` 和 `mac-app-store` 使用 `appId`、可选的 `country`。iPhone / iPad 应用还可填写 `subscriptionId`、`planName` 与 `storefrontId` 来监控同一应用的内购套餐；`google-play` 使用 `packageId`、可选的 `language`/`country`。版本号和内购价格会显示在同一应用的更新卡片中，价格变更也会生成该应用的更新事件。
 
 仓库已包含 ChatGPT 案例：`app-store-6448311069`。它监控 ChatGPT 应用版本与美国 App Store 的 ChatGPT Plus 内购套餐 `oai_chatgpt_plus_1999_1m`。预设支持美国、中国大陆、日本、英国、加拿大、澳大利亚、德国、法国、印度、韩国、中国香港、中国台湾、新加坡、菲律宾和巴西；其他地区可填写 Apple Storefront ID。
 

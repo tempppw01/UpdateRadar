@@ -1,11 +1,12 @@
 import { fetchText } from "./lib/http.js";
 
-export async function searchAppStore({ term, country = "us", limit = 10 }, dependencies = { fetchText }) {
+export async function searchAppStore({ term, country = "us", platform = "ios", limit = 10 }, dependencies = { fetchText }) {
+  if (!new Set(["ios", "mac"]).has(platform)) throw new Error("Unsupported App Store platform");
   const url = new URL("https://itunes.apple.com/search");
   url.searchParams.set("term", term);
   url.searchParams.set("country", country);
   url.searchParams.set("media", "software");
-  url.searchParams.set("entity", "software");
+  url.searchParams.set("entity", platform === "mac" ? "macSoftware" : "software");
   url.searchParams.set("limit", String(Math.min(Math.max(Number(limit) || 10, 1), 20)));
   const payload = JSON.parse(await dependencies.fetchText(url));
 
@@ -17,7 +18,8 @@ export async function searchAppStore({ term, country = "us", limit = 10 }, depen
     genre: app.primaryGenreName || "App Store",
     artworkUrl: app.artworkUrl100 || app.artworkUrl60 || "",
     url: app.trackViewUrl || "",
-    country
+    country,
+    platform
   }));
 }
 
