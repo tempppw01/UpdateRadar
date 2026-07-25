@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { parseCompleteJsonDocuments } from "./lib/json-recovery.js";
 
 const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "mac-app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
 
@@ -117,7 +118,24 @@ export class JsonSourceStore {
     this.writeQueue = Promise.resolve();
   }
 
-  async list() { return JSON.parse(await readFile(this.path, "utf8")); }
+  async list() {
+    try {
+      return JSON.parse(await readFile(this.path, "utf8"));
+    } catch (error) {
+      const text = await readFile(this.path, "utf8");
+      const { documents, discardedTail } = parseCompleteJsonDocuments(text);
+      const sourcesById = new Map();
+      documents.filter(Array.isArray).flat().forEach((source) => {
+        if (source?.id) sourcesById.set(source.id, source);
+      });
+      if (!sourcesById.size) throw error;
+      const sources = [...sourcesById.values()];
+      await this.save(sources);
+      const recovery = discardedTail ? " and discarded a corrupted trailing fragment" : "";
+      console.warn(`Recovered ${documents.length} concatenated source snapshots${recovery} in ${this.path}`);
+      return sources;
+    }
+  }
 
   async save(sources) {
     await mkdir(dirname(this.path), { recursive: true });

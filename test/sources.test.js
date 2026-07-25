@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { JsonSourceStore, SourceValidationError } from "../src/sources.js";
@@ -64,6 +64,17 @@ test("source store supports Mac App Store sources and serializes concurrent addi
   assert.equal(macApp.kind, "mac-app-store");
   assert.equal(iosApp.kind, "app-store");
   assert.deepEqual((await store.list()).map((source) => source.id).sort(), ["pixelmator-pro", "things-3"]);
+});
+
+test("source store repairs concatenated snapshots with a truncated trailing fragment", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-source-recovery-"));
+  const path = join(directory, "sources.json");
+  const first = [{ id: "one", name: "One", kind: "rss", feedUrl: "https://example.test/one.xml" }];
+  const second = [{ id: "one", name: "One", kind: "rss", feedUrl: "https://example.test/one.xml" }, { id: "two", name: "Two", kind: "rss", feedUrl: "https://example.test/two.xml" }];
+  await writeFile(path, `${JSON.stringify(first)}\n${JSON.stringify(second)}\n[{"id":"partial"`);
+  const store = new JsonSourceStore(path);
+  assert.deepEqual((await store.list()).map((source) => source.id).sort(), ["one", "two"]);
+  assert.equal(JSON.parse(await readFile(path, "utf8")).length, 2);
 });
 
 test("source store supports Docker Hub, QNAP, official websites, and Nintendo Switch sources", async () => {
