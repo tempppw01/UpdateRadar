@@ -3,6 +3,59 @@ import { dirname } from "node:path";
 
 const emptyState = () => ({ events: [], lastSyncedAt: null, sourcePollState: {} });
 
+function parseJsonDocuments(text) {
+  const documents = [];
+  let offset = 0;
+  while (offset < text.length) {
+    while (/\s/.test(text[offset] ?? "")) offset += 1;
+    if (offset >= text.length) break;
+    if (!["{", "["].includes(text[offset])) throw new SyntaxError("事件数据不是 JSON 对象或数组");
+    const start = offset;
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (; offset < text.length; offset += 1) {
+      const character = text[offset];
+      if (inString) {
+        if (escaped) escaped = false;
+        else if (character === "\\") escaped = true;
+        else if (character === '"') inString = false;
+        continue;
+      }
+      if (character === '"') inString = true;
+      else if (character === "{" || character === "[") depth += 1;
+      else if (character === "}" || character === "]") {
+        depth -= 1;
+        if (depth === 0) {
+          documents.push(JSON.parse(text.slice(start, offset + 1)));
+          offset += 1;
+          break;
+        }
+      }
+    }
+    if (depth !== 0 || inString) throw new SyntaxError("事件数据不完整");
+  }
+  return documents;
+}
+
+function mergeEventDocuments(documents) {
+  const state = emptyState();
+  const eventsByFingerprint = new Map();
+  documents.forEach((document) => {
+    if (!document || Array.isArray(document) || typeof document !== "object") return;
+    (document.events ?? []).forEach((event) => {
+      const key = event?.fingerprint || event?.id;
+      if (key) eventsByFingerprint.set(key, event);
+    });
+    state.sourcePollState = { ...state.sourcePollState, ...(document.sourcePollState ?? {}) };
+    const previous = Date.parse(state.lastSyncedAt ?? "");
+    const candidate = Date.parse(document.lastSyncedAt ?? "");
+    if (Number.isFinite(candidate) && (!Number.isFinite(previous) || candidate > previous)) state.lastSyncedAt = document.lastSyncedAt;
+  });
+  state.events = [...eventsByFingerprint.values()];
+  return state;
+}
+
 export class JsonEventStore {
   constructor(path) {
     this.path = path;
@@ -15,8 +68,15 @@ export class JsonEventStore {
     try {
       this.state = JSON.parse(await readFile(this.path, "utf8"));
     } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-      this.state = emptyState();
+      if (error.code === "ENOENT") this.state = emptyState();
+      else {
+        const text = await readFile(this.path, "utf8");
+        const documents = parseJsonDocuments(text);
+        if (documents.length < 2) throw error;
+        this.state = mergeEventDocuments(documents);
+        await this.save();
+        console.warn(`Recovered ${documents.length} concatenated event snapshots in ${this.path}`);
+      }
     }
     return this.state;
   }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
@@ -185,6 +185,20 @@ test("event store persists the most recent completed sync time", async () => {
   const store = new JsonEventStore(join(directory, "events.json"));
   await store.markSyncedAt("2026-01-02T03:04:05.000Z");
   assert.equal(await store.lastSyncedAt(), "2026-01-02T03:04:05.000Z");
+});
+
+test("event store repairs concatenated JSON snapshots without losing events", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-recovery-"));
+  const path = join(directory, "events.json");
+  const first = { events: [{ id: "one", fingerprint: "one:v1", sourceId: "one" }], lastSyncedAt: "2026-01-01T00:00:00.000Z", sourcePollState: { one: { failureCount: 0 } } };
+  const second = { events: [{ id: "one", fingerprint: "one:v1", sourceId: "one" }, { id: "two", fingerprint: "two:v1", sourceId: "two" }], lastSyncedAt: "2026-01-02T00:00:00.000Z", sourcePollState: { two: { failureCount: 1 } } };
+  await writeFile(path, `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`);
+  const store = new JsonEventStore(path);
+  assert.equal((await store.list({ limit: 10 })).length, 2);
+  assert.equal(await store.lastSyncedAt(), "2026-01-02T00:00:00.000Z");
+  assert.deepEqual(Object.keys(await store.sourcePollStates()).sort(), ["one", "two"]);
+  const repaired = JSON.parse(await readFile(path, "utf8"));
+  assert.equal(repaired.events.length, 2);
 });
 
 test("scheduled source queue respects each source next-check time", () => {
