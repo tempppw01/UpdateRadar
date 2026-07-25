@@ -5,11 +5,15 @@ const emptyState = () => ({ events: [], lastSyncedAt: null, sourcePollState: {} 
 
 function parseJsonDocuments(text) {
   const documents = [];
+  let discardedTail = false;
   let offset = 0;
   while (offset < text.length) {
     while (/\s/.test(text[offset] ?? "")) offset += 1;
     if (offset >= text.length) break;
-    if (!["{", "["].includes(text[offset])) throw new SyntaxError("事件数据不是 JSON 对象或数组");
+    if (!["{", "["].includes(text[offset])) {
+      if (documents.length) { discardedTail = true; break; }
+      throw new SyntaxError("事件数据不是 JSON 对象或数组");
+    }
     const start = offset;
     let depth = 0;
     let inString = false;
@@ -33,9 +37,12 @@ function parseJsonDocuments(text) {
         }
       }
     }
-    if (depth !== 0 || inString) throw new SyntaxError("事件数据不完整");
+    if (depth !== 0 || inString) {
+      if (documents.length) { discardedTail = true; break; }
+      throw new SyntaxError("事件数据不完整");
+    }
   }
-  return documents;
+  return { documents, discardedTail };
 }
 
 function mergeEventDocuments(documents) {
@@ -71,11 +78,12 @@ export class JsonEventStore {
       if (error.code === "ENOENT") this.state = emptyState();
       else {
         const text = await readFile(this.path, "utf8");
-        const documents = parseJsonDocuments(text);
-        if (documents.length < 2) throw error;
+        const { documents, discardedTail } = parseJsonDocuments(text);
+        if (!documents.length) throw error;
         this.state = mergeEventDocuments(documents);
         await this.save();
-        console.warn(`Recovered ${documents.length} concatenated event snapshots in ${this.path}`);
+        const recovery = discardedTail ? " and discarded a corrupted trailing fragment" : "";
+        console.warn(`Recovered ${documents.length} concatenated event snapshots${recovery} in ${this.path}`);
       }
     }
     return this.state;

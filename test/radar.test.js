@@ -201,6 +201,16 @@ test("event store repairs concatenated JSON snapshots without losing events", as
   assert.equal(repaired.events.length, 2);
 });
 
+test("event store repairs a complete snapshot followed by an incomplete JSON fragment", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-truncated-recovery-"));
+  const path = join(directory, "events.json");
+  const state = { events: [{ id: "one", fingerprint: "one:v1", sourceId: "one" }], lastSyncedAt: "2026-01-01T00:00:00.000Z", sourcePollState: {} };
+  await writeFile(path, `${JSON.stringify(state)}\n{"events":[`);
+  const store = new JsonEventStore(path);
+  assert.equal((await store.list({ limit: 10 })).length, 1);
+  assert.deepEqual(JSON.parse(await readFile(path, "utf8")).events.map((event) => event.id), ["one"]);
+});
+
 test("scheduled source queue respects each source next-check time", () => {
   const now = Date.parse("2026-01-01T01:00:00Z");
   const { due, skipped } = sourcesDueForPolling([{ id: "recent", enabled: true }, { id: "old", enabled: true }, { id: "always", enabled: true }], { recent: { nextCheckAt: "2026-01-01T01:30:00Z" }, old: { nextCheckAt: "2025-12-31T23:00:00Z" } }, now);
