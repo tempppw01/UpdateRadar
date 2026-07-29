@@ -85,13 +85,14 @@ export class JsonEventStore {
     return true;
   }
 
-  async list({ sourceId, tag, limit = 50 } = {}) {
+  async list({ sourceId, kind, tag, limit = 50 } = {}) {
     const state = await this.load();
     return state.events
       .filter((event) => !sourceId || event.sourceId === sourceId)
+      .filter((event) => !kind || event.sourceKind === kind)
       .filter((event) => !tag || event.tags.includes(tag))
       .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt))
-      .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 10000));
+      .slice(0, Math.min(Math.max(Number(limit) || 50, 1), 10_000));
   }
 
   async latestDetectedAtBySource() {

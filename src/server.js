@@ -146,6 +146,12 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       if (request.method === "GET" && url.pathname === "/v1/settings/translation") {
         return send(response, 200, await settingsRepository.publicTranslation());
       }
+      if (request.method === "GET" && url.pathname === "/v1/settings/events") {
+        return send(response, 200, await settingsRepository.events());
+      }
+      if (request.method === "PUT" && url.pathname === "/v1/settings/events") {
+        return send(response, 200, await settingsRepository.updateEvents(await requestBody(request)));
+      }
       if (request.method === "PUT" && url.pathname === "/v1/settings/translation") {
         await settingsRepository.updateTranslation(await requestBody(request));
         return send(response, 200, await settingsRepository.publicTranslation());
@@ -166,7 +172,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       }
       if (request.method === "GET" && url.pathname === "/v1/backup") {
         const translation = await settingsRepository.publicTranslation();
-        return send(response, 200, { version: 1, exportedAt: new Date().toISOString(), sources: await getSources(), translation });
+        return send(response, 200, { version: 1, exportedAt: new Date().toISOString(), sources: await getSources(), events: await settingsRepository.events(), translation });
       }
       if (request.method === "POST" && url.pathname === "/v1/backup") {
         const backup = await requestBody(request);
@@ -179,6 +185,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
             targetLanguage: backup.translation.targetLanguage
           });
         }
+        if (backup.events && typeof backup.events === "object") await settingsRepository.updateEvents(backup.events);
         await store.removeOutsideSourceIds(sources.map((source) => source.id));
         return send(response, 200, { sources: sources.length });
       }
@@ -208,6 +215,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         await store.removeOutsideSourceIds(activeSources.map((source) => source.id));
         return send(response, 200, await store.list({
           sourceId: url.searchParams.get("sourceId") ?? undefined,
+          kind: url.searchParams.get("kind") ?? undefined,
           tag: url.searchParams.get("tag") ?? undefined,
           limit: url.searchParams.get("limit") ?? undefined
         }));

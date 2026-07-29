@@ -39,6 +39,15 @@ test("translation settings do not expose or erase a saved API key", async () => 
   assert.deepEqual(await store.publicTranslation(), { baseUrl: "https://api.example.test/v1", model: "new-model", targetLanguage: "简体中文", apiKeyConfigured: true });
 });
 
+test("event display settings default to 200 per category and persist changes", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-settings-"));
+  const store = new JsonSettingsStore(join(directory, "settings.json"));
+  assert.deepEqual(await store.events(), { limitPerCategory: 200 });
+  await store.updateEvents({ limitPerCategory: 350 });
+  assert.deepEqual(await store.events(), { limitPerCategory: 350 });
+  await assert.rejects(() => store.updateEvents({ limitPerCategory: 0 }), /1 到 10000/);
+});
+
 test("model listing uses the OpenAI-compatible models endpoint", async () => {
   let request;
   const models = await listModels({ baseUrl: "https://api.example.test/v1", apiKey: "secret" }, async (url, options) => {

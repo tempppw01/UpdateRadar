@@ -164,6 +164,14 @@ test("polling records a new update only once", async () => {
   assert.equal((await store.list({ tag: "dev" })).length, 1);
 });
 
+test("event store filters updates by source category", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-category-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  await store.insert({ id: "release", name: "Release", kind: "github-releases", tags: [] }, { externalId: "1", title: "Release", url: "https://example.test/1", publishedAt: "2026-01-01T00:00:00Z" });
+  await store.insert({ id: "commit", name: "Commit", kind: "github-commits", tags: [] }, { externalId: "2", title: "Commit", url: "https://example.test/2", publishedAt: "2026-01-02T00:00:00Z" });
+  assert.deepEqual((await store.list({ kind: "github-commits" })).map((event) => event.sourceId), ["commit"]);
+});
+
 test("polling limits concurrent source requests", async () => {
   let active = 0;
   let maximum = 0;

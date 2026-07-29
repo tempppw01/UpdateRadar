@@ -116,6 +116,8 @@ POLL_BATCH_SIZE=12
 
 GitHub Releases 会保存每个发布包的名称、大小和官方下载地址。时间线中点击“发布详情”可查看完整发布说明；有发布包时，点击“下载发布包”即可展开下载列表。
 
+在“数据源设置”的“更新显示数量”中可设置每个分类的最新更新数量，默认每类 200 条。首页的“全部”会合并每个分类各自保留的记录，不再由一个总数上限截断。
+
 翻译服务使用 OpenAI 兼容的 Chat Completions 接口。在“数据源设置”底部填写接口地址（例如 `https://api.example.com/v1`）、模型和 API Key；密钥只保存于服务器的 `data/settings.json`，不会由读取设置接口返回，也不会提交到 Git。配置后可在发布详情中将说明翻译为简体中文。
 
 监控卡片中的 GitHub、RSS、App Store 与 Google Play 图标通过 [Simple Icons CDN](https://cdn.simpleicons.org/) 引用；其中 App Store 图标为 `https://cdn.simpleicons.org/appstore/10232e`。
@@ -130,7 +132,8 @@ GitHub Releases 会保存每个发布包的名称、大小和官方下载地址�
 | `PUT` | `/v1/sources/:id` | 更新数据源配置 |
 | `DELETE` | `/v1/sources/:id` | 删除数据源 |
 | `POST` | `/v1/poll` | 立即采集全部启用的数据源 |
-| `GET` | `/v1/events?sourceId=&tag=&limit=` | 查询更新事件，最大 200 条 |
+| `GET` | `/v1/events?sourceId=&kind=&tag=&limit=` | 查询更新事件，单次最多 1000 条 |
+| `GET` / `PUT` | `/v1/settings/events` | 读取或设置每个分类的显示数量 |
 
 ## 添加监控目标
 

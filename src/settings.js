@@ -1,7 +1,10 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
-const defaults = { translation: { baseUrl: "https://ai.shuaihong.fun/v1", apiKey: "", model: "", targetLanguage: "简体中文" } };
+const defaults = {
+  events: { limitPerCategory: 200 },
+  translation: { baseUrl: "https://ai.shuaihong.fun/v1", apiKey: "", model: "", targetLanguage: "简体中文" }
+};
 
 export class JsonSettingsStore {
   constructor(path) { this.path = path; }
@@ -9,7 +12,12 @@ export class JsonSettingsStore {
   async load() {
     try {
       const saved = JSON.parse(await readFile(this.path, "utf8"));
-      return { ...defaults, ...saved, translation: { ...defaults.translation, ...(saved.translation ?? {}) } };
+      return {
+        ...defaults,
+        ...saved,
+        events: { ...defaults.events, ...(saved.events ?? {}) },
+        translation: { ...defaults.translation, ...(saved.translation ?? {}) }
+      };
     } catch (error) {
       if (error.code === "ENOENT") return structuredClone(defaults);
       throw error;
@@ -24,6 +32,19 @@ export class JsonSettingsStore {
   }
 
   async translation() { return (await this.load()).translation; }
+
+  async events() { return (await this.load()).events; }
+
+  async updateEvents(input) {
+    const current = await this.load();
+    const limitPerCategory = Number(input.limitPerCategory ?? current.events.limitPerCategory);
+    if (!Number.isInteger(limitPerCategory) || limitPerCategory < 1 || limitPerCategory > 10_000) {
+      throw new Error("每个分类的更新数量应为 1 到 10000 的整数");
+    }
+    current.events = { limitPerCategory };
+    await this.save(current);
+    return current.events;
+  }
 
   async updateTranslation(input) {
     const current = await this.load();

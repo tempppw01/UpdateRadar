@@ -1,11 +1,5 @@
 const savedCardColumns = Number(localStorage.getItem("update-radar-card-columns"));
-const savedEventLimit = Number(localStorage.getItem("update-radar-event-limit"));
-const EVENT_LIMIT_MIN = 1000;
-const EVENT_LIMIT_MAX = 10000;
-function normalizeEventLimit(value) {
-  return Math.min(EVENT_LIMIT_MAX, Math.max(EVENT_LIMIT_MIN, Number(value) || EVENT_LIMIT_MIN));
-}
-const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, eventLimit: normalizeEventLimit(savedEventLimit), expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false, syncInFlight: null };
+const state = { events: [], sources: [], lastSyncedAt: null, tag: "", sourceId: "", search: "", eventPage: 1, visibleEventSourceIds: [], eventView: localStorage.getItem("update-radar-event-view") || "list", eventCardColumns: [1, 2, 3].includes(savedCardColumns) ? savedCardColumns : 3, expandedEventSourceIds: new Set(), editingSourceId: null, selectedSourceIds: new Set(), activeEvent: null, activeTranslation: "", translationView: "original", translationRequestVersion: 0, translating: false, contextSourceId: null, sourceAutoSaveTimer: null, sourceAutoSavePromise: null, sourceEditorSession: 0, sourceChangeVersion: 0, sourceAutoSaveInFlight: false, syncInFlight: null };
 const elements = {
   eventCount: document.querySelector("#event-count"),
   sourceCount: document.querySelector("#source-count"),
@@ -19,7 +13,6 @@ const elements = {
   eventViewButtons: [...document.querySelectorAll("[data-event-view]")],
   cardColumnsControl: document.querySelector("#card-columns-control"),
   cardColumns: document.querySelector("#card-columns"),
-  eventLimit: document.querySelector("#event-limit"),
   resultsCount: document.querySelector("#results-count"),
   syncButton: document.querySelector("#sync-button"),
   syncPageButton: document.querySelector("#sync-page-button"),
@@ -73,6 +66,10 @@ const elements = {
   translationApiKey: document.querySelector("#translation-api-key"),
   translationTargetLanguage: document.querySelector("#translation-target-language"),
   saveTranslationSettings: document.querySelector("#save-translation-settings"),
+  eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
+  saveEventsSettings: document.querySelector("#save-events-settings"),
+  eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
+  saveEventsSettings: document.querySelector("#save-events-settings"),
   eventDialog: document.querySelector("#event-dialog"),
   eventDialogTitle: document.querySelector("#event-dialog-title"),
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
@@ -195,7 +192,6 @@ function applyEventView(view) {
 }
 
 applyEventView(state.eventView);
-elements.eventLimit.value = String(state.eventLimit);
 
 function dismissWelcome() {
   localStorage.setItem("update-radar-welcome-dismissed", "true");
@@ -445,7 +441,7 @@ async function loadEventHistory(event) {
   setEventHistoryExpanded(false);
   if (!event.sourceId) return;
   try {
-    const events = await requestJson(`/v1/events?${new URLSearchParams({ sourceId: event.sourceId, limit: String(state.eventLimit) })}`);
+    const events = await requestJson(`/v1/events?${new URLSearchParams({ sourceId: event.sourceId, limit: "10000" })}`);
     if (state.activeEvent?.id !== event.id) return;
     renderEventHistory(events, event.id);
   } catch {
@@ -667,7 +663,6 @@ function eventDisplayTags(event) {
 function renderEvents() {
   const events = state.events.filter((event) => (!state.tag || eventCategories(event).includes(state.tag)) && (!state.sourceId || event.sourceId === state.sourceId) && matchesEventSearch(event));
   elements.resultsCount.textContent = `DISPLAYING ${events.length} SIGNAL${events.length === 1 ? "" : "S"}`;
-  if (events.length >= state.eventLimit) elements.resultsCount.textContent += ` · LIMIT ${state.eventLimit}`;
   elements.eventList.replaceChildren();
   elements.eventPagination.replaceChildren();
   if (!events.length) {
@@ -970,6 +965,9 @@ function openSettings() {
     elements.translationTargetLanguage.value = config.targetLanguage || "简体中文";
     elements.translationApiKey.value = "";
   }).catch(() => showToast("无法读取翻译设置", "error"));
+  requestJson("/v1/settings/events").then((config) => {
+    elements.eventsLimitPerCategory.value = config.limitPerCategory;
+  }).catch(() => showToast("无法读取更新显示数量", "error"));
   elements.settingsDialog.showModal();
 }
 
@@ -1343,7 +1341,11 @@ async function requestJson(url, options) {
 }
 
 async function load() {
-  const [sources, events, syncStatus] = await Promise.all([requestJson("/v1/sources"), requestJson(`/v1/events?${new URLSearchParams({ limit: String(state.eventLimit) })}`), requestJson("/v1/sync-status")]);
+  const [sources, eventSettings, syncStatus] = await Promise.all([requestJson("/v1/sources"), requestJson("/v1/settings/events"), requestJson("/v1/sync-status")]);
+  const categories = [...new Set(sources.map((source) => source.kind))];
+  const eventLists = await Promise.all(categories.map((kind) => requestJson(`/v1/events?${new URLSearchParams({ kind, limit: String(eventSettings.limitPerCategory) })}`)));
+  const events = [...new Map(eventLists.flat().map((event) => [event.id, event])).values()]
+    .sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   state.sources = sources;
   state.events = events;
   state.lastSyncedAt = syncStatus.lastSyncedAt ?? null;
@@ -1384,19 +1386,6 @@ elements.cardColumns.addEventListener("change", (event) => {
   state.eventCardColumns = Number(event.target.value);
   localStorage.setItem("update-radar-card-columns", String(state.eventCardColumns));
   applyEventView(state.eventView);
-});
-elements.eventLimit.addEventListener("change", async () => {
-  const nextLimit = normalizeEventLimit(elements.eventLimit.value);
-  if (nextLimit === state.eventLimit) {
-    elements.eventLimit.value = String(nextLimit);
-    return;
-  }
-  state.eventLimit = nextLimit;
-  state.eventPage = 1;
-  elements.eventLimit.value = String(nextLimit);
-  localStorage.setItem("update-radar-event-limit", String(nextLimit));
-  showToast(`首页加载上限已改为 ${nextLimit} 条`);
-  await load();
 });
 elements.settingsButton.addEventListener("click", openSettings);
 elements.quickAddSource.addEventListener("click", openSettings);
@@ -1462,6 +1451,16 @@ elements.saveTranslationSettings.addEventListener("click", async () => {
     elements.translationApiKey.value = "";
     showToast("翻译设置已保存");
   } catch (error) { showToast(`无法保存翻译设置：${error.message}`, "error"); }
+});
+elements.saveEventsSettings.addEventListener("click", async () => {
+  try {
+    await requestJson("/v1/settings/events", {
+      method: "PUT", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ limitPerCategory: Number(elements.eventsLimitPerCategory.value) })
+    });
+    await load();
+    showToast("每个分类的显示数量已保存");
+  } catch (error) { showToast(`无法保存显示数量：${error.message}`, "error"); }
 });
 elements.loadTranslationModels.addEventListener("click", loadTranslationModels);
 elements.translationModel.addEventListener("focus", () => {
