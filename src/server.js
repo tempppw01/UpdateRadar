@@ -16,6 +16,8 @@ const defaultSourcesPath = process.env.DEFAULT_SOURCES_PATH ?? join(root, "defau
 const eventStore = new JsonEventStore(process.env.EVENTS_PATH ?? join(root, "data/events.json"));
 const sourceStore = new JsonSourceStore(sourcesPath);
 const settingsStore = new JsonSettingsStore(process.env.SETTINGS_PATH ?? join(root, "data/settings.json"));
+const requestBodyLimitBytes = 100 * 1024;
+const backupBodyLimitBytes = 5 * 1024 * 1024;
 
 function pollingTickMs(value = process.env.POLL_TICK_SECONDS ?? "60") {
   const seconds = Number(value);
@@ -47,14 +49,17 @@ function send(response, status, body) {
   response.end(`${JSON.stringify(body)}\n`);
 }
 
-async function requestBody(request) {
-  let text = "";
+async function requestBody(request, { maxBytes = requestBodyLimitBytes } = {}) {
+  const chunks = [];
+  let size = 0;
   for await (const chunk of request) {
-    text += chunk;
-    if (text.length > 100_000) throw new SourceValidationError("请求内容过大");
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buffer.length;
+    if (size > maxBytes) throw new SourceValidationError("请求内容过大");
+    chunks.push(buffer);
   }
   try {
-    return JSON.parse(text || "{}");
+    return JSON.parse(Buffer.concat(chunks).toString("utf8") || "{}");
   } catch {
     throw new SourceValidationError("请求内容必须是 JSON");
   }
@@ -175,7 +180,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         return send(response, 200, { version: 1, exportedAt: new Date().toISOString(), sources: await getSources(), events: await settingsRepository.events(), translation });
       }
       if (request.method === "POST" && url.pathname === "/v1/backup") {
-        const backup = await requestBody(request);
+        const backup = await requestBody(request, { maxBytes: backupBodyLimitBytes });
         if (backup.version !== 1) throw new SourceValidationError("Unsupported backup version");
         const sources = await sourceRepository.replaceAll(backup.sources);
         if (backup.translation && typeof backup.translation === "object") {
