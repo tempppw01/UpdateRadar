@@ -66,12 +66,15 @@
 html[data-theme="dark"] .event-group-toggle { color: #a8c1bd; }
 .translate-button,.bulk-delete-button,.download-button { border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); text-decoration: none; }
 .theme-toggle { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 7px 9px; font: 500 10px var(--mono); letter-spacing: .04em; }
-.signal-heading-title { display: flex; align-items: end; gap: 18px; }
-.signal-actions { display: flex; align-items: center; gap: 9px; }
-.event-view-toggle { display: flex; height: 42px; border: 1px solid var(--ink); }.event-view-toggle button { min-width: 61px; border: 0; border-right: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 0 11px; font: 500 10px var(--mono); }.event-view-toggle button:last-child { border-right: 0; }.event-view-toggle button.active { background: var(--lime); color: #10232e; }
-.card-columns-control { display: flex; height: 42px; align-items: center; gap: 7px; border: 1px solid var(--ink); padding: 0 9px; color: #587170; font: 500 9px var(--mono); letter-spacing: .04em; white-space: nowrap; }.card-columns-control select { border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); padding: 5px 3px 5px 8px; font: 500 10px var(--mono); }
-.quick-add-button,.sync-button,.sync-page-button { min-height: 42px; white-space: nowrap; }
-.quick-add-button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 0 13px; font: 500 10px var(--mono); letter-spacing: .04em; }
+.signal-heading-title { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.signal-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.event-view-toggle { display: flex; height: 44px; border: 1px solid var(--ink); background: transparent; }
+.event-view-toggle button { min-width: 61px; height: 42px; border: 0; border-right: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 0 11px; font: 500 10px var(--mono); letter-spacing: .03em; }
+.event-view-toggle button:last-child { border-right: 0; }.event-view-toggle button.active { background: var(--lime); color: #10232e; }
+.card-columns-control { display: flex; height: 44px; min-height: 44px; align-items: center; gap: 7px; border: 1px solid var(--ink); padding: 0 10px; color: #587170; font: 500 10px var(--mono); letter-spacing: .03em; white-space: nowrap; }
+.card-columns-control select { height: 42px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); padding: 5px 3px 5px 8px; font: 500 10px var(--mono); }
+.quick-add-button,.sync-button,.sync-page-button { min-height: 44px; border-radius: 0; white-space: nowrap; font: 500 10px var(--mono); letter-spacing: .03em; }
+.quick-add-button { border: 1px solid var(--ink); background: transparent; color: var(--ink); padding: 0 13px; }
 .quick-add-button:hover { background: var(--lime); color: #10232e; }
 .source-grid { display: block!important; border-top: 1px solid var(--ink); }
 .source-card.source-row { display: grid; grid-template-columns: 200px minmax(150px,1fr) 130px minmax(180px,1.4fr); gap: 18px; align-items: center; min-height: 0; padding: 15px 17px; border: 0; border-bottom: 1px solid var(--line); background: transparent; }
