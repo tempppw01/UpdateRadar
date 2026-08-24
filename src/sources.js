@@ -12,12 +12,87 @@ function required(value, field) {
   return text;
 }
 
-function validUrl(value, field) {
+function isPrivateOrLocalhost(hostname) {
+  // 标准化主机名为小写
+  const host = hostname.toLowerCase();
+  
+  // 检查 localhost 和 127.x.x.x
+  if (host === "localhost" || host.startsWith("127.")) return true;
+  
+  // 检查 IPv6 localhost
+  if (host === "::1" || host === "[::1]") return true;
+  
+  // 检查 0.0.0.0
+  if (host === "0.0.0.0") return true;
+  
+  // 检查常见内网域名
+  const localDomains = [".local", ".internal", ".private", ".localhost"];
+  if (localDomains.some(domain => host.endsWith(domain))) return true;
+  
+  // 尝试解析为 IPv4 地址
+  const ipv4Match = host.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (ipv4Match) {
+    const octets = ipv4Match.slice(1, 5).map(Number);
+    // 验证每个八位组在 0-255 范围内
+    if (octets.some(octet => octet < 0 || octet > 255)) return false;
+    
+    const [a, b, c, d] = octets;
+    
+    // 10.0.0.0/8 - 私有网络 A 类
+    if (a === 10) return true;
+    
+    // 172.16.0.0/12 - 私有网络 B 类
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    
+    // 192.168.0.0/16 - 私有网络 C 类
+    if (a === 192 && b === 168) return true;
+    
+    // 169.254.0.0/16 - Link-local 地址（包括云服务元数据 169.254.169.254）
+    if (a === 169 && b === 254) return true;
+    
+    // 127.0.0.0/8 - 环回地址
+    if (a === 127) return true;
+    
+    // 0.0.0.0/8 - 当前网络
+    if (a === 0) return true;
+    
+    // 224.0.0.0/4 - 组播地址
+    if (a >= 224 && a <= 239) return true;
+    
+    // 240.0.0.0/4 - 保留地址
+    if (a >= 240) return true;
+    
+    // 100.64.0.0/10 - 共享地址空间（RFC 6598）
+    if (a === 100 && b >= 64 && b <= 127) return true;
+  }
+  
+  // 检查 IPv6 私有地址（简化版）
+  if (host.includes(":")) {
+    const ipv6Lower = host.replace(/[\[\]]/g, "");
+    // fc00::/7 - 唯一本地地址
+    if (ipv6Lower.startsWith("fc") || ipv6Lower.startsWith("fd")) return true;
+    // fe80::/10 - 链路本地地址
+    if (ipv6Lower.startsWith("fe8") || ipv6Lower.startsWith("fe9") || 
+        ipv6Lower.startsWith("fea") || ipv6Lower.startsWith("feb")) return true;
+  }
+  
+  return false;
+}
+
+function validUrl(value, field, { allowPrivate = false } = {}) {
   const text = required(value, field);
   try {
     const url = new URL(text);
-    if (!["http:", "https:"].includes(url.protocol)) throw new Error();
-  } catch {
+    if (!["http:", "https:"].includes(url.protocol)) {
+      throw new SourceValidationError(`${field}必须是有效的 http(s) 地址`);
+    }
+    
+    // SSRF 防护：阻止访问内网地址
+    if (!allowPrivate && isPrivateOrLocalhost(url.hostname)) {
+      throw new SourceValidationError(`${field}不能指向内网或本地地址`);
+    }
+  } catch (error) {
+    if (error instanceof SourceValidationError) throw error;
     throw new SourceValidationError(`${field}必须是有效的 http(s) 地址`);
   }
   return text;
