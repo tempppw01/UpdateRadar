@@ -1,10 +1,12 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { isPrivateOrLocalhost } from "./sources.js";
+import { defaultNotificationSettings, validateNotificationSettings } from "./notification.js";
 
 const defaults = {
   events: { limitPerCategory: 200 },
-  translation: { baseUrl: "https://ai.shuaihong.fun/v1", apiKey: "", model: "", targetLanguage: "简体中文" }
+  translation: { baseUrl: "https://ai.shuaihong.fun/v1", apiKey: "", model: "", targetLanguage: "简体中文" },
+  notification: defaultNotificationSettings()
 };
 
 export class JsonSettingsStore {
@@ -15,10 +17,11 @@ export class JsonSettingsStore {
       const saved = JSON.parse(await readFile(this.path, "utf8"));
       return {
         ...defaults,
-        ...saved,
-        events: { ...defaults.events, ...(saved.events ?? {}) },
-        translation: { ...defaults.translation, ...(saved.translation ?? {}) }
-      };
+    ...saved,
+    events: { ...defaults.events, ...(saved.events ?? {}) },
+    translation: { ...defaults.translation, ...(saved.translation ?? {}) },
+    notification: { ...defaults.notification, ...(saved.notification ?? {}) }
+  };
     } catch (error) {
       if (error.code === "ENOENT") return structuredClone(defaults);
       throw error;
@@ -69,5 +72,24 @@ export class JsonSettingsStore {
   async publicTranslation() {
     const config = await this.translation();
     return { baseUrl: config.baseUrl, model: config.model, targetLanguage: config.targetLanguage, apiKeyConfigured: Boolean(config.apiKey) };
+  }
+
+  async notification() {
+    return (await this.load()).notification;
+  }
+
+  async updateNotification(input) {
+    const current = await this.load();
+    current.notification = validateNotificationSettings(input);
+    await this.save(current);
+    // 返回时隐藏密码
+    const { password, ...safe } = current.notification.email;
+    return { email: { ...safe, passwordConfigured: Boolean(password) } };
+  }
+
+  async publicNotification() {
+    const config = await this.notification();
+    const { password, ...safe } = config.email;
+    return { email: { ...safe, passwordConfigured: Boolean(password) } };
   }
 }

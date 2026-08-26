@@ -65,11 +65,19 @@ const elements = {
   loadTranslationModels: document.querySelector("#load-translation-models"),
   translationApiKey: document.querySelector("#translation-api-key"),
   translationTargetLanguage: document.querySelector("#translation-target-language"),
-  saveTranslationSettings: document.querySelector("#save-translation-settings"),
+ saveTranslationSettings: document.querySelector("#save-translation-settings"),
   eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
   saveEventsSettings: document.querySelector("#save-events-settings"),
-  eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
-  saveEventsSettings: document.querySelector("#save-events-settings"),
+  notificationEmailEnabled: document.querySelector("#notification-email-enabled"),
+  notificationSmtpHost: document.querySelector("#notification-smtp-host"),
+  notificationSmtpPort: document.querySelector("#notification-smtp-port"),
+  notificationSmtpSecure: document.querySelector("#notification-smtp-secure"),
+  notificationSmtpUser: document.querySelector("#notification-smtp-user"),
+  notificationSmtpPassword: document.querySelector("#notification-smtp-password"),
+  notificationSmtpFrom: document.querySelector("#notification-smtp-from"),
+  notificationSmtpTo: document.querySelector("#notification-smtp-to"),
+  testNotificationEmail: document.querySelector("#test-notification-email"),
+  saveNotificationSettings: document.querySelector("#save-notification-settings"),
   eventDialog: document.querySelector("#event-dialog"),
   eventDialogTitle: document.querySelector("#event-dialog-title"),
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
@@ -1591,3 +1599,80 @@ load().catch((error) => {
   elements.eventList.innerHTML = `<div class="empty">无法载入雷达数据：${error.message}</div>`;
   showToast("无法连接到 UpdateRadar 服务", "error");
 });
+
+// 邮件通知设置
+async function loadNotificationSettings() {
+  try {
+    const settings = await requestJson("/v1/settings/notification");
+    const email = settings.email || {};
+    elements.notificationEmailEnabled.checked = email.enabled === true;
+    elements.notificationSmtpHost.value = email.host || "";
+    elements.notificationSmtpPort.value = email.port || 465;
+    elements.notificationSmtpSecure.checked = email.secure !== false;
+    elements.notificationSmtpUser.value = email.user || "";
+    elements.notificationSmtpPassword.value = "";
+    elements.notificationSmtpPassword.placeholder = email.passwordConfigured ? "已配置（留空保持不变）" : "请输入密码";
+    elements.notificationSmtpFrom.value = email.from || "";
+    elements.notificationSmtpTo.value = email.to || "";
+  } catch (error) {
+    console.error("加载通知设置失败:", error);
+  }
+}
+
+elements.saveNotificationSettings.addEventListener("click", async () => {
+  try {
+    const body = {
+      email: {
+        enabled: elements.notificationEmailEnabled.checked,
+        host: elements.notificationSmtpHost.value.trim(),
+        port: Number(elements.notificationSmtpPort.value) || 465,
+        secure: elements.notificationSmtpSecure.checked,
+        user: elements.notificationSmtpUser.value.trim(),
+        password: elements.notificationSmtpPassword.value,
+        from: elements.notificationSmtpFrom.value.trim(),
+        to: elements.notificationSmtpTo.value.trim()
+      }
+    };
+    await requestJson("/v1/settings/notification", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    await loadNotificationSettings();
+    showToast("通知设置已保存");
+  } catch (error) {
+    showToast(`无法保存通知设置：${error.message}`, "error");
+  }
+});
+
+elements.testNotificationEmail.addEventListener("click", async () => {
+  try {
+    elements.testNotificationEmail.disabled = true;
+    elements.testNotificationEmail.textContent = "发送中...";
+    
+    const body = {
+      host: elements.notificationSmtpHost.value.trim(),
+      port: Number(elements.notificationSmtpPort.value) || 465,
+      secure: elements.notificationSmtpSecure.checked,
+      user: elements.notificationSmtpUser.value.trim(),
+      password: elements.notificationSmtpPassword.value,
+      from: elements.notificationSmtpFrom.value.trim() || elements.notificationSmtpUser.value.trim(),
+      to: elements.notificationSmtpTo.value.trim()
+    };
+    
+    await requestJson("/v1/settings/notification/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    
+    showToast("测试邮件已发送，请检查收件箱");
+  } catch (error) {
+    showToast(`发送测试邮件失败：${error.message}`, "error");
+  } finally {
+    elements.testNotificationEmail.disabled = false;
+    elements.testNotificationEmail.textContent = "发送测试邮件";
+  }
+});
+
+elements.settingsButton.addEventListener("click", loadNotificationSettings);

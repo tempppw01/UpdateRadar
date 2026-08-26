@@ -8,6 +8,7 @@ import { JsonSourceStore, SourceValidationError } from "./sources.js";
 import { JsonEventStore } from "./store.js";
 import { JsonSettingsStore } from "./settings.js";
 import { listModels, translateText } from "./translation.js";
+import { sendNotifications } from "./notification.js";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const publicPath = join(root, "public");
@@ -97,9 +98,24 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         const { due } = sourcesDueForPolling(selectedSources, await store.sourcePollStates());
         results = await pollAll(due.slice(0, pollingBatchSize()), { store });
       }
-      await store.recordPollResults(results, selectedSources);
-      await store.markSyncedAt();
-      return results;
+     await store.recordPollResults(results, selectedSources);
+     await store.markSyncedAt();
+      // 发送更新通知
+      const newEvents = results.filter((r) => r.ok && r.inserted > 0);
+      if (newEvents.length) {
+        try {
+          const allEvents = await store.list({ limit: 100 });
+          const recentEventIds = new Set(newEvents.map((r) => r.sourceId));
+          const eventsToNotify = allEvents.filter((e) => recentEventIds.has(e.sourceId)).slice(0, 20);
+          if (eventsToNotify.length) {
+            const notificationSettings = await settingsRepository.notification();
+            await sendNotifications(eventsToNotify, selectedSources, notificationSettings);
+          }
+        } catch (error) {
+          console.error("发送通知失败:", error.message);
+        }
+      }
+     return results;
     })().finally(() => { activePoll = null; });
     return activePoll;
   };
@@ -157,11 +173,34 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       if (request.method === "PUT" && url.pathname === "/v1/settings/events") {
         return send(response, 200, await settingsRepository.updateEvents(await requestBody(request)));
       }
-      if (request.method === "PUT" && url.pathname === "/v1/settings/translation") {
-        await settingsRepository.updateTranslation(await requestBody(request));
-        return send(response, 200, await settingsRepository.publicTranslation());
+     if (request.method === "PUT" && url.pathname === "/v1/settings/translation") {
+       await settingsRepository.updateTranslation(await requestBody(request));
+       return send(response, 200, await settingsRepository.publicTranslation());
+     }
+      if (request.method === "GET" && url.pathname === "/v1/settings/notification") {
+        return send(response, 200, await settingsRepository.publicNotification());
       }
-      if (request.method === "POST" && url.pathname === "/v1/translate") {
+      if (request.method === "PUT" && url.pathname === "/v1/settings/notification") {
+        return send(response, 200, await settingsRepository.updateNotification(await requestBody(request)));
+      }
+      if (request.method === "POST" && url.pathname === "/v1/settings/notification/test") {
+        const body = await requestBody(request);
+        const { sendEmail } = await import("./lib/email.js");
+        await sendEmail({
+          host: body.host,
+          port: body.port,
+          secure: body.secure,
+          user: body.user,
+          password: body.password,
+          from: body.from || body.user,
+          to: body.to,
+          subject: "UpdateRadar 测试邮件",
+          text: "这是一封来自 UpdateRadar 的测试邮件，如果您收到此邮件，说明邮件通知配置成功。",
+          html: "<div style=\"font-family: sans-serif; padding: 20px;\"><h2>UpdateRadar 测试邮件</h2><p>如果您收到此邮件，说明邮件通知配置成功。</p></div>"
+        });
+        return send(response, 200, { success: true });
+      }
+     if (request.method === "POST" && url.pathname === "/v1/translate") {
         const body = await requestBody(request);
         return send(response, 200, { text: await translator(body.text, await settingsRepository.translation()) });
       }
