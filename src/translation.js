@@ -1,3 +1,5 @@
+import { validateExternalUrl } from "./lib/http.js";
+
 const MAX_TRANSLATION_CHUNK_LENGTH = 4_000;
 
 function translationChunks(content, maximumLength = MAX_TRANSLATION_CHUNK_LENGTH) {
@@ -23,6 +25,8 @@ function translationChunks(content, maximumLength = MAX_TRANSLATION_CHUNK_LENGTH
 
 async function translateChunk(content, config, fetchImpl) {
   const endpoint = `${config.baseUrl.replace(/\/$/, "")}/chat/completions`;
+  // SSRF 防护：验证翻译服务地址
+  validateExternalUrl(endpoint, "翻译服务地址");
   const response = await fetchImpl(endpoint, {
     method: "POST",
     headers: {
@@ -58,6 +62,8 @@ export async function translateText(text, config, fetchImpl = fetch) {
 
 export async function listModels(config, fetchImpl = fetch) {
   if (!config.baseUrl) throw new Error("Translation base URL is not configured");
+  // SSRF 防护：验证翻译服务地址
+  validateExternalUrl(config.baseUrl, "翻译服务地址");
   const response = await fetchImpl(`${config.baseUrl.replace(/\/$/, "")}/models`, {
     headers: config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {},
     signal: AbortSignal.timeout(30_000)

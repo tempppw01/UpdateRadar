@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { isPrivateOrLocalhost } from "./sources.js";
 
 const defaults = {
   events: { limitPerCategory: 200 },
@@ -56,6 +57,9 @@ export class JsonSettingsStore {
     if (baseUrl) {
       const url = new URL(baseUrl);
       if (!['http:', 'https:'].includes(url.protocol)) throw new Error("Translation base URL must use HTTP(S)");
+      if (isPrivateOrLocalhost(url.hostname)) {
+        throw new Error("翻译服务地址不能指向内网或本地地址");
+      }
     }
     current.translation = { baseUrl, apiKey, model, targetLanguage };
     await this.save(current);

@@ -8,7 +8,8 @@ function comparable(value = "") {
 export async function collectOfficialGameNews(source, { feedUrl, provider, fetchText: fetch = fetchText, parseFeed: parse = parseFeed } = {}) {
   const terms = [source.gameName, ...(source.gameAliases ?? [])].map(comparable).filter(Boolean);
   const updates = /\b(update|updates|patch|patches|version|hotfix|title update)\b/i;
-  return parse(await fetch(feedUrl)).filter((item) => {
+  const xml = await fetch(feedUrl);
+  return parse(xml).filter((item) => {
     const content = `${item.title} ${item.summary}`;
     return terms.some((term) => comparable(content).includes(term)) && updates.test(content);
   }).map((item) => ({

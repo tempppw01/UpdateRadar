@@ -72,6 +72,43 @@ function validUrl(value, field, { allowPrivate = false } = {})
 
 扩展的 URL 验证函数在解析 URL 后自动调用 `isPrivateOrLocalhost()` 检查。
 
+### 运行时防护
+
+除了配置层验证，系统在 HTTP 请求层也实施了 SSRF 防护：
+
+#### HTTP 客户端防护 (`src/lib/http.js`)
+
+```javascript
+export async function fetchText(url, options = {}) {
+  validateUrl(url);  // 请求前验证
+  const response = await fetch(url, { redirect: "follow" });
+  validateUrl(response.url, "重定向目标");  // 重定向后再次验证
+  return response.text();
+}
+```
+
+防护特性：
+- 请求前验证 URL 不指向私有地址
+- 跟随重定向后，验证最终 URL 不指向私有地址
+- 统一的超时控制（默认 15 秒）
+
+#### 翻译服务防护 (`src/translation.js`, `src/settings.js`)
+
+- 用户配置的翻译服务 `baseUrl` 必须指向公网地址
+- 翻译请求发送前验证目标 URL
+- 阻止通过翻译接口访问内网服务
+
+#### 统一适配器模式
+
+所有外部 HTTP 请求统一通过 `fetchText()` 发起，确保一致的 SSRF 防护覆盖：
+
+| 适配器 | URL 来源 | 防护层 |
+|--------|----------|--------|
+| RSS | `source.feedUrl` | 配置验证 + 运行时验证 |
+| 官网监控 | `source.officialUrl` | 配置验证 + 运行时验证 |
+| 游戏资讯 | 硬编码公网 URL | 运行时验证 |
+| 翻译服务 | 用户配置 `baseUrl` | 配置验证 + 运行时验证 |
+
 ## 安全边界
 
 ### 被阻止的攻击向量

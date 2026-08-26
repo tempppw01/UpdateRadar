@@ -12,7 +12,7 @@ function required(value, field) {
   return text;
 }
 
-function isPrivateOrLocalhost(hostname) {
+export function isPrivateOrLocalhost(hostname) {
   // 标准化主机名为小写
   const host = hostname.toLowerCase();
   
