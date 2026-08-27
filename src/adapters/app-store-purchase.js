@@ -42,11 +42,7 @@ export async function fetchInAppPurchase(source, app, dependencies = { fetchText
   const url = new URL(app.trackViewUrl);
   url.search = "";
   const addOn = addOnsFromPage(await dependencies.fetchText(url, {
-    headers: {
-      "Accept-Language": "en-US,en;q=0.9",
-      "X-Apple-Store-Front": `${storefrontId}-1,29`,
-      "X-Apple-Storefront": `${storefrontId}-1,29`
-    }
+    headers: { "Accept-Language": "en-US,en;q=0.9" }
   })).find((candidate) => candidate.buyParams?.includes(`offerName=${source.subscriptionId}`));
   if (!addOn) return null;
   const fingerprint = createHash("sha256")

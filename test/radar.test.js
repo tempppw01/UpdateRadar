@@ -50,7 +50,18 @@ test("Apple App Store collector adds official in-app purchase data to the applic
   }] };
   const page = JSON.stringify({ addOns: [{ name: "ChatGPT Plus", price: "$19.99", buyParams: "offerName=chatgpt-plus&appAdamId=6448311069" }] });
   const responses = [JSON.stringify(lookup), page];
-  const [update] = await collectAppStore(source, { fetchText: async () => responses.shift() });
+  let purchaseRequest;
+  const [update] = await collectAppStore(source, {
+    fetchText: async (url, options = {}) => {
+      if (responses.length === 2) return responses.shift();
+      purchaseRequest = { url: new URL(url), headers: options.headers ?? {} };
+      return responses.shift();
+    }
+  });
+  assert.equal(purchaseRequest.url.toString(), "https://apps.apple.com/us/app/chatgpt/id6448311069");
+  assert.equal(purchaseRequest.headers["X-Apple-Store-Front"], undefined);
+  assert.equal(purchaseRequest.headers["X-Apple-Storefront"], undefined);
+  assert.equal(purchaseRequest.headers["Accept-Language"], "en-US,en;q=0.9");
   assert.match(update.externalId, /^6448311069:1\.2\.3:[a-f0-9]{16}$/);
   assert.equal(update.version, "1.2.3");
   assert.equal(update.metadata.inAppPurchase.price, "$19.99");
