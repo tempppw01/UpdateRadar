@@ -185,9 +185,11 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         const sources = await sourceRepository.replaceAll(backup.sources);
         if (backup.translation && typeof backup.translation === "object") {
           await settingsRepository.updateTranslation({
+            provider: backup.translation.provider,
             baseUrl: backup.translation.baseUrl,
             model: backup.translation.model,
-            targetLanguage: backup.translation.targetLanguage
+            targetLanguage: backup.translation.targetLanguage,
+            microsoftRegion: backup.translation.microsoftRegion
           });
         }
         if (backup.events && typeof backup.events === "object") await settingsRepository.updateEvents(backup.events);

@@ -60,10 +60,14 @@ const elements = {
   steamSearchInput: document.querySelector("#steam-search-input"),
   steamSearchButton: document.querySelector("#steam-search-button"),
   steamResults: document.querySelector("#steam-results"),
+  translationProvider: document.querySelector("#translation-provider"),
   translationBaseUrl: document.querySelector("#translation-base-url"),
   translationModel: document.querySelector("#translation-model"),
   loadTranslationModels: document.querySelector("#load-translation-models"),
   translationApiKey: document.querySelector("#translation-api-key"),
+  translationGoogleApiKey: document.querySelector("#translation-google-api-key"),
+  translationMicrosoftApiKey: document.querySelector("#translation-microsoft-api-key"),
+  translationMicrosoftRegion: document.querySelector("#translation-microsoft-region"),
   translationTargetLanguage: document.querySelector("#translation-target-language"),
   saveTranslationSettings: document.querySelector("#save-translation-settings"),
   eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
@@ -334,7 +338,16 @@ function setTranslationModels(models, selected = "") {
   elements.translationModel.value = selected || "";
 }
 
+function syncTranslationProviderFields() {
+  const provider = elements.translationProvider.value || "openai";
+  elements.settingsDialog.querySelectorAll("[data-translation-provider]").forEach((field) => {
+    field.hidden = field.dataset.translationProvider !== provider;
+  });
+  elements.loadTranslationModels.hidden = provider !== "openai";
+}
+
 async function loadTranslationModels() {
+  if (elements.translationProvider.value !== "openai") return;
   elements.loadTranslationModels.disabled = true;
   elements.loadTranslationModels.textContent = "加载中";
   try {
@@ -960,10 +973,18 @@ function openSettings() {
   startNewEditor();
   renderSettingsSources();
   requestJson("/v1/settings/translation").then((config) => {
+    elements.translationProvider.value = ["openai", "google", "microsoft"].includes(config.provider) ? config.provider : "openai";
     elements.translationBaseUrl.value = config.baseUrl || "";
     setTranslationModels([], config.model || "");
     elements.translationTargetLanguage.value = config.targetLanguage || "简体中文";
     elements.translationApiKey.value = "";
+    elements.translationGoogleApiKey.value = "";
+    elements.translationMicrosoftApiKey.value = "";
+    elements.translationMicrosoftRegion.value = config.microsoftRegion || "";
+    elements.translationApiKey.placeholder = config.apiKeyConfigured ? "已配置，留空保持不变" : "仅在首次配置时填写";
+    elements.translationGoogleApiKey.placeholder = config.googleApiKeyConfigured ? "已配置，留空保持不变" : "仅在首次配置时填写";
+    elements.translationMicrosoftApiKey.placeholder = config.microsoftApiKeyConfigured ? "已配置，留空保持不变" : "仅在首次配置时填写";
+    syncTranslationProviderFields();
   }).catch(() => showToast("无法读取翻译设置", "error"));
   requestJson("/v1/settings/events").then((config) => {
     elements.eventsLimitPerCategory.value = config.limitPerCategory;
@@ -1446,7 +1467,16 @@ elements.saveTranslationSettings.addEventListener("click", async () => {
   try {
     await requestJson("/v1/settings/translation", {
       method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ baseUrl: elements.translationBaseUrl.value, model: elements.translationModel.value, apiKey: elements.translationApiKey.value, targetLanguage: elements.translationTargetLanguage.value })
+      body: JSON.stringify({
+        provider: elements.translationProvider.value,
+        baseUrl: elements.translationBaseUrl.value,
+        model: elements.translationModel.value,
+        apiKey: elements.translationApiKey.value,
+        googleApiKey: elements.translationGoogleApiKey.value,
+        microsoftApiKey: elements.translationMicrosoftApiKey.value,
+        microsoftRegion: elements.translationMicrosoftRegion.value,
+        targetLanguage: elements.translationTargetLanguage.value
+      })
     });
     elements.translationApiKey.value = "";
     showToast("翻译设置已保存");
@@ -1463,6 +1493,7 @@ elements.saveEventsSettings.addEventListener("click", async () => {
   } catch (error) { showToast(`无法保存显示数量：${error.message}`, "error"); }
 });
 elements.loadTranslationModels.addEventListener("click", loadTranslationModels);
+elements.translationProvider.addEventListener("change", syncTranslationProviderFields);
 elements.translationModel.addEventListener("focus", () => {
   if (elements.translationModel.options.length <= 1 && !elements.loadTranslationModels.disabled) loadTranslationModels();
 });
