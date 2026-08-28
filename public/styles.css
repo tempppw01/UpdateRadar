@@ -44,7 +44,9 @@ html[data-theme="dark"] .topbar.is-pinned { background:rgba(16,35,46,.9); box-sh
 .timeline[data-view="cards"] .event-source-group{display:contents}
 .timeline[data-view="cards"] .event-card{display:block;position:relative;padding:16px;border:1px solid var(--line);background:rgba(255,255,255,.14);overflow:hidden}
 .timeline[data-view="cards"] .event-card + .event-card{border-top:0}
-.timeline[data-view="cards"] .event-rail,.timeline[data-view="cards"] .event-app-icon{display:none}
+.timeline[data-view="cards"] .event-rail{display:none}
+.timeline[data-view="cards"] .event-app-icon{display:block;width:38px;height:38px;margin-bottom:10px;border-radius:8px;overflow:hidden}
+.timeline[data-view="cards"] .event-app-icon img{display:block;width:100%;height:100%;object-fit:cover}
 .timeline[data-view="cards"] .event-sync-button{position:absolute;top:10px;right:10px;border:1px solid var(--ink);background:var(--lime);color:var(--ink);padding:4px 8px;font:500 10px var(--mono);letter-spacing:.02em}
 .timeline[data-view="cards"] .event-main{padding-right:96px}
 .timeline[data-view="cards"] .event-title-button{margin-top:6px}
