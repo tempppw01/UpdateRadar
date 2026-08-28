@@ -42,12 +42,15 @@ html[data-theme="dark"] .topbar.is-pinned { background:rgba(16,35,46,.9); box-sh
 .event-link{max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .timeline[data-view="cards"]{display:grid;grid-template-columns:repeat(var(--card-columns,3),minmax(0,1fr));gap:16px}
 .timeline[data-view="cards"] .event-source-group{display:contents}
-.timeline[data-view="cards"] .event-card{grid-template-columns:1fr;padding:18px;border:1px solid var(--line);background:rgba(255,255,255,.14);overflow:hidden}
+.timeline[data-view="cards"] .event-card{display:block;position:relative;padding:16px;border:1px solid var(--line);background:rgba(255,255,255,.14);overflow:hidden}
 .timeline[data-view="cards"] .event-card + .event-card{border-top:0}
-.timeline[data-view="cards"] .event-rail{display:none}
+.timeline[data-view="cards"] .event-rail,.timeline[data-view="cards"] .event-app-icon{display:none}
+.timeline[data-view="cards"] .event-sync-button{position:absolute;top:10px;right:10px;border:1px solid var(--ink);background:var(--lime);color:var(--ink);padding:4px 8px;font:500 10px var(--mono);letter-spacing:.02em}
+.timeline[data-view="cards"] .event-main{padding-right:96px}
+.timeline[data-view="cards"] .event-title-button{margin-top:6px}
 .timeline[data-view="cards"] .event-link{grid-column:auto;justify-self:start}
 .timeline[data-view="compact"] .event-card{gap:10px;padding:14px 0}
 .timeline[data-view="compact"] .event-main h3{font-size:17px}
 .timeline[data-view="compact"] .event-summary{max-width:none}
 .timeline[data-view="list"] .event-card{grid-template-columns:28px minmax(0,1fr) auto}
-@media (max-width:720px){.timeline[data-view="cards"]{grid-template-columns:minmax(0,1fr)}.timeline[data-view="cards"] .event-card{grid-template-columns:22px minmax(0,1fr)}.timeline[data-view="cards"] .event-link{grid-column:2;justify-self:start}.timeline[data-view="cards"] .event-rail{display:block}.event-view-toggle button{padding:0 8px}}
+@media (max-width:720px){.timeline[data-view="cards"]{grid-template-columns:minmax(0,1fr)}.timeline[data-view="cards"] .event-main{padding-right:0}.timeline[data-view="cards"] .event-sync-button{position:static;margin-bottom:10px}.event-view-toggle button{padding:0 8px}}
