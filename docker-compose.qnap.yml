@@ -1,0 +1,64 @@
+# UpdateRadar — QNAP Container Station 部署配置
+#
+# 使用步骤（QNAP Container Station → 容器 →  Compose → 新增）：
+#   1. 把本文件放到 QNAP 的共享文件夹，例如 /share/Container/update-radar/
+#   2. 在该目录下准备好源码（src/、public/、package.json、Dockerfile、data/sources.json）
+#   3. 按需修改 CF_TUNNEL_TOKEN（Cloudflare Tunnel token，见文件末尾说明）
+#   4. 启动。首次启动会自动把镜像内置的默认 sources.json 复制到挂载目录
+#
+# Cloudflare 面板准备工作：
+#   Zero Trust → Networks → Tunnels → Create tunnel
+#   → 选择 Docker → 复制形如 eyJhIjoiXXXX 的 token
+#   → Public Hostname: update-radar.example.com → Service: http://update-radar:8787
+
+services:
+  update-radar:
+    build: .
+    image: updateradar:latest
+    container_name: update-radar
+    restart: unless-stopped
+    ports:
+      # QNAP 宿主端口 8787 -> 容器 8787。只给局域网用，暴露公网请走 Cloudflare Tunnel。
+      - "8787:8787"
+    environment:
+      PORT: "8787"
+      # 配置文件与事件都落在挂载卷里，容器重建不丢
+      SOURCES_PATH: /app/data/sources.json
+      EVENTS_PATH: /app/data/events.json
+      SETTINGS_PATH: /app/data/settings.json
+      # 后台轮询节奏：每 60 秒取一次任务，每次最多 12 个源，最多 4 并发
+      POLL_INTERVAL_MINUTES: "30"
+      POLL_TICK_SECONDS: "60"
+      POLL_BATCH_SIZE: "12"
+      POLL_CONCURRENCY: "4"
+      TZ: Asia/Shanghai
+    volumes:
+      # 数据与配置持久化（QNAP 常见共享目录，按实际情况改成你的实际路径）
+      - ./data:/app/data
+    networks:
+      - updateradar
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8787/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  # Cloudflare Tunnel：把 NAS 上的服务安全暴露到公网，无需开放路由器端口
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: update-radar-tunnel
+    restart: unless-stopped
+    # 通过 token 方式运行，无需额外挂载凭据文件
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+    depends_on:
+      update-radar:
+        condition: service_healthy
+    networks:
+      - updateradar
+
+networks:
+  updateradar:
+    driver: bridge

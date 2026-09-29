@@ -94,6 +94,29 @@ docker compose logs -f update-radar
 docker compose down
 ```
 
+### QNAP NAS（Container Station）部署
+
+仓库另附 [docker-compose.qnap.yml](docker-compose.qnap.yml)，在 QNAP Container Station 里直接新增 Compose 项目即可使用。相比通用配置，它做了三件事：
+
+- 把 `data/` 作为绑定卷挂载到 `/app/data`，监控配置、事件和翻译设置都留在共享文件夹里，重建容器不丢。
+- 增加 `healthcheck`，并让 Cloudflare 容器等主服务健康后再启动。
+- 内置 `cloudflared` 容器，通过 Tunnel token 把服务暴露到公网，不需要在路由器上开放端口。
+
+准备工作：
+
+1. 把项目放到 QNAP 共享文件夹，例如 `/share/Container/update-radar/`。
+2. 在 Cloudflare Zero Trust → Networks → Tunnels 新建隧道，选择 Docker，拿到 `eyJhIjoi...` 开头的 token。
+3. 复制 `.env.example` 为 `.env`，把 token 填入 `CF_TUNNEL_TOKEN`。
+4. 在同一个向导里添加 Public Hostname，例如 `update-radar.example.com`，Service 填 `http://update-radar:8787`（同一 Docker 网络内用服务名访问）。
+
+之后在项目目录执行：
+
+```bash
+docker compose -f docker-compose.qnap.yml up --build -d
+```
+
+局域网访问 `http://<NAS-IP>:8787`，公网访问配置的域名。若只在内网使用，可以删除 `cloudflared` 服务并去掉主服务的 `depends_on`。
+
 ### Railway 部署与持久化
 
 在 Railway 服务中创建 Volume，并将挂载路径设为 `/app/data`。然后在 Variables 中设置：
