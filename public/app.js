@@ -141,6 +141,26 @@ function sourceIconUrl(kind) {
   return `https://cdn.simpleicons.org/${icon.slug}/${color}`;
 }
 
+// Cards must keep a reserved icon slot even when the store artwork is missing,
+// otherwise every card without artwork starts ~48px higher than the others.
+function renderCardFallbackIcon(appIcon, article, event) {
+  article.classList.remove("event-with-app-icon");
+  appIcon.replaceChildren();
+  const label = (sourceIcons[event.sourceKind]?.name || event.sourceName || "?").trim();
+  const badge = document.createElement("span");
+  badge.className = "event-app-icon-badge";
+  badge.textContent = label.slice(0, 2).toUpperCase();
+  appIcon.append(badge);
+  if (!sourceIcons[event.sourceKind]) return;
+  const image = document.createElement("img");
+  image.alt = "";
+  image.referrerPolicy = "no-referrer";
+  image.addEventListener("load", () => { badge.hidden = true; });
+  image.addEventListener("error", () => image.remove());
+  image.src = sourceIconUrl(event.sourceKind);
+  appIcon.append(image);
+}
+
 function updateTopbarState() {
   const pinned = window.scrollY > 12;
   if (pinned === topbarPinned) return;
@@ -705,6 +725,8 @@ function renderEvents() {
     const card = elements.template.content.cloneNode(true);
     const article = card.querySelector(".event-card");
     const appIcon = card.querySelector(".event-app-icon");
+    const eventMain = card.querySelector(".event-main");
+    article.classList.add("event-has-icon-slot");
     const source = state.sources.find((candidate) => candidate.id === event.sourceId);
     if (source) article.addEventListener("contextmenu", (clickEvent) => openCardContextMenu(source, clickEvent));
     if (source && index === 0) {
@@ -724,10 +746,10 @@ function renderEvents() {
       image.src = artworkUrl;
       image.alt = "";
       image.referrerPolicy = "no-referrer";
-      image.addEventListener("error", () => { article.classList.remove("event-with-app-icon"); appIcon.remove(); });
+      image.addEventListener("error", () => renderCardFallbackIcon(appIcon, article, event));
       appIcon.append(image);
     } else {
-      appIcon.remove();
+      renderCardFallbackIcon(appIcon, article, event);
     }
     const eventSource = card.querySelector(".event-source");
     const sourceIcon = sourceIcons[event.sourceKind];
@@ -784,7 +806,7 @@ function renderEvents() {
       purchase.textContent = `内购价格 ${event.metadata.inAppPurchase.name} · ${event.metadata.inAppPurchase.price}`;
       details.append(purchase);
     }
-    if (details.childElementCount) card.querySelector(".event-tags").before(details);
+    if (details.childElementCount) eventMain.querySelector(".event-footer").before(details);
     const link = card.querySelector(".event-link");
     link.href = event.url;
     if (index === 0 && sourceEvents.length > 1) card.querySelector(".event-card-actions").prepend(groupToggle(sourceEvents, sourceId, expanded));
@@ -805,7 +827,7 @@ function renderEvents() {
       list.className = "release-download-list";
       assets.forEach((asset) => list.append(assetLink(asset)));
       downloads.append(summary, list);
-      card.querySelector(".event-main").append(downloads);
+      eventMain.querySelector(".event-footer").before(downloads);
     }
     group.append(card);
     });

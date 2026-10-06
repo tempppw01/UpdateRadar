@@ -1,0 +1,98 @@
+/* Alignment layer.
+   Loaded last on purpose: it wins over styles.css / source-icons.css whenever
+   the specificity ties, so every view shares one set of spacing and alignment
+   rules instead of stacking contradictory overrides. */
+
+/* ---------- app icon slot: always reserved, identical in every view ---------- */
+.event-app-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(191, 208, 205, .16);
+}
+.event-app-icon img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+.event-app-icon-badge {
+  font: 600 14px/1 var(--mono);
+  letter-spacing: .04em;
+  color: #587170;
+  text-transform: uppercase;
+}
+html[data-theme="dark"] .event-app-icon-badge { color: var(--text-muted); }
+
+/* ---------- compact / list rows: keep the icon column even without artwork ---------- */
+.event-card.event-has-icon-slot { grid-template-columns: 35px 46px minmax(0, 1fr) auto; }
+.timeline[data-view="list"] .event-card.event-has-icon-slot { grid-template-columns: 28px 46px minmax(0, 1fr) auto; }
+
+/* ---------- section heading: buttons size to content instead of stretching ---------- */
+.section-heading { align-items: center; }
+.signal-heading-title { align-items: center; }
+.signal-actions { align-items: center; }
+.event-view-toggle { flex: 0 0 auto; width: auto; max-width: 100%; }
+.results-count { align-self: center; }
+
+/* ---------- card view ---------- */
+.timeline[data-view="cards"] .event-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .14);
+  overflow: hidden;
+}
+.timeline[data-view="cards"] .event-card + .event-card { border-top: 1px solid var(--line); }
+.timeline[data-view="cards"] .event-rail { display: none; }
+.timeline[data-view="cards"] .event-app-icon { width: 38px; height: 38px; margin-bottom: 10px; border-radius: 9px; }
+.timeline[data-view="cards"] .event-app-icon-badge { font-size: 13px; }
+/* The icon row owns the top-right corner, so the text column stays full width. */
+.timeline[data-view="cards"] .event-main { display: flex; flex: 1; flex-direction: column; padding-right: 0; }
+.timeline[data-view="cards"] .event-sync-button { top: 14px; right: 15px; }
+.timeline[data-view="cards"] .event-meta { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.timeline[data-view="cards"] .event-meta time { flex: 0 0 auto; white-space: nowrap; }
+.timeline[data-view="cards"] .event-source { flex: 0 1 auto; min-width: 0; flex-wrap: nowrap; }
+.timeline[data-view="cards"] .event-source-repo { max-width: 132px; }
+.timeline[data-view="cards"] .event-title-button { margin-top: 6px; }
+.timeline[data-view="cards"] .event-summary { max-width: none; }
+.timeline[data-view="cards"] .event-details,
+.timeline[data-view="cards"] .event-tags { justify-content: flex-start; margin-top: 8px; }
+/* One row for chips and actions, pinned to the bottom so every card lines up. */
+.timeline[data-view="cards"] .event-footer {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px 10px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.timeline[data-view="cards"] .event-tags { flex: 0 1 auto; margin-right: auto; }
+.timeline[data-view="cards"] .event-card-actions { flex: 0 0 auto; width: auto; }
+.timeline[data-view="cards"] .event-link { grid-column: auto; justify-self: start; align-self: center; }
+
+@media (max-width: 720px) {
+  .event-app-icon { width: 36px; height: 36px; border-radius: 8px; }
+  .event-card.event-has-icon-slot { grid-template-columns: 22px 40px minmax(0, 1fr); }
+  .timeline[data-view="list"] .event-card.event-has-icon-slot { grid-template-columns: 22px 40px minmax(0, 1fr); }
+  .event-card.event-has-icon-slot .event-link { grid-column: 3; }
+  .event-view-toggle { width: 100%; }
+  /* Keep the sync button in the same corner on phones instead of dropping it
+     to the bottom of the card. */
+  .timeline[data-view="cards"] .event-sync-button { position: absolute; top: 13px; right: 15px; margin-bottom: 0; }
+}
