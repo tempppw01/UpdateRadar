@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { collectGithubReleases } from "../src/adapters/github-releases.js";
 import { collectGithubCommits } from "../src/adapters/github-commits.js";
-import { collectAppStore } from "../src/adapters/app-store.js";
+import { collectAppStore, collectAppStoreBatch } from "../src/adapters/app-store.js";
 import { collectDockerHub } from "../src/adapters/docker-hub.js";
 import { collectNintendoSwitch } from "../src/adapters/nintendo-switch.js";
 import { collectQnapApp } from "../src/adapters/qnap-app.js";
@@ -80,6 +80,135 @@ test("Mac App Store collector requests Apple's macOS lookup entity", async () =>
   });
   assert.equal(requestedUrl.searchParams.get("entity"), "macSoftware");
   assert.equal(update.version, "4.0");
+});
+
+test("App Store batch collector merges many apps into one lookup request", async () => {
+  const sources = Array.from({ length: 30 }, (_, index) => ({
+    id: `app-${index}`, name: `App ${index}`, kind: "app-store", appId: String(1000 + index), country: "us"
+  }));
+  const requested = [];
+  const results = await collectAppStoreBatch(sources, {
+    fetchText: async (url) => {
+      const parsed = new URL(url);
+      const ids = parsed.searchParams.get("id").split(",");
+      requested.push(ids.length);
+      return JSON.stringify({ results: ids.map((id) => ({
+        trackId: Number(id), trackName: `App ${id}`, version: "1.0.0",
+        trackViewUrl: `https://apps.apple.com/us/app/id${id}`, currentVersionReleaseDate: "2026-01-01T00:00:00Z",
+        price: 0, formattedPrice: "Free"
+      })) });
+    }
+  });
+  assert.equal(requested.length, 2, "30 ids should split into chunks instead of 30 requests");
+  assert.ok(requested.every((size) => size <= 25));
+  assert.equal(results.length, 30);
+  assert.ok(results.every((entry) => entry.ok && entry.updates.length === 1));
+  assert.equal(results[7].updates[0].version, "1.0.0");
+});
+
+test("App Store batch collector separates countries and macOS entities into their own requests", async () => {
+  const sources = [
+    { id: "us-ios", name: "US", kind: "app-store", appId: "1", country: "us" },
+    { id: "cn-ios", name: "CN", kind: "app-store", appId: "2", country: "cn" },
+    { id: "us-mac", name: "Mac", kind: "mac-app-store", appId: "3", country: "us" }
+  ];
+  const urls = [];
+  await collectAppStoreBatch(sources, {
+    fetchText: async (url) => {
+      urls.push(url);
+      const ids = new URL(url).searchParams.get("id").split(",");
+      return JSON.stringify({ results: ids.map((id) => ({ trackId: Number(id), trackName: "A", version: "2.0", trackViewUrl: "https://apps.apple.com/x", currentVersionReleaseDate: "2026-01-01T00:00:00Z" })) });
+    }
+  });
+  assert.equal(urls.length, 3);
+  assert.ok(urls.some((url) => url.includes("country=cn")));
+  assert.ok(urls.some((url) => url.includes("entity=macSoftware")));
+});
+
+test("App Store batch collector reports a failed chunk per source and still fills the rest", async () => {
+  const sources = [
+    { id: "cn-a", name: "A", kind: "app-store", appId: "1", country: "cn" },
+    { id: "cn-b", name: "B", kind: "app-store", appId: "2", country: "cn" },
+    { id: "us-a", name: "A", kind: "app-store", appId: "3", country: "us" }
+  ];
+  const results = await collectAppStoreBatch(sources, {
+    fetchText: async (url) => {
+      if (url.includes("country=cn")) throw new Error("Request to https://itunes.apple.com/lookup failed with 431");
+      const ids = new URL(url).searchParams.get("id").split(",");
+      return JSON.stringify({ results: ids.map((id) => ({ trackId: Number(id), trackName: "A", version: "1.0", trackViewUrl: "https://apps.apple.com/x", currentVersionReleaseDate: "2026-01-01T00:00:00Z" })) });
+    }
+  });
+  const byId = new Map(results.map((entry) => [entry.sourceId, entry]));
+  assert.equal(byId.get("cn-a").ok, false);
+  assert.match(byId.get("cn-a").error, /431/);
+  assert.equal(byId.get("cn-b").ok, false);
+  assert.equal(byId.get("us-a").ok, true);
+  assert.equal(byId.get("us-a").updates[0].version, "1.0");
+});
+
+test("App Store batch collector keeps the version when the purchase page fails", async () => {
+  const results = await collectAppStoreBatch([{ id: "paid", name: "Paid", kind: "app-store", appId: "1", country: "us", subscriptionId: "plus" }], {
+    fetchText: async (url) => {
+      if (url.includes("itunes.apple.com")) return JSON.stringify({ results: [{ trackId: 1, trackName: "Paid", version: "3.1", trackViewUrl: "https://apps.apple.com/us/app/paid/id1", currentVersionReleaseDate: "2026-01-01T00:00:00Z" }] });
+      throw new Error("Request failed with 431");
+    }
+  });
+  assert.equal(results[0].ok, true);
+  assert.equal(results[0].updates[0].version, "3.1");
+  assert.equal(results[0].updates[0].metadata.inAppPurchase, null);
+});
+
+test("polling routes batchable sources through one collector call", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-batch-collector-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const sources = Array.from({ length: 4 }, (_, index) => ({
+    id: `app-${index}`, name: `App ${index}`, kind: "app-store", appId: String(index), country: "us", enabled: true, tags: []
+  }));
+  let batchCalls = 0;
+  const batchCollectorResolver = () => async (group) => {
+    batchCalls += 1;
+    return group.map((source) => ({
+      sourceId: source.id, ok: true,
+      updates: [{ externalId: `v-${source.id}`, title: source.name, url: "https://apps.apple.com/x", publishedAt: "2026-01-01T00:00:00Z", summary: "" }]
+    }));
+  };
+  const collectorResolver = () => { throw new Error("per-source collector should not run for batchable kinds"); };
+  const results = await pollAll(sources, { store, collectorResolver, batchCollectorResolver });
+  assert.equal(batchCalls, 1);
+  assert.equal(results.length, 4);
+  assert.ok(results.every((result) => result.ok && result.fetched === 1 && result.inserted === 1));
+  assert.equal((await store.list({ kind: "app-store" })).length, 4);
+});
+
+test("polling still records per-source errors from a batch collector", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-batch-error-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const sources = [
+    { id: "good", name: "Good", kind: "app-store", appId: "1", country: "us", enabled: true, tags: [] },
+    { id: "bad", name: "Bad", kind: "app-store", appId: "2", country: "us", enabled: true, tags: [] }
+  ];
+  const results = await pollAll(sources, {
+    store,
+    batchCollectorResolver: () => async () => [
+      { sourceId: "good", ok: true, updates: [{ externalId: "v1", title: "Good", url: "https://apps.apple.com/x", publishedAt: "2026-01-01T00:00:00Z", summary: "" }] },
+      { sourceId: "bad", ok: false, error: "failed with 431" }
+    ]
+  });
+  assert.deepEqual(results, [
+    { ok: true, sourceId: "good", fetched: 1, inserted: 1 },
+    { ok: false, sourceId: "bad", error: "failed with 431" }
+  ]);
+});
+
+test("concurrent batch inserts on a fresh store keep every event", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-concurrent-insert-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  // A cold store has no cached state, so these inserts race the initial read.
+  await Promise.all(Array.from({ length: 6 }, (_, index) => store.insert(
+    { id: `s${index}`, name: `S${index}`, kind: "app-store", tags: [] },
+    { externalId: "v1", title: `S${index} v1`, url: "https://apps.apple.com/x", publishedAt: "2026-01-01T00:00:00Z", summary: "" }
+  )));
+  assert.equal((await store.list({ kind: "app-store", limit: 50 })).length, 6);
 });
 
 test("Docker Hub collector tracks tag digests and optional tag filters", async () => {

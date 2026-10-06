@@ -1,4 +1,4 @@
-import { collectAppStore } from "./app-store.js";
+import { collectAppStore, collectAppStoreBatch } from "./app-store.js";
 import { collectDockerHub } from "./docker-hub.js";
 import { collectGithubReleases } from "./github-releases.js";
 import { collectGithubCommits } from "./github-commits.js";
@@ -30,4 +30,16 @@ export function collectorFor(kind) {
   const collector = collectors[kind];
   if (!collector) throw new Error(`Unsupported source kind: ${kind}`);
   return collector;
+}
+
+// Collectors registered here can serve a whole group of sources with one request.
+// App Store does this because one request per app is what drives its edge rate
+// limits; everything else stays on the per-source path.
+const batchCollectors = {
+  "app-store": collectAppStoreBatch,
+  "mac-app-store": collectAppStoreBatch
+};
+
+export function batchCollectorFor(kind) {
+  return batchCollectors[kind];
 }

@@ -129,9 +129,20 @@ POLL_INTERVAL_MINUTES=30
 POLL_CONCURRENCY=4
 POLL_TICK_SECONDS=60
 POLL_BATCH_SIZE=12
+APP_STORE_LOOKUP_CHUNK=25
+APP_STORE_PURCHASE_DELAY_MS=800
 ```
 
 服务器启动后会在 5 秒内开始后台轮询，之后每 60 秒从持久化队列中取出最多 12 个到期源；206 个新源可在约 18 分钟内完成首轮覆盖，而不会同时请求。`POLL_INTERVAL_MINUTES` 是单个成功源的常规检查间隔；`POLL_TICK_SECONDS` 是调度器取任务的频率，设为 `0` 可关闭服务器定时轮询；`POLL_BATCH_SIZE` 是每轮批量大小；`POLL_CONCURRENCY` 控制同时请求外部渠道的数量，默认 `4`，建议保持在 `2` 到 `6`，以降低 GitHub、Apple 等站点的限流风险。失败源会按 5、10、20、40 分钟指数退避后重试。
+
+#### 降低 App Store 的 431 报错
+
+App Store 是最容易返回 `431 Request Header Fields Too Large` 的来源，触发原因通常不是单个请求头过大，而是短时间内向 Apple 边缘节点发出大量独立请求。系统默认做了三层处理：
+
+- **合并请求**：App Store 源按国家/地区分组后，用 Apple lookup 接口一次查询多个应用 ID。默认每次 25 个，93 个源的一轮轮询只需约 5 次请求（合并前是 83 次）。用 `APP_STORE_LOOKUP_CHUNK` 调整，取值范围 `1`–`100`；调小更保守，调大更省请求。
+- **退避重试**：`429`、`431`、`5xx` 以及网络失败会自动重试 2 次，采用带抖动的指数退避，避免多个任务同时重试再次形成突发。若仍失败，该源按原有规则进入指数退避队列。
+- **内购页面限速**：只有配置了内购订阅的源才会额外抓取 `apps.apple.com` 页面，这些页面串行抓取并在每次之间等待 `APP_STORE_PURCHASE_DELAY_MS`（默认 `800` 毫秒）。
+
 
 首次挂载空 Volume 时，服务会自动将镜像内置的默认 `sources.json` 复制到 Volume；以后始终使用 Volume 中的数据，不会在重新构建或重新部署时覆盖已添加的数据源。若需迁移已有配置，请先使用“导出设置”，部署后再通过“导入设置”恢复。
 

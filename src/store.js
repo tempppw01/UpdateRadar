@@ -31,21 +31,33 @@ export class JsonEventStore {
 
   async load() {
     if (this.state) return this.state;
-    try {
-      this.state = JSON.parse(await readFile(this.path, "utf8"));
-    } catch (error) {
-      if (error.code === "ENOENT") this.state = emptyState();
-      else {
-        const text = await readFile(this.path, "utf8");
-        const { documents, discardedTail } = parseCompleteJsonDocuments(text);
-        if (!documents.length) throw error;
-        this.state = mergeEventDocuments(documents);
-        await this.save();
-        const recovery = discardedTail ? " and discarded a corrupted trailing fragment" : "";
-        console.warn(`Recovered ${documents.length} concatenated event snapshots${recovery} in ${this.path}`);
-      }
+    // Concurrent callers must share one in-flight read. Without this, several
+    // writers can each build a separate state object, overwrite this.state, and
+    // silently discard the events the earlier ones appended.
+    if (!this.loading) {
+      this.loading = this.readState()
+        .then(({ state, recovered }) => {
+          this.state = state;
+          return recovered ? this.save() : undefined;
+        })
+        .finally(() => { this.loading = null; });
     }
+    await this.loading;
     return this.state;
+  }
+
+  async readState() {
+    try {
+      return { state: JSON.parse(await readFile(this.path, "utf8")), recovered: false };
+    } catch (error) {
+      if (error.code === "ENOENT") return { state: emptyState(), recovered: false };
+      const text = await readFile(this.path, "utf8");
+      const { documents, discardedTail } = parseCompleteJsonDocuments(text);
+      if (!documents.length) throw error;
+      const recovery = discardedTail ? " and discarded a corrupted trailing fragment" : "";
+      console.warn(`Recovered ${documents.length} concatenated event snapshots${recovery} in ${this.path}`);
+      return { state: mergeEventDocuments(documents), recovered: true };
+    }
   }
 
   async save() {

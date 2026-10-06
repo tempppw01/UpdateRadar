@@ -31,6 +31,10 @@ services:
       POLL_TICK_SECONDS: "60"
       POLL_BATCH_SIZE: "12"
       POLL_CONCURRENCY: "4"
+      # 降低 App Store 431 报错：单次 lookup 合并的应用数量（1-100），
+      # 以及抓取内购详情页面之间的间隔毫秒数。
+      APP_STORE_LOOKUP_CHUNK: "25"
+      APP_STORE_PURCHASE_DELAY_MS: "800"
       TZ: Asia/Shanghai
     volumes:
       # 数据与配置持久化（QNAP 常见共享目录，按实际情况改成你的实际路径）
