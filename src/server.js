@@ -86,11 +86,15 @@ async function sendPublicFile(response, path, method) {
 export function createApp({ store = eventStore, getSources = sources, sourceRepository = sourceStore, settingsRepository = settingsStore, appStoreSearch = searchAppStore, githubSearch = searchGithubRepositories, dockerHubSearch = searchDockerHubRepositories, qnapSearch = searchQnapApps, nintendoSearch = searchNintendoSwitchGames, steamSearch = searchSteamGames, translator = translateText, modelLister = listModels } = {}) {
   let activePoll = null;
   const runPoll = async (force = false, requestedSourceIds = []) => {
-    if (activePoll) return activePoll;
-    activePoll = (async () => {
+    const requested = [...new Set(requestedSourceIds.filter(Boolean))].sort();
+    const key = JSON.stringify([force, requested]);
+    // Sharing an in-flight run is only correct when it covers the same request.
+    // A different source selection has to wait rather than receive stale results.
+    if (activePoll?.key === key) return activePoll.promise;
+    const task = async () => {
       const sourceList = await getSources();
-      const requested = new Set(requestedSourceIds.filter(Boolean));
-      const selectedSources = requested.size ? sourceList.filter((source) => requested.has(source.id)) : sourceList;
+      const requestedSet = new Set(requested);
+      const selectedSources = requestedSet.size ? sourceList.filter((source) => requestedSet.has(source.id)) : sourceList;
       let results;
       if (force) results = await pollAll(selectedSources, { store });
       else {
@@ -98,10 +102,16 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         results = await pollAll(due.slice(0, pollingBatchSize()), { store });
       }
       await store.recordPollResults(results, selectedSources);
+      if (typeof store.prune === "function") await store.prune((await settingsRepository.events()).limitPerCategory);
       await store.markSyncedAt();
       return results;
-    })().finally(() => { activePoll = null; });
-    return activePoll;
+    };
+    const start = activePoll ? activePoll.promise : Promise.resolve();
+    const promise = start.then(task, task).finally(() => {
+      if (activePoll?.promise === promise) activePoll = null;
+    });
+    activePoll = { key, promise };
+    return promise;
   };
   const app = createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host ?? "localhost"}`);
@@ -243,6 +253,7 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
       return send(response, 404, { error: "Not found" });
     } catch (error) {
       const status = error instanceof SourceValidationError ? 400 : 500;
+      if (status === 500) console.error(`${request.method} ${url.pathname} failed:`, error);
       return send(response, status, { error: status === 400 ? "Validation error" : "Internal error", message: error.message });
     }
   });

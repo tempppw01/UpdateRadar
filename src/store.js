@@ -62,27 +62,61 @@ export class JsonEventStore {
   }
 
   async insert(source, update) {
-    const state = await this.load();
-    const fingerprint = `${source.id}:${update.externalId}`;
-    const existing = state.events.find((event) => event.fingerprint === fingerprint);
-    if (existing) {
-      Object.assign(existing, { ...update, metadata: { ...existing.metadata, ...update.metadata } });
-      await this.save();
-      return false;
-    }
+    return (await this.insertMany(source, [update])) > 0;
+  }
 
-    state.events.push({
-      id: crypto.randomUUID(),
-      fingerprint,
-      sourceId: source.id,
-      sourceName: source.name,
-      sourceKind: source.kind,
-      tags: source.tags ?? [],
-      detectedAt: new Date().toISOString(),
-      ...update
-    });
+  // A single poll can return dozens of updates. Applying them against the shared
+  // state object and saving once avoids rewriting the whole file per event.
+  async insertMany(source, updates) {
+    const state = await this.load();
+    const eventsByFingerprint = new Map(state.events.map((event) => [event.fingerprint, event]));
+    const detectedAt = new Date().toISOString();
+    let inserted = 0;
+    for (const update of updates) {
+      const fingerprint = `${source.id}:${update.externalId}`;
+      const existing = eventsByFingerprint.get(fingerprint);
+      if (existing) {
+        Object.assign(existing, { ...update, metadata: { ...existing.metadata, ...update.metadata } });
+        continue;
+      }
+      const event = {
+        id: crypto.randomUUID(),
+        fingerprint,
+        sourceId: source.id,
+        sourceName: source.name,
+        sourceKind: source.kind,
+        tags: source.tags ?? [],
+        detectedAt,
+        ...update
+      };
+      state.events.push(event);
+      eventsByFingerprint.set(fingerprint, event);
+      inserted += 1;
+    }
     await this.save();
-    return true;
+    return inserted;
+  }
+
+  // The per-category display limit is enforced on read by list(); without this
+  // the stored event log would grow without bound. Keep the newest N per kind.
+  async prune(limitPerCategory) {
+    const limit = Math.min(Math.max(Number(limitPerCategory) || 0, 1), 10_000);
+    const state = await this.load();
+    const newestFirst = [...state.events].sort((left, right) => new Date(right.publishedAt) - new Date(left.publishedAt));
+    const keptPerKind = new Map();
+    const keptIds = new Set();
+    newestFirst.forEach((event) => {
+      const kind = event.sourceKind ?? "";
+      const kept = keptPerKind.get(kind) ?? 0;
+      if (kept >= limit) return;
+      keptPerKind.set(kind, kept + 1);
+      keptIds.add(event.id ?? event.fingerprint);
+    });
+    if (keptIds.size === state.events.length) return 0;
+    const removed = state.events.length - keptIds.size;
+    state.events = state.events.filter((event) => keptIds.has(event.id ?? event.fingerprint));
+    await this.save();
+    return removed;
   }
 
   async list({ sourceId, kind, tag, limit = 50 } = {}) {

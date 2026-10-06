@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { SourceValidationError } from "./lib/errors.js";
 
 const defaults = {
   events: { limitPerCategory: 200 },
@@ -16,7 +17,10 @@ const defaults = {
 };
 
 export class JsonSettingsStore {
-  constructor(path) { this.path = path; }
+  constructor(path) {
+    this.path = path;
+    this.writeQueue = Promise.resolve();
+  }
 
   async load() {
     try {
@@ -35,9 +39,18 @@ export class JsonSettingsStore {
 
   async save(settings) {
     await mkdir(dirname(this.path), { recursive: true });
-    const temporaryPath = `${this.path}.tmp`;
+    const temporaryPath = `${this.path}.${process.pid}.${crypto.randomUUID()}.tmp`;
     await writeFile(temporaryPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
     await rename(temporaryPath, this.path);
+  }
+
+  // Each update re-reads the file before writing, so overlapping requests would
+  // otherwise clobber each other's fields. Serializing read-modify-write keeps
+  // concurrent saves both correct and atomic.
+  async mutate(callback) {
+    const task = this.writeQueue.then(callback, callback);
+    this.writeQueue = task.catch(() => undefined);
+    return task;
   }
 
   async translation() { return (await this.load()).translation; }
@@ -45,38 +58,47 @@ export class JsonSettingsStore {
   async events() { return (await this.load()).events; }
 
   async updateEvents(input) {
-    const current = await this.load();
-    const limitPerCategory = Number(input.limitPerCategory ?? current.events.limitPerCategory);
-    if (!Number.isInteger(limitPerCategory) || limitPerCategory < 1 || limitPerCategory > 10_000) {
-      throw new Error("每个分类的更新数量应为 1 到 10000 的整数");
-    }
-    current.events = { limitPerCategory };
-    await this.save(current);
-    return current.events;
+    return this.mutate(async () => {
+      const current = await this.load();
+      const limitPerCategory = Number(input.limitPerCategory ?? current.events.limitPerCategory);
+      if (!Number.isInteger(limitPerCategory) || limitPerCategory < 1 || limitPerCategory > 10_000) {
+        throw new SourceValidationError("每个分类的更新数量应为 1 到 10000 的整数");
+      }
+      current.events = { limitPerCategory };
+      await this.save(current);
+      return current.events;
+    });
   }
 
   async updateTranslation(input) {
-    const current = await this.load();
-    const provider = ["openai", "google", "microsoft"].includes(String(input.provider ?? current.translation.provider).trim())
-      ? String(input.provider ?? current.translation.provider).trim()
-      : "openai";
-    const baseUrl = String(input.baseUrl ?? current.translation.baseUrl).trim().replace(/\/$/, "");
-    const model = String(input.model ?? current.translation.model).trim();
-    const submittedApiKey = String(input.apiKey ?? "").trim();
-    const apiKey = submittedApiKey || current.translation.apiKey;
-    const submittedGoogleApiKey = String(input.googleApiKey ?? "").trim();
-    const googleApiKey = submittedGoogleApiKey || current.translation.googleApiKey;
-    const submittedMicrosoftApiKey = String(input.microsoftApiKey ?? "").trim();
-    const microsoftApiKey = submittedMicrosoftApiKey || current.translation.microsoftApiKey;
-    const microsoftRegion = String(input.microsoftRegion ?? current.translation.microsoftRegion).trim();
-    const targetLanguage = String(input.targetLanguage ?? current.translation.targetLanguage).trim() || "简体中文";
-    if (baseUrl) {
-      const url = new URL(baseUrl);
-      if (!['http:', 'https:'].includes(url.protocol)) throw new Error("Translation base URL must use HTTP(S)");
-    }
-    current.translation = { provider, baseUrl, apiKey, model, targetLanguage, googleApiKey, microsoftApiKey, microsoftRegion };
-    await this.save(current);
-    return current.translation;
+    return this.mutate(async () => {
+      const current = await this.load();
+      const provider = ["openai", "google", "microsoft"].includes(String(input.provider ?? current.translation.provider).trim())
+        ? String(input.provider ?? current.translation.provider).trim()
+        : "openai";
+      const baseUrl = String(input.baseUrl ?? current.translation.baseUrl).trim().replace(/\/$/, "");
+      const model = String(input.model ?? current.translation.model).trim();
+      const submittedApiKey = String(input.apiKey ?? "").trim();
+      const apiKey = submittedApiKey || current.translation.apiKey;
+      const submittedGoogleApiKey = String(input.googleApiKey ?? "").trim();
+      const googleApiKey = submittedGoogleApiKey || current.translation.googleApiKey;
+      const submittedMicrosoftApiKey = String(input.microsoftApiKey ?? "").trim();
+      const microsoftApiKey = submittedMicrosoftApiKey || current.translation.microsoftApiKey;
+      const microsoftRegion = String(input.microsoftRegion ?? current.translation.microsoftRegion).trim();
+      const targetLanguage = String(input.targetLanguage ?? current.translation.targetLanguage).trim() || "简体中文";
+      if (baseUrl) {
+        let url;
+        try {
+          url = new URL(baseUrl);
+        } catch {
+          throw new SourceValidationError("翻译服务地址不是有效的 URL");
+        }
+        if (!['http:', 'https:'].includes(url.protocol)) throw new SourceValidationError("翻译服务地址必须使用 HTTP(S)");
+      }
+      current.translation = { provider, baseUrl, apiKey, model, targetLanguage, googleApiKey, microsoftApiKey, microsoftRegion };
+      await this.save(current);
+      return current.translation;
+    });
   }
 
   async publicTranslation() {

@@ -80,7 +80,9 @@ export async function collectQnapApp(source, dependencies = { fetchText }) {
     const publishedAt = releaseDate(note);
     const summary = plainText(note.text) || (isCurrent ? (app.detail || fallbackSummary) : `${displayName} ${version}`);
     return {
-      externalId: `${source.qnapOs}:${osVersion}:${app.app_name}:${version}`,
+      // The App Center OS version is deliberately excluded: it advances
+      // independently of the app and would re-file every known release as new.
+      externalId: `${app.app_name}:${version}`,
       version,
       title: note.title || `${displayName} ${version}`,
       url: releaseNotesUrl,

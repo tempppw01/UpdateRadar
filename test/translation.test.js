@@ -105,3 +105,25 @@ test("model listing returns no remote model list for built-in translation provid
   assert.deepEqual(await listModels({ provider: "google", googleApiKey: "secret" }), []);
   assert.deepEqual(await listModels({ provider: "microsoft", microsoftApiKey: "secret" }), []);
 });
+
+test("concurrent settings saves keep every field instead of clobbering", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-settings-race-"));
+  const store = new JsonSettingsStore(join(directory, "settings.json"));
+  await store.updateTranslation({ provider: "openai", apiKey: "sk-original" });
+  await Promise.all([
+    store.updateEvents({ limitPerCategory: 350 }),
+    store.updateTranslation({ provider: "google" })
+  ]);
+  assert.deepEqual(await store.events(), { limitPerCategory: 350 });
+  const translation = await store.translation();
+  assert.equal(translation.provider, "google");
+  assert.equal(translation.apiKey, "sk-original");
+});
+
+test("concurrent settings saves do not collide on the temporary file", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-settings-concurrent-"));
+  const store = new JsonSettingsStore(join(directory, "settings.json"));
+  const results = await Promise.allSettled(Array.from({ length: 16 }, (_, index) => store.updateEvents({ limitPerCategory: index + 1 })));
+  assert.equal(results.filter((result) => result.status === "rejected").length, 0);
+  assert.equal((await store.events()).limitPerCategory, 16);
+});

@@ -2,10 +2,9 @@ import { collectorFor } from "./adapters/index.js";
 
 export async function pollSource(source, { store, collectorResolver = collectorFor } = {}) {
   const updates = await collectorResolver(source.kind)(source);
-  let inserted = 0;
-  for (const update of updates) {
-    if (await store.insert(source, update)) inserted += 1;
-  }
+  const inserted = typeof store.insertMany === "function"
+    ? await store.insertMany(source, updates)
+    : (await Promise.all(updates.map((update) => store.insert(source, update)))).filter(Boolean).length;
   return { sourceId: source.id, fetched: updates.length, inserted };
 }
 

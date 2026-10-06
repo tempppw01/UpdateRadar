@@ -125,7 +125,21 @@ test("QNAP App Center collector imports historical release notes", async () => {
   assert.deepEqual(updates[1].metadata.assets, []);
   assert.equal(updates[1].summary, "Fixed Rsync issue\nAnother line");
   assert.equal(updates[1].publishedAt, "2026-07-15T00:00:00.000Z");
-  assert.equal(updates[2].externalId, "qts:5.2.9:HybridBackup:26.4.1.563");
+  assert.equal(updates[2].externalId, "HybridBackup:26.4.1.563");
+});
+
+test("QNAP release identity ignores the App Center OS version", async () => {
+  const collect = async (osVersion) => {
+    const responses = [
+      JSON.stringify({ results: { qts: { version: [{ version: osVersion }] } } }),
+      JSON.stringify({ code: 200, app_list: [{ app_name: "HybridBackup", display_name: "HBS 3", version: "26.4.3.647", detail: "Detail", icon: {} }] }),
+      JSON.stringify({ code: 200, release_note_list: [{ version: "26.4.3.647", title: "t", text: "x", publish_date: "2026/07/20" }] })
+    ];
+    return collectQnapApp({ qnapAppName: "HBS 3", qnapOs: "qts" }, { fetchText: async () => responses.shift() });
+  };
+  const before = await collect("5.2.9");
+  const after = await collect("5.3.0");
+  assert.deepEqual(before.map((update) => update.externalId), after.map((update) => update.externalId));
 });
 test("official website collector reads configured JSON fields and downloads", async () => {
   const fixture = { Windows: { version: "9.9.32", updateDate: "2026-07-16", ntDownloadX64Url: "https://example.test/QQ.exe", ntDownloadARMUrl: "https://example.test/QQ-arm.exe" } };
@@ -266,4 +280,36 @@ test("event store removes events belonging to deleted sources", async () => {
   assert.equal(await store.removeBySourceIds(["one"]), 1);
   assert.equal((await store.list({ limit: 10 })).length, 1);
   assert.equal(await store.removeOutsideSourceIds(["two"]), 0);
+});
+
+test("event store persists a batch of updates in one write", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-batch-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const source = { id: "batch", name: "Batch", kind: "test", tags: [] };
+  let writes = 0;
+  const originalWrite = store.writeState.bind(store);
+  store.writeState = async () => { writes += 1; await originalWrite(); };
+  const inserted = await store.insertMany(source, Array.from({ length: 10 }, (_, index) => ({
+    externalId: `e${index}`, title: `t${index}`, url: "https://example.test", publishedAt: "2026-01-01T00:00:00Z", summary: ""
+  })));
+  assert.equal(inserted, 10);
+  assert.equal(writes, 1);
+  assert.equal((await store.list({ limit: 50 })).length, 10);
+  assert.equal(await store.insertMany(source, [{ externalId: "e0", title: "changed", url: "", publishedAt: "2026-01-01T00:00:00Z", summary: "" }]), 0);
+  assert.equal((await store.list({ limit: 50 }))[0].title, "changed");
+});
+
+test("event store prunes each category down to the configured limit", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "update-radar-prune-"));
+  const store = new JsonEventStore(join(directory, "events.json"));
+  const source = { id: "many", name: "Many", kind: "github-commits", tags: [] };
+  await store.insertMany(source, Array.from({ length: 12 }, (_, index) => ({
+    externalId: `e${index}`, title: `t${index}`, url: "", publishedAt: new Date(Date.UTC(2026, 0, index + 1)).toISOString(), summary: ""
+  })));
+  assert.equal((await store.load()).events.length, 12);
+  assert.equal(await store.prune(5), 7);
+  const remaining = await store.list({ limit: 50 });
+  assert.equal(remaining.length, 5);
+  assert.deepEqual(remaining.map((event) => event.externalId), ["e11", "e10", "e9", "e8", "e7"]);
+  assert.equal(await store.prune(5), 0);
 });

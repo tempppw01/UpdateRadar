@@ -1,10 +1,11 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { parseCompleteJsonDocuments } from "./lib/json-recovery.js";
+import { SourceValidationError } from "./lib/errors.js";
+
+export { SourceValidationError } from "./lib/errors.js";
 
 const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "mac-app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
-
-export class SourceValidationError extends Error {}
 
 function required(value, field) {
   const text = String(value ?? "").trim();
