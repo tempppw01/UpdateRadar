@@ -181,13 +181,17 @@ export class JsonEventStore {
       if (result.ok) {
         const updatedDelay = Math.max(0, Number(source.cooldownMinutes ?? 60));
         const delay = result.inserted > 0 ? updatedDelay : idleDelay;
-        state.sourcePollState[result.sourceId] = {
+        const nextState = {
           ...previous,
           lastCheckedAt: checkedAt,
           lastSuccessAt: checkedAt,
           failureCount: 0,
           nextCheckAt: new Date(now + delay * 60_000).toISOString()
         };
+        // Chart sources diff their ranking against this snapshot on the next poll, so
+        // it is only replaced once a run actually produced a fresh table.
+        if (result.chartSnapshot) nextState.chartSnapshot = result.chartSnapshot;
+        state.sourcePollState[result.sourceId] = nextState;
       } else {
         const failureCount = Number(previous.failureCount ?? 0) + 1;
         const delay = Math.min(5 * 2 ** (failureCount - 1), 360);

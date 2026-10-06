@@ -1,4 +1,5 @@
 import { collectAppStore, collectAppStoreBatch } from "./app-store.js";
+import { collectAppStoreChart } from "./app-store-charts.js";
 import { collectDockerHub } from "./docker-hub.js";
 import { collectGithubReleases } from "./github-releases.js";
 import { collectGithubCommits } from "./github-commits.js";
@@ -16,6 +17,7 @@ const collectors = {
   "docker-hub": collectDockerHub,
   "app-store": collectAppStore,
   "mac-app-store": collectAppStore,
+  "app-store-charts": collectAppStoreChart,
   "google-play": collectGooglePlay,
   "qnap-app": collectQnapApp,
   "official-website": collectOfficialWebsite,

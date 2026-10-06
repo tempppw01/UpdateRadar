@@ -1,12 +1,32 @@
 import { batchCollectorFor, collectorFor } from "./adapters/index.js";
 import { fetchText } from "./lib/http.js";
 
-export async function pollSource(source, { store, collectorResolver = collectorFor } = {}) {
-  const updates = await collectorResolver(source.kind)(source);
+// Most collectors return a plain update list. Chart collectors also return the
+// snapshot their next run diffs against, which the caller persists.
+function normalizeCollected(collected) {
+  if (Array.isArray(collected)) return { updates: collected, chartSnapshot: null };
+  if (collected && typeof collected === "object") return { updates: collected.updates ?? [], chartSnapshot: collected.snapshot ?? null };
+  return { updates: [], chartSnapshot: null };
+}
+
+// Chart collectors compare against the previous ranking, so the stored snapshot is
+// injected before collecting and replaced after.
+function withChartSnapshot(source, sourcePollState) {
+  const snapshot = sourcePollState?.[source.id]?.chartSnapshot;
+  if (!snapshot || !Array.isArray(snapshot.previousChart)) return source;
+  return { ...source, previousChart: snapshot.previousChart, previousVersions: snapshot.previousVersions ?? [] };
+}
+
+export async function pollSource(source, { store, collectorResolver = collectorFor, sourcePollState = {} } = {}) {
+  const { updates, chartSnapshot } = normalizeCollected(await collectorResolver(source.kind)(withChartSnapshot(source, sourcePollState)));
   const inserted = typeof store.insertMany === "function"
     ? await store.insertMany(source, updates)
     : (await Promise.all(updates.map((update) => store.insert(source, update)))).filter(Boolean).length;
-  return { sourceId: source.id, fetched: updates.length, inserted };
+  // Only chart collectors produce a snapshot, so the key stays absent for the rest
+  // instead of writing an empty marker into every poll record.
+  return chartSnapshot
+    ? { sourceId: source.id, fetched: updates.length, inserted, chartSnapshot }
+    : { sourceId: source.id, fetched: updates.length, inserted };
 }
 
 export async function pollAll(sources, dependencies) {
@@ -14,6 +34,11 @@ export async function pollAll(sources, dependencies) {
   const configuredConcurrency = Number(dependencies?.concurrency ?? process.env.POLL_CONCURRENCY ?? 4);
   const concurrency = Math.min(Math.max(Number.isFinite(configuredConcurrency) ? Math.floor(configuredConcurrency) : 4, 1), 12);
   const results = new Array(enabledSources.length);
+  // Read once for the whole run: the ranking diff needs the snapshot each chart
+  // source stored on its previous successful poll.
+  const sourcePollState = typeof dependencies?.store?.sourcePollStates === "function"
+    ? await dependencies.store.sourcePollStates()
+    : (dependencies?.sourcePollState ?? {});
 
   // Sources whose collector can serve a whole group share one request, so they run
   // as a single task instead of competing for the per-source concurrency slots.
@@ -36,7 +61,7 @@ export async function pollAll(sources, dependencies) {
   individual.forEach(({ source, index }) => {
     tasks.push(async () => {
       try {
-        results[index] = { ok: true, ...await pollSource(source, dependencies) };
+        results[index] = { ok: true, ...await pollSource(source, { ...dependencies, sourcePollState }) };
       } catch (error) {
         results[index] = { ok: false, sourceId: source.id, error: error instanceof Error ? error.message : String(error) };
       }

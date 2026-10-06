@@ -114,6 +114,7 @@ const sourceIcons = {
   rss: { name: "RSS", slug: "rss" },
   "app-store": { name: "App Store", slug: "appstore" },
   "mac-app-store": { name: "Mac App Store", slug: "appstore" },
+  "app-store-charts": { name: "App Store 榜单", slug: "appstore" },
   "google-play": { name: "Google Play", slug: "googleplay" },
   "qnap-app": { name: "QNAP", slug: "qnap" },
   "official-website": { name: "官网自定义监控", assetUrl: "/icons/official-website.svg" },
@@ -123,7 +124,7 @@ const sourceIcons = {
   xbox: { name: "Xbox", slug: "xbox" }
 };
 
-const appleStoreKinds = new Set(["app-store", "mac-app-store"]);
+const appleStoreKinds = new Set(["app-store", "mac-app-store", "app-store-charts"]);
 
 function isAppleStore(kind) {
   return appleStoreKinds.has(kind);
@@ -179,6 +180,7 @@ function scheduleTopbarStateUpdate() {
 const tagCategories = {
   "app-store": { label: "App Store", iconKind: "app-store" },
   "mac-app-store": { label: "Mac App Store", iconKind: "mac-app-store" },
+  "app-store-charts": { label: "App Store 榜单", iconKind: "app-store-charts" },
   "github-releases": { label: "GitHub 发布", iconKind: "github-releases" },
   "github-commits": { label: "GitHub 提交", iconKind: "github-commits" },
   github: { label: "GitHub", iconKind: "github-releases" },
@@ -293,6 +295,9 @@ function eventRepositoryLabel(event, source) {
 }
 
 function eventHeading(event) {
+  // A chart source covers dozens of apps, so its title carries the app identity
+  // that the source name cannot -- for both rank moves and version updates.
+  if (event.sourceKind === "app-store-charts") return event.title;
   if (event.version) return `${event.sourceName} / ${event.version}`;
   if (event.sourceKind === "github-commits") {
     const source = state.sources.find((candidate) => candidate.id === event.sourceId);
@@ -310,6 +315,18 @@ function storeRegion(value) {
   const country = String(value || "").toUpperCase();
   const labels = { CN: "中国大陆", US: "美国", JP: "日本", GB: "英国", HK: "中国香港", TW: "中国台湾", KR: "韩国", SG: "新加坡", CA: "加拿大", AU: "澳大利亚" };
   return labels[country] || country;
+}
+
+// Chart events report a position change rather than a release, so the rank is
+// what replaces the version wherever a version would normally be shown.
+function eventRankLabel(event) {
+  if (event.sourceKind !== "app-store-charts" || !event.metadata?.movement) return "";
+  const { rank, previousRank } = event.metadata;
+  if (event.metadata.movement === "dropped") return "已跌出榜单";
+  if (!Number.isFinite(previousRank)) return `第 ${rank} 名 · 新进榜`;
+  const delta = previousRank - rank;
+  if (delta === 0) return `第 ${rank} 名`;
+  return `第 ${rank} 名 · ${delta > 0 ? "上升" : "下降"} ${Math.abs(delta)} 位`;
 }
 
 function releaseHighlights(summary = "") {
@@ -389,12 +406,15 @@ function openEventDetails(event) {
   state.translating = false;
   elements.eventDialogTitle.textContent = eventHeading(event);
   const region = isAppleStore(event.sourceKind) && event.metadata?.store ? ` · ${appleStoreLabel(event.sourceKind)} ${storeRegion(event.metadata.store)}` : "";
+  // Chart events carry a rank instead of a version, so the meta line spells it out.
+  const rankLabel = eventRankLabel(event);
+  const rank = rankLabel ? ` · ${rankLabel}` : "";
   const versionOrCommit = event.version
     || (event.sourceKind === "github-commits" && event.metadata?.commit
       ? `提交 ${event.metadata.commit}${event.metadata.branch && event.metadata.branch !== "default" ? ` · ${event.metadata.branch}` : ""}`
       : "")
     || "未提供版本";
-  elements.eventDialogMeta.textContent = `${event.sourceName} · ${versionOrCommit}${region} · ${publishedDateLabel(event)}`;
+  elements.eventDialogMeta.textContent = `${event.sourceName} · ${versionOrCommit}${region}${rank} · ${publishedDateLabel(event)}`;
   elements.eventDialogDetails.replaceChildren();
   const purchase = event.metadata?.inAppPurchase;
   const storePrice = event.metadata?.storePrice;
@@ -791,6 +811,12 @@ function renderEvents() {
       version.textContent = `版本 ${event.version}`;
       details.append(version);
     }
+    // Rank moves carry no version, so the position change is the footer chip.
+    if (eventRankLabel(event)) {
+      const rank = document.createElement("span");
+      rank.textContent = eventRankLabel(event);
+      details.append(rank);
+    }
     if (isAppleStore(event.sourceKind) && event.metadata?.store) {
       const region = document.createElement("span");
       region.textContent = `${appleStoreLabel(event.sourceKind)} ${storeRegion(event.metadata.store)}`;
@@ -1028,7 +1054,11 @@ function sourcePayload() {
     packageId: value("packageId"), country: value("country"), language: value("language"),
     subscriptionId: value("subscriptionId"), planName: value("planName"), storefrontId: value("storefrontId"),
     qnapAppName: value("qnapAppName"), qnapOs: value("qnapOs"), qnapVersion: value("qnapVersion"), officialUrl: value("officialUrl"), homepageUrl: value("homepageUrl"), officialFormat: value("officialFormat"), versionPath: value("versionPath"), publishedAtPath: value("publishedAtPath"), downloadPath: value("downloadPath"), summaryPath: value("summaryPath"), gameName: value("gameName"), nintendoRegion: value("nintendoRegion"), steamAppId: value("steamAppId"), cooldownMinutes: Number(elements.sourceForm.elements.cooldownMinutes.value),
-    tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean), includePrereleases: elements.sourceForm.elements.includePrereleases.checked
+    chart: value("chart"), platform: value("platform"), categoryId: value("categoryId"),
+    tagsFilter: value("tagsFilter").split(",").map((tag) => tag.trim()).filter(Boolean), gameAliases: value("gameAliases").split(",").map((item) => item.trim()).filter(Boolean),
+    // Chart fields are absent from other kinds' forms, so a missing checkbox means "unchecked"
+    // only for the kind that actually owns it.
+    includePrereleases: elements.sourceForm.elements.includePrereleases.checked, watchVersions: elements.sourceForm.elements.watchVersions.checked
   };
 }
 

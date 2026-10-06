@@ -5,7 +5,7 @@ import { SourceValidationError } from "./lib/errors.js";
 
 export { SourceValidationError } from "./lib/errors.js";
 
-const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "mac-app-store", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
+const kinds = new Set(["github-releases", "github-commits", "docker-hub", "rss", "app-store", "mac-app-store", "app-store-charts", "google-play", "qnap-app", "official-website", "nintendo-switch", "steam", "playstation", "xbox"]);
 
 function required(value, field) {
   const text = String(value ?? "").trim();
@@ -70,6 +70,16 @@ export function normalizeSource(input, { id } = {}) {
     source.packageId = required(input.packageId, "Google Play 包名");
     source.country = String(input.country || "US").trim().toUpperCase();
     source.language = String(input.language || "en").trim().toLowerCase();
+  }
+  if (kind === "app-store-charts") {
+    source.country = String(input.country || "cn").trim().toLowerCase();
+    source.chart = String(input.chart || "top-free").trim().toLowerCase();
+    if (!new Set(["top-free", "top-paid", "top-grossing"]).has(source.chart)) throw new SourceValidationError("不支持的榜单类型");
+    source.platform = String(input.platform || "iphone").trim().toLowerCase();
+    if (!new Set(["iphone", "ipad"]).has(source.platform)) throw new SourceValidationError("榜单设备仅支持 iPhone 或 iPad");
+    source.categoryId = String(input.categoryId || "").trim().replace(/^\/+|\/+$/g, "");
+    if (source.categoryId && !/^\d{1,6}$/.test(source.categoryId)) throw new SourceValidationError("榜单分类 ID 应为数字");
+    source.watchVersions = input.watchVersions !== false;
   }
   if (kind === "qnap-app") {
     source.qnapAppName = required(input.qnapAppName, "QNAP App Center 应用名称");
