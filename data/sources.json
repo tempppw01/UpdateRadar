@@ -1,19 +1,63 @@
 [
   {
-    "id": "app-store-333206289",
-    "name": "Alipay - Simplify Your Life",
-    "kind": "app-store",
-    "enabled": true,
     "tags": [
-      "app-store"
+      "app-store-charts"
     ],
+    "watchVersions": true,
+    "name": "App Store 中国大陆免费榜",
+    "id": "chart-cn-free",
+    "enabled": true,
+    "categoryId": "",
+    "chart": "top-free",
     "cooldownMinutes": 60,
-    "appId": "333206289",
+    "kind": "app-store-charts",
+    "country": "cn",
+    "platform": "iphone"
+  },
+  {
+    "tags": [
+      "app-store-charts"
+    ],
+    "watchVersions": true,
+    "name": "App Store 中国大陆付费榜",
+    "id": "chart-cn-paid",
+    "enabled": true,
+    "categoryId": "",
+    "chart": "top-paid",
+    "cooldownMinutes": 60,
+    "kind": "app-store-charts",
+    "country": "cn",
+    "platform": "iphone"
+  },
+  {
+    "tags": [
+      "app-store-charts"
+    ],
+    "watchVersions": true,
+    "name": "App Store 中国大陆畅销榜",
+    "id": "chart-cn-grossing",
+    "enabled": true,
+    "categoryId": "",
+    "chart": "top-grossing",
+    "cooldownMinutes": 60,
+    "kind": "app-store-charts",
+    "country": "cn",
+    "platform": "iphone"
+  },
+  {
+    "tags": [
+      "app-store-charts"
+    ],
+    "watchVersions": true,
+    "name": "App Store 美国免费榜",
+    "id": "chart-us-free",
+    "enabled": true,
+    "categoryId": "",
+    "chart": "top-free",
+    "cooldownMinutes": 60,
+    "kind": "app-store-charts",
     "country": "us",
-    "subscriptionId": "",
-    "planName": "",
-    "storefrontId": "",
-    "artworkUrl": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/43/97/bd/4397bdf2-1e8b-ee87-56b5-5ef4b0bf52f9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/512x512bb.jpg"
+    "platform": "iphone"
   },
   {
     "id": "app-store-1210638245",
