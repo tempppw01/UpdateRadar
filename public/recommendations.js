@@ -16,9 +16,9 @@ async function requestJson(url, options) {
   try {
     body = text ? JSON.parse(text) : null;
   } catch {
-    throw new Error(response.ok ? "服务返回的数据不完整，请稍后重试" : `请求失败（HTTP ${response.status}）`);
+    throw new Error(response.ok ? "服务返回的数据不完整，请稍后重试" : `请求失败（HTTP ${response.status}`);
   }
-  if (!body || typeof body !== "object") throw new Error(response.ok ? "服务返回的数据格式不正确，请稍后重试" : `请求失败（HTTP ${response.status}）`);
+  if (!body || typeof body !== "object") throw new Error(response.ok ? "服务返回的数据格式不正确，请稍后重试" : `请求失败（HTTP ${response.status}`);
   if (!response.ok) throw new Error(body.message || body.error || "请求失败");
   return body;
 }
@@ -49,7 +49,6 @@ function renderRecommendations() {
   
   elements.recommendationGrid.innerHTML = filtered.map((app) => `
     <article class="recommendation-card">
-      <div class="recommendation-rank">#${app.ordinal}</div>
       <div class="recommendation-icon">
         <img src="${app.icon}" alt="${app.title}" onerror="this.style.display='none'">
       </div>
@@ -57,6 +56,7 @@ function renderRecommendations() {
         <h3 class="recommendation-title">${app.title}</h3>
         <p class="recommendation-developer">${app.developer}</p>
         <div class="recommendation-meta">
+          <span class="chip rank-chip">第 ${app.ordinal} 名</span>
           <span class="chip">${app.chartLabel}</span>
           <span class="chip">${app.country.toUpperCase()}</span>
           <span class="chip">${app.platform === "iphone" ? "iPhone" : "iPad"}</span>
@@ -104,5 +104,3 @@ elements.refreshButton.addEventListener("click", () => {
 });
 
 loadRecommendations();
-
-
