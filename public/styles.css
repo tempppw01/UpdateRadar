@@ -72,3 +72,4 @@ html[data-theme="dark"] .topbar.is-pinned { background:rgba(16,35,46,.9); box-sh
 .nav-link{font:400 14px var(--sans);color:var(--ink);text-decoration:none;padding:0 12px;transition:opacity .2s}
 .nav-link:hover{opacity:.7}
 @media (max-width:720px){.recommendation-grid{grid-template-columns:minmax(0,1fr)}.nav-link{display:none}}
+

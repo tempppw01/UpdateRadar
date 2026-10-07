@@ -53,7 +53,7 @@ function renderRecommendations() {
         <img src="${app.icon}" alt="${app.title}" onerror="this.style.display='none'">
       </div>
       <div class="recommendation-main">
-        <h3 class="recommendation-title">${app.title}</h3>
+        <a class="recommendation-title" href="${app.url}" target="_blank" rel="noreferrer">${app.title}</a>
         <p class="recommendation-developer">${app.developer}</p>
         <div class="recommendation-meta">
           <span class="chip rank-chip">第 ${app.ordinal} 名</span>
@@ -62,10 +62,6 @@ function renderRecommendations() {
           <span class="chip">${app.platform === "iphone" ? "iPhone" : "iPad"}</span>
         </div>
       </div>
-      <a class="recommendation-download" href="${app.url}" target="_blank" rel="noreferrer">
-        <span>下载</span>
-        <span>↗</span>
-      </a>
     </article>
   `).join("");
 }
