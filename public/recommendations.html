@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10232e">
+    <title>软件推荐 | UpdateRadar</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/source-icons.css">
+    <link rel="stylesheet" href="/alignment.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="UpdateRadar 首页">
+          <span class="brand-mark"><i></i><i></i><i></i></span>
+          <span>UPDATE<br>RADAR</span>
+        </a>
+        <div class="topbar-actions">
+          <span class="live-state"><b></b> SYSTEM LIVE</span>
+          <a class="nav-link" href="/recommendations.html">软件推荐</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">◐ 暗黑</button>
+          <button class="settings-button" id="settings-button" type="button">设置</button>
+        </div>
+      </header>
+
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">RECOMMENDATIONS / 03</p>
+          <h1 id="page-title">软件推荐<br><em>热门应用。</em></h1>
+        </div>
+        <div class="radar" aria-hidden="true">
+          <div class="radar-sweep"></div><span class="ping ping-one"></span><span class="ping ping-two"></span><span class="ping ping-three"></span>
+        </div>
+      </section>
+
+      <section class="recommendations" aria-label="软件推荐">
+        <div class="section-heading">
+          <div class="signal-heading-title"><div><p class="eyebrow">CHART DATA</p><h2>App Store 排行榜推荐</h2></div><div class="signal-actions"><button class="sync-button" id="refresh-recommendations" type="button"><span aria-hidden="true">↻</span> 刷新</button></div></div>
+          <p class="results-count" id="results-count"></p>
+        </div>
+
+        <div class="filters" aria-label="筛选推荐">
+          <label class="chart-filter">榜单
+            <select id="chart-filter"><option value="">全部榜单</option><option value="top-free">免费榜</option><option value="top-paid">付费榜</option><option value="top-grossing">畅销榜</option></select>
+          </label>
+          <label class="country-filter">地区
+            <select id="country-filter"><option value="">全部地区</option><option value="cn">中国大陆</option><option value="us">美国</option><option value="jp">日本</option></select>
+          </label>
+        </div>
+
+        <div class="recommendation-grid" id="recommendation-grid" aria-live="polite">
+          <div class="loading">正在加载推荐数据…</div>
+        </div>
+      </section>
+
+      <footer class="site-footer" aria-label="版权信息">版权所有 © 2026 UpdateRadar · All rights reserved.</footer>
+    </main>
+    <script type="module" src="/recommendations.js"></script>
+  </body>
+</html>

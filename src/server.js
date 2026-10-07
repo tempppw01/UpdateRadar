@@ -237,6 +237,35 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
           limit: url.searchParams.get("limit") ?? undefined
         }));
       }
+      if (request.method === "GET" && url.pathname === "/v1/recommendations") {
+        const activeSources = await getSources();
+        const chartSources = activeSources.filter((source) => source.kind === "app-store-charts" && source.enabled);
+        const recommendations = [];
+        for (const source of chartSources) {
+          const pollState = await store.sourcePollStates();
+          const snapshot = pollState[source.id]?.chartSnapshot;
+          if (!snapshot?.previousChart?.length) continue;
+          const country = source.country ?? "cn";
+          const chart = source.chart ?? "top-free";
+          const label = { "top-free": "免费榜", "top-paid": "付费榜", "top-grossing": "畅销榜" }[chart] ?? chart;
+          const platform = source.platform ?? "iphone";
+          const entries = snapshot.previousChart.slice(0, 30).map((entry) => ({
+            appId: entry.appId,
+            title: entry.title,
+            ordinal: entry.ordinal,
+            icon: entry.icon,
+            developer: entry.developer,
+            country,
+            chart,
+            chartLabel: label,
+            platform,
+            url: `https://apps.apple.com/${country}/app/id${entry.appId}`
+          }));
+          recommendations.push(...entries);
+        }
+        recommendations.sort((a, b) => a.ordinal - b.ordinal);
+        return send(response, 200, recommendations.slice(0, 100));
+      }
       if (request.method === "GET" && url.pathname === "/v1/sync-status") {
         return send(response, 200, { lastSyncedAt: await store.lastSyncedAt() });
       }
