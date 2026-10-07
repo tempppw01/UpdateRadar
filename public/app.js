@@ -320,13 +320,13 @@ function storeRegion(value) {
 // Chart events report a position change rather than a release, so the rank is
 // what replaces the version wherever a version would normally be shown.
 function eventRankLabel(event) {
-  if (event.sourceKind !== "app-store-charts" || !event.metadata?.movement) return "";
-  const { rank, previousRank } = event.metadata;
-  if (event.metadata.movement === "dropped") return "已跌出榜单";
-  if (!Number.isFinite(previousRank)) return `第 ${rank} 名 · 新进榜`;
-  const delta = previousRank - rank;
-  if (delta === 0) return `第 ${rank} 名`;
-  return `第 ${rank} 名 · ${delta > 0 ? "上升" : "下降"} ${Math.abs(delta)} 位`;
+  if (event.sourceKind !== "app-store-charts" || !event.metadata?.rank) return "";
+  const { rank, previousRank, movement } = event.metadata;
+  if (movement === "dropped") return "已跌出榜单";
+  if (movement === "new") return `第 ${rank} 名 · 新进榜`;
+  if (movement === "up") return `第 ${rank} 名 · 上升 ${previousRank - rank} 位`;
+  if (movement === "down") return `第 ${rank} 名 · 下降 ${rank - previousRank} 位`;
+  return `第 ${rank} 名`;
 }
 
 function releaseHighlights(summary = "") {
