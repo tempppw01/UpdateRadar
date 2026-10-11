@@ -7,6 +7,7 @@ const elements = {
   lastSync: document.querySelector("#last-sync"),
   tagFilters: document.querySelector("#tag-filters"),
   eventSearch: document.querySelector("#event-search"),
+  eventSearchToggle: document.querySelector("#event-search-toggle"),
   sourceFilter: document.querySelector("#source-filter"),
   eventList: document.querySelector("#event-list"),
   eventPagination: document.querySelector("#event-pagination"),
@@ -1667,6 +1668,27 @@ elements.syncPageButton.addEventListener("click", () => {
   if (!state.visibleEventSourceIds.length) return showToast("当前页没有可同步的监控源", "error");
   return syncSources(state.visibleEventSourceIds, elements.syncPageButton);
 });
+
+const searchLabel = elements.eventSearch?.closest(".event-search");
+if (searchLabel && elements.eventSearchToggle) {
+  const setSearchExpanded = (expanded) => {
+    searchLabel.classList.toggle("is-expanded", expanded);
+    elements.eventSearchToggle.setAttribute("aria-expanded", String(expanded));
+    elements.eventSearchToggle.setAttribute("aria-label", expanded ? "收起搜索" : "展开搜索");
+    if (expanded) elements.eventSearch.focus();
+    else if (!elements.eventSearch.value) elements.eventSearch.blur();
+  };
+  elements.eventSearchToggle.addEventListener("click", () => {
+    setSearchExpanded(!searchLabel.classList.contains("is-expanded"));
+  });
+  elements.eventSearch.addEventListener("focus", () => setSearchExpanded(true));
+  elements.eventSearch.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !elements.eventSearch.value) setSearchExpanded(false);
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!searchLabel.contains(event.target) && !elements.eventSearch.value) setSearchExpanded(false);
+  });
+}
 
 showWelcomeOnFirstVisit();
 

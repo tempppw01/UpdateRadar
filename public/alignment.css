@@ -86,12 +86,49 @@ html[data-theme="dark"] .event-app-icon-badge { color: var(--text-muted); }
 .timeline[data-view="cards"] .event-card-actions { flex: 0 0 auto; width: auto; }
 .timeline[data-view="cards"] .event-link { grid-column: auto; justify-self: start; align-self: center; }
 
+/* Livelier dashboard feedback without changing the monitoring workflow. */
+.metrics article { position: relative; isolation: isolate; transition: background-color .22s ease, transform .22s ease; }
+.metrics article::after { position: absolute; z-index: -1; right: 20px; bottom: 0; left: 0; height: 2px; background: var(--lime); content: ""; transform: scaleX(0); transform-origin: left; transition: transform .25s ease; }
+.metrics article:hover { background: rgba(191, 208, 205, .12); transform: translateY(-2px); }
+.metrics article:hover::after { transform: scaleX(1); }
+.metrics strong { transition: color .2s ease; }
+.metrics article:hover strong { color: var(--coral); }
+.filters { align-items: center; }
+.tag-filters button { position: relative; transition: color .18s ease, background-color .18s ease, transform .18s ease; }
+.tag-filters button:hover { color: var(--ink); transform: translateY(-1px); }
+.tag-filters button.active { box-shadow: 3px 3px 0 rgba(16, 35, 46, .12); }
+.source-filter select { min-width: 120px; transition: border-color .18s ease, background-color .18s ease; }
+.source-filter select:focus { outline: 2px solid var(--lime); outline-offset: 2px; }
+.event-card { transition: background-color .2s ease, padding .2s ease; }
+.event-card:hover { background: rgba(191, 208, 205, .09); }
+.timeline[data-view="cards"] .event-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+.timeline[data-view="cards"] .event-card:hover { border-color: var(--coral); box-shadow: 4px 4px 0 rgba(16, 35, 46, .08); transform: translateY(-3px); }
+.event-app-icon { transition: transform .22s ease, border-color .22s ease; }
+.event-card:hover .event-app-icon { border-color: var(--coral); transform: rotate(-3deg) scale(1.04); }
+.event-view-toggle button, .quick-add-button, .sync-page-button, .sync-button { transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease; }
+.quick-add-button:hover, .sync-page-button:hover { border-color: var(--coral); transform: translateY(-1px); }
+.sync-button:hover { background: var(--coral); }
+.event-search { min-height: 42px; padding: 2px; border: 1px solid transparent; transition: border-color .2s ease, background-color .2s ease; }
+.event-search.is-expanded { border-color: var(--line); background: rgba(255, 255, 255, .18); }
+.event-search.is-expanded input { width: clamp(150px, 20vw, 250px); padding: 7px 4px; }
+.radar-sweep { opacity: .78; }
+.ping { animation: radar-pulse 2.4s ease-out infinite; }
+.ping-two { animation-delay: .8s; }
+.ping-three { animation-delay: 1.6s; }
+@keyframes radar-pulse { 0%, 100% { box-shadow: 0 0 0 4px rgba(198, 241, 53, .12); } 50% { box-shadow: 0 0 0 9px rgba(198, 241, 53, 0); } }
+@media (prefers-reduced-motion: reduce) {
+  .metrics article, .metrics article::after, .metrics strong, .tag-filters button, .event-card, .timeline[data-view="cards"] .event-card, .event-app-icon, .event-view-toggle button, .quick-add-button, .sync-page-button, .sync-button, .event-search, .event-search input, .ping { transition: none !important; animation: none !important; }
+}
+
 @media (max-width: 720px) {
   .event-app-icon { width: 36px; height: 36px; border-radius: 8px; }
   .event-card.event-has-icon-slot { grid-template-columns: 22px 40px minmax(0, 1fr); }
   .timeline[data-view="list"] .event-card.event-has-icon-slot { grid-template-columns: 22px 40px minmax(0, 1fr); }
   .event-card.event-has-icon-slot .event-link { grid-column: 3; }
   .event-view-toggle { width: 100%; }
+  .filters { align-items: stretch; }
+  .event-search { align-self: flex-start; }
+  .event-search.is-expanded input { width: min(52vw, 230px); }
   /* Keep the sync button in the same corner on phones instead of dropping it
      to the bottom of the card. */
   .timeline[data-view="cards"] .event-sync-button { position: absolute; top: 13px; right: 15px; margin-bottom: 0; }

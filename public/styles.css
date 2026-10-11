@@ -73,3 +73,5 @@ html[data-theme="dark"] .topbar.is-pinned { background:rgba(16,35,46,.9); box-sh
 @media (max-width:720px){.recommendation-grid{grid-template-columns:minmax(0,1fr)}.nav-link{display:none}}
 
 
+
+.event-search{display:flex;align-items:center;gap:9px;min-width:42px;transition:width .24s ease}.event-search-toggle{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 11px;border:1px solid var(--line);background:rgba(255,255,255,.24);color:var(--ink);font:500 11px var(--mono);white-space:nowrap;transition:background-color .2s,border-color .2s,transform .2s}.event-search-toggle span:first-child{font-size:18px;line-height:1}.event-search-toggle:hover{border-color:var(--ink);background:var(--lime);transform:translateY(-1px)}.event-search input{width:0;min-width:0;padding:7px 0;border:0;border-bottom:1px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);font-size:12px;opacity:0;transition:width .24s ease,padding .24s ease,opacity .18s ease}.event-search.is-expanded input{width:clamp(150px,20vw,250px);padding:7px 4px;opacity:1}.event-search input:focus{outline:none;border-bottom-color:var(--coral)}
