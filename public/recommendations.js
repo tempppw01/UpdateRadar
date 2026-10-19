@@ -29,8 +29,78 @@ async function loadRecommendations() {
     state.recommendations = recommendations;
     renderRecommendations();
   } catch (error) {
-    elements.recommendationGrid.innerHTML = `<div class="empty">无法加载推荐数据：${error.message}</div>`;
+    renderEmpty(`无法加载推荐数据：${error.message}`);
   }
+}
+
+function renderEmpty(message) {
+  const empty = document.createElement("div");
+  empty.className = "empty";
+  empty.textContent = message;
+  elements.recommendationGrid.replaceChildren(empty);
+}
+
+function safeHttpsUrl(value) {
+  try {
+    const url = new URL(String(value));
+    return url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function recommendationChip(label, className = "") {
+  const chip = document.createElement("span");
+  chip.className = `chip${className ? ` ${className}` : ""}`;
+  chip.textContent = label;
+  return chip;
+}
+
+function recommendationCard(app) {
+  const card = document.createElement("article");
+  card.className = "recommendation-card";
+
+  const iconContainer = document.createElement("div");
+  iconContainer.className = "recommendation-icon";
+  const iconUrl = safeHttpsUrl(app.icon);
+  if (iconUrl) {
+    const icon = document.createElement("img");
+    icon.src = iconUrl;
+    icon.alt = String(app.title ?? "");
+    icon.loading = "lazy";
+    icon.referrerPolicy = "no-referrer";
+    icon.addEventListener("error", () => icon.remove(), { once: true });
+    iconContainer.append(icon);
+  }
+
+  const main = document.createElement("div");
+  main.className = "recommendation-main";
+  const titleUrl = safeHttpsUrl(app.url);
+  const title = document.createElement(titleUrl ? "a" : "span");
+  title.className = "recommendation-title";
+  title.textContent = String(app.title ?? "");
+  if (titleUrl) {
+    title.href = titleUrl;
+    title.target = "_blank";
+    title.rel = "noreferrer";
+  }
+
+  const developer = document.createElement("p");
+  developer.className = "recommendation-developer";
+  developer.textContent = String(app.developer ?? "");
+
+  const meta = document.createElement("div");
+  meta.className = "recommendation-meta";
+  meta.append(
+    recommendationChip(`第 ${app.ordinal} 名`, "rank-chip"),
+    recommendationChip(String(app.chartLabel ?? "")),
+    recommendationChip(String(app.country ?? "").toUpperCase()),
+    recommendationChip(app.platform === "iphone" ? "iPhone" : "iPad")
+  );
+
+  main.append(title, developer, meta);
+  card.append(iconContainer, main);
+  return card;
 }
 
 function renderRecommendations() {
@@ -43,27 +113,11 @@ function renderRecommendations() {
   elements.resultsCount.textContent = `共 ${filtered.length} 个应用`;
   
   if (filtered.length === 0) {
-    elements.recommendationGrid.innerHTML = `<div class="empty">没有找到匹配的应用</div>`;
+    renderEmpty("没有找到匹配的应用");
     return;
   }
-  
-  elements.recommendationGrid.innerHTML = filtered.map((app) => `
-    <article class="recommendation-card">
-      <div class="recommendation-icon">
-        <img src="${app.icon}" alt="${app.title}" onerror="this.style.display='none'">
-      </div>
-      <div class="recommendation-main">
-        <a class="recommendation-title" href="${app.url}" target="_blank" rel="noreferrer">${app.title}</a>
-        <p class="recommendation-developer">${app.developer}</p>
-        <div class="recommendation-meta">
-          <span class="chip rank-chip">第 ${app.ordinal} 名</span>
-          <span class="chip">${app.chartLabel}</span>
-          <span class="chip">${app.country.toUpperCase()}</span>
-          <span class="chip">${app.platform === "iphone" ? "iPhone" : "iPad"}</span>
-        </div>
-      </div>
-    </article>
-  `).join("");
+
+  elements.recommendationGrid.replaceChildren(...filtered.map(recommendationCard));
 }
 
 function applyTheme(theme) {
@@ -82,7 +136,7 @@ elements.themeToggle.addEventListener("click", () => {
 });
 
 elements.settingsButton.addEventListener("click", () => {
-  window.location.href = "/";
+  window.location.href = "/?settings=1";
 });
 
 elements.chartFilter.addEventListener("change", (event) => {

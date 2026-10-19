@@ -241,8 +241,8 @@ export function createApp({ store = eventStore, getSources = sources, sourceRepo
         const activeSources = await getSources();
         const chartSources = activeSources.filter((source) => source.kind === "app-store-charts" && source.enabled);
         const recommendations = [];
+        const pollState = await store.sourcePollStates();
         for (const source of chartSources) {
-          const pollState = await store.sourcePollStates();
           const snapshot = pollState[source.id]?.chartSnapshot;
           if (!snapshot?.previousChart?.length) continue;
           const country = source.country ?? "cn";

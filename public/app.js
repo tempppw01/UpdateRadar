@@ -1669,30 +1669,47 @@ elements.syncPageButton.addEventListener("click", () => {
   return syncSources(state.visibleEventSourceIds, elements.syncPageButton);
 });
 
-const searchLabel = elements.eventSearch?.closest(".event-search");
-if (searchLabel && elements.eventSearchToggle) {
+const searchContainer = elements.eventSearch?.closest(".event-search");
+if (searchContainer && elements.eventSearchToggle) {
   const setSearchExpanded = (expanded) => {
-    searchLabel.classList.toggle("is-expanded", expanded);
+    searchContainer.classList.toggle("is-expanded", expanded);
     elements.eventSearchToggle.setAttribute("aria-expanded", String(expanded));
     elements.eventSearchToggle.setAttribute("aria-label", expanded ? "收起搜索" : "展开搜索");
     if (expanded) elements.eventSearch.focus();
     else if (!elements.eventSearch.value) elements.eventSearch.blur();
   };
+  const collapseSearch = () => {
+    if (elements.eventSearch.value) {
+      elements.eventSearch.value = "";
+      state.search = "";
+      state.eventPage = 1;
+      renderEvents();
+    }
+    setSearchExpanded(false);
+  };
   elements.eventSearchToggle.addEventListener("click", () => {
-    setSearchExpanded(!searchLabel.classList.contains("is-expanded"));
+    if (searchContainer.classList.contains("is-expanded")) collapseSearch();
+    else setSearchExpanded(true);
   });
   elements.eventSearch.addEventListener("focus", () => setSearchExpanded(true));
   elements.eventSearch.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.eventSearch.value) setSearchExpanded(false);
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    collapseSearch();
   });
   document.addEventListener("pointerdown", (event) => {
-    if (!searchLabel.contains(event.target) && !elements.eventSearch.value) setSearchExpanded(false);
+    if (!searchContainer.contains(event.target) && !elements.eventSearch.value) setSearchExpanded(false);
   });
 }
 
-showWelcomeOnFirstVisit();
+const openSettingsFromUrl = new URLSearchParams(window.location.search).get("settings") === "1";
+if (!openSettingsFromUrl) showWelcomeOnFirstVisit();
 
-load().catch((error) => {
-  elements.eventList.innerHTML = `<div class="empty">无法载入雷达数据：${error.message}</div>`;
-  showToast("无法连接到 UpdateRadar 服务", "error");
-});
+load()
+  .then(() => {
+    if (openSettingsFromUrl) openSettings();
+  })
+  .catch((error) => {
+    elements.eventList.innerHTML = `<div class="empty">无法载入雷达数据：${error.message}</div>`;
+    showToast("无法连接到 UpdateRadar 服务", "error");
+  });

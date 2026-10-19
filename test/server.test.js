@@ -103,3 +103,39 @@ test("an overlapping poll for a different source is not swallowed", async () => 
     await new Promise((resolve, reject) => app.close((error) => error ? reject(error) : resolve()));
   }
 });
+
+test("recommendations read poll state once for all chart sources", async () => {
+  const chartSnapshot = {
+    previousChart: [
+      { appId: 1, title: "One", ordinal: 1, icon: "https://example.test/one.png", developer: "Example" },
+      { appId: 2, title: "Two", ordinal: 2, icon: "https://example.test/two.png", developer: "Example" }
+    ]
+  };
+  const sources = [
+    { id: "free-cn", name: "Free CN", kind: "app-store-charts", enabled: true, country: "cn", chart: "top-free", platform: "iphone" },
+    { id: "paid-us", name: "Paid US", kind: "app-store-charts", enabled: true, country: "us", chart: "top-paid", platform: "ipad" }
+  ];
+  let pollStateReads = 0;
+  const app = createApp({
+    getSources: async () => sources,
+    store: {
+      sourcePollStates: async () => {
+        pollStateReads += 1;
+        return {
+          "free-cn": { chartSnapshot },
+          "paid-us": { chartSnapshot }
+        };
+      }
+    }
+  });
+  await new Promise((resolve) => app.listen(0, "127.0.0.1", resolve));
+  const { port } = app.address();
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/v1/recommendations`);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).length, 4);
+    assert.equal(pollStateReads, 1);
+  } finally {
+    await new Promise((resolve, reject) => app.close((error) => error ? reject(error) : resolve()));
+  }
+});
