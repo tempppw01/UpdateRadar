@@ -142,9 +142,12 @@ function rankChanges(previous, current) {
 }
 
 const movementLabels = {
-  new: (entry) => `新进榜 · 第 ${entry.ordinal} 名`,
-  up: (entry) => `上升 ${entry.previousOrdinal - entry.ordinal} 位 → 第 ${entry.ordinal} 名`,
-  down: (entry) => `下降 ${entry.ordinal - entry.previousOrdinal} 位 → 第 ${entry.ordinal} 名`,
+  // The current position is reported by the rank chip on the card, so the
+  // title only states what changed. A long app name plus a trailing rank
+  // used to wrap onto its own line and read like a second heading.
+  new: () => "新进榜",
+  up: (entry) => `上升 ${entry.previousOrdinal - entry.ordinal} 位`,
+  down: (entry) => `下降 ${entry.ordinal - entry.previousOrdinal} 位`,
   dropped: (entry) => `已跌出榜单（原第 ${entry.ordinal} 名）`
 };
 

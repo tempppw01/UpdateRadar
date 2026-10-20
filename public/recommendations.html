@@ -40,11 +40,17 @@
 
       <section class="recommendations" aria-label="软件推荐">
         <div class="section-heading">
-          <div class="signal-heading-title"><div><p class="eyebrow">CHART DATA</p><h2>App Store 排行榜推荐</h2></div><div class="signal-actions"><button class="sync-button" id="refresh-recommendations" type="button"><span aria-hidden="true">↻</span> 刷新</button></div></div>
-          <p class="results-count" id="results-count"></p>
+          <div class="signal-heading-title">
+            <div class="section-title">
+              <p class="eyebrow">CHART DATA</p>
+              <h2>App Store 排行榜推荐</h2>
+              <p class="results-count" id="results-count"></p>
+            </div>
+            <div class="signal-actions"><button class="sync-button" id="refresh-recommendations" type="button"><span aria-hidden="true">↻</span> 刷新</button></div>
+          </div>
         </div>
 
-        <div class="filters" aria-label="筛选推荐">
+        <div class="filters filters-inline" aria-label="筛选推荐">
           <label class="chart-filter">榜单
             <select id="chart-filter"><option value="">全部榜单</option><option value="top-free">免费榜</option><option value="top-paid">付费榜</option><option value="top-grossing">畅销榜</option></select>
           </label>

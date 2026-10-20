@@ -40,10 +40,94 @@ html[data-theme="dark"] .event-app-icon-badge { color: var(--text-muted); }
 
 /* ---------- section heading: buttons size to content instead of stretching ---------- */
 .section-heading { align-items: center; }
-.signal-heading-title { align-items: center; }
+.signal-heading-title { align-items: center; justify-content: space-between; }
 .signal-actions { align-items: center; }
 .event-view-toggle { flex: 0 0 auto; width: auto; max-width: 100%; }
 .results-count { align-self: center; }
+
+/* ---------- heading block: title and actions stay on their own lines ---------- */
+.section-title { flex: 1 1 auto; min-width: 0; }
+.signal-actions { flex: 0 1 auto; }
+.section-title .results-count { display: block; }
+
+/* ---------- filters: the tools column keeps its own width, never the whole row ---------- */
+.tag-filters { flex: 1 1 260px; }
+.filter-tools { flex: 0 1 auto; }
+.source-filter { min-width: 0; }
+.source-filter select { max-width: 200px; }
+
+/* ---------- recommendations filters: a compact pair, not two lonely ends ---------- */
+.filters-inline { justify-content: flex-start; gap: 14px 28px; }
+.chart-filter,
+.country-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #587170;
+  font: 500 10px var(--mono);
+  white-space: nowrap;
+}
+.chart-filter select,
+.country-filter select {
+  max-width: 200px;
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  padding: 5px;
+  color: var(--ink);
+  font-size: 11px;
+}
+html[data-theme="dark"] .chart-filter,
+html[data-theme="dark"] .country-filter { color: #b4cbc7; }
+
+/* ---------- search field: collapsed it must not reserve any horizontal space ---------- */
+.event-search:not(.is-expanded) input {
+  width: 0;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ---------- icon buttons: never squash, never lose their glyph contrast ---------- */
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.icon-button:hover { color: var(--on-lime); }
+
+/* ---------- dialog headings: long app names wrap instead of overflowing ---------- */
+.event-dialog-heading { flex: 1 1 auto; min-width: 0; }
+.event-dialog-heading h2 { overflow-wrap: anywhere; }
+.welcome-header > div { min-width: 0; }
+
+/* ---------- lime surfaces always carry dark text, in both themes ---------- */
+.new-source-button,
+.app-search-controls button,
+.app-result button,
+.catalog-search-controls button,
+.catalog-result button,
+.github-search-controls button,
+.github-repository-result button,
+.model-select-control button,
+.translate-button:hover,
+.download-button:hover,
+.event-search-toggle:hover,
+.timeline[data-view="cards"] .event-sync-button,
+.recommendation-meta .rank-chip { color: var(--on-lime); }
+
+/* ---------- danger surfaces follow the theme token instead of a fixed red ---------- */
+.bulk-delete-button { border-color: var(--danger); color: var(--danger); }
+.bulk-delete-button:disabled { border-color: var(--line); color: var(--text-muted); opacity: .55; }
+
+/* ---------- dialogs: soft depth instead of a hard neon slab ---------- */
+.event-dialog,
+.welcome-dialog,
+.settings-dialog { box-shadow: 0 26px 70px rgba(16, 35, 46, .26), 0 2px 0 rgba(198, 241, 53, .85); }
+html[data-theme="dark"] .event-dialog,
+html[data-theme="dark"] .welcome-dialog,
+html[data-theme="dark"] .settings-dialog { box-shadow: 0 26px 70px rgba(0, 0, 0, .55), 0 2px 0 rgba(198, 241, 53, .45); }
 
 /* ---------- card view ---------- */
 .timeline[data-view="cards"] .event-card {
@@ -132,4 +216,23 @@ html[data-theme="dark"] .event-app-icon-badge { color: var(--text-muted); }
   /* Keep the sync button in the same corner on phones instead of dropping it
      to the bottom of the card. */
   .timeline[data-view="cards"] .event-sync-button { position: absolute; top: 13px; right: 15px; margin-bottom: 0; }
+}
+
+@media (max-width: 720px) {
+  /* The heading is a block now: stack the title and the action row instead of
+     letting them fight for the same horizontal space. */
+  .signal-heading-title { flex-direction: column; align-items: stretch; gap: 12px; }
+  .section-title { flex: 0 0 auto; }
+  .signal-actions { justify-content: flex-start; }
+  /* Filters collapse into a single readable column. */
+  .filters { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+  .filters-inline { gap: 12px; }
+  .tag-filters { flex: 0 0 auto; max-width: 100%; }
+  .filter-tools { margin-left: 0; max-width: 100%; }
+  .source-filter { width: 100%; max-width: 100%; }
+  .source-filter select,
+  .chart-filter select,
+  .country-filter select { flex: 1 1 0; width: 100%; min-width: 0; max-width: 100%; }
+  .event-search { width: 100%; }
+  .event-search.is-expanded input { width: 100%; }
 }

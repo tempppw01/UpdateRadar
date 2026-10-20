@@ -76,6 +76,7 @@ const elements = {
   eventsLimitPerCategory: document.querySelector("#events-limit-per-category"),
   saveEventsSettings: document.querySelector("#save-events-settings"),
   eventDialog: document.querySelector("#event-dialog"),
+  closeEvent: document.querySelector("#close-event"),
   eventDialogTitle: document.querySelector("#event-dialog-title"),
   eventDialogMeta: document.querySelector("#event-dialog-meta"),
   eventDialogDetails: document.querySelector("#event-dialog-details"),
@@ -1502,6 +1503,7 @@ elements.eventDialog.addEventListener("click", (event) => {
   );
   if (clickedBackdrop) elements.eventDialog.close();
 });
+elements.closeEvent.addEventListener("click", () => elements.eventDialog.close());
 [elements.eventDialog, elements.settingsDialog, elements.welcomeDialog].forEach((dialog) => dialog.addEventListener("close", restoreToastToPage));
 elements.selectAllSources.addEventListener("change", () => {
   state.selectedSourceIds = elements.selectAllSources.checked ? new Set(state.sources.map((source) => source.id)) : new Set();
